@@ -34,12 +34,7 @@
 @endphp
 <aside class="sticky top-0 flex h-screen w-sidebar shrink-0 flex-col border-r border-line bg-white">
     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 pt-7 pb-5">
-        {{-- Letakkan logo Figma di public/images/logo.png, otomatis dipakai. --}}
-        @if(file_exists(public_path('images/logo.png')))
-            <img src="{{ asset('images/logo.png') }}" alt="" class="h-9 w-9 object-contain">
-        @else
-            <span class="flex h-9 w-9 items-center justify-center rounded-field bg-primary text-sm font-semibold text-white">M</span>
-        @endif
+        <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 object-contain">
         <span class="text-lg font-medium text-ink">M-SmartTax</span>
     </a>
 

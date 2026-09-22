@@ -17,7 +17,7 @@
         table { width: 100%; border-collapse: collapse; }
         .kop td { vertical-align: middle; padding: 0 0 10px; }
         .kop { border-bottom: 1.5px solid #2C2C2A; margin-bottom: 14px; }
-        .logo { width: 28px; padding: 5px 0; background: #0E5F73; color: #fff; text-align: center; font-weight: bold; font-size: 12pt; line-height: 1; }
+        .logo { width: 32px; height: 32px; }
         .kop .merek { font-size: 13pt; font-weight: bold; color: #083845; padding-left: 8px; }
         .cetak { text-align: right; color: #5F5E5A; font-size: 8.5pt; }
         h1 { font-size: 13pt; margin: 0 0 12px; text-align: center; }
@@ -39,7 +39,8 @@
 <body>
     <table class="kop">
         <tr>
-            <td style="width: 30px;"><div class="logo">M</div></td>
+            {{-- DomPDF tidak bisa memuat URL lokal, jadi logo disematkan sebagai base64. --}}
+            <td style="width: 34px;"><img class="logo" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo-ikon.png'))) }}" alt=""></td>
             <td class="merek">M-SmartTax</td>
             <td class="cetak">Dicetak {{ tanggal_id($tanggalCetak) }}</td>
         </tr>
