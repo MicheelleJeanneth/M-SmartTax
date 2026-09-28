@@ -21,6 +21,8 @@
     --color-accent: #1793B4;
     /* Warna tulisan M-SmartTax di samping logo */
     --color-merek: #003947;
+    /* Warna judul seksi di dalam kartu, misal Data Diri dan Alamat */
+    --color-subjudul: #006175;
 
     --color-ink: #2C2C2A;
     --color-ink-2: #5F5E5A;
@@ -61,4 +63,20 @@
 
 [x-cloak] {
     display: none !important;
+}
+
+/*
+ |---------------------------------------------------------------------------
+ | Satu standar kolom isian untuk seluruh halaman
+ |---------------------------------------------------------------------------
+ | Tinggi 44, radius 8, teks 15 (panduan bagian 2.4). Dipakai oleh x-input,
+ | x-input-password, x-input-locked, x-select, dan x-textarea. Ubah di sini
+ | saja bila ukurannya berubah, jangan menulis ulang kelasnya di komponen.
+ */
+@layer components {
+    .kolom-isian {
+        @apply h-11 w-full rounded-field border border-line bg-white px-3.5 text-[15px] text-ink;
+        @apply placeholder:text-ink-3/70;
+        @apply focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none;
+    }
 }

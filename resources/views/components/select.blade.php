@@ -6,9 +6,7 @@
         </label>
     @endif
     <select id="{{ $name }}" name="{{ $name }}"
-        {{ $attributes->merge(['class' =>
-            'h-11 w-full rounded-field border border-line bg-white px-3 text-[15px] text-ink
-             focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary']) }}>
+        {{ $attributes->merge(['class' => 'kolom-isian pr-9']) }}>
         @if($kosong)<option value="">{{ $kosong }}</option>@endif
         {{-- Daftar biasa ['A', 'B'] memakai teks sebagai nilai; array berkunci memakai kuncinya. --}}
         @foreach($pilihan as $nilai => $teks)

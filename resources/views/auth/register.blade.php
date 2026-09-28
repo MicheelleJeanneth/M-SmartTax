@@ -10,13 +10,13 @@
 
     <form method="POST" action="{{ route('register') }}" class="mt-8">
         @csrf
-        <x-input label="Email" name="email" type="email" wajib tinggi="h-[52px]" autocomplete="email" placeholder="nama@email.com" />
-        <x-input-password label="Kata Sandi" name="password" tinggi="h-[52px]" autocomplete="new-password"
+        <x-input label="Email" name="email" type="email" wajib autocomplete="email" placeholder="nama@email.com" />
+        <x-input-password label="Kata Sandi" name="password" autocomplete="new-password"
             placeholder="Minimal 8 karakter" bantuan="Gunakan kombinasi huruf dan angka" />
-        <x-input-password label="Ulangi Kata Sandi" name="password_confirmation" tinggi="h-[52px]" autocomplete="new-password"
+        <x-input-password label="Ulangi Kata Sandi" name="password_confirmation" autocomplete="new-password"
             placeholder="Ketik ulang kata sandi" />
 
-        <x-button type="submit" class="mt-1 !h-[52px] w-full">Daftar</x-button>
+        <x-button type="submit" class="mt-1 w-full">Daftar</x-button>
     </form>
 
     <p class="mt-7 text-center text-[15px] font-medium text-ink">

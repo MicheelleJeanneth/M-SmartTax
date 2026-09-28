@@ -5,7 +5,7 @@
     $negara = ['Indonesia', 'Singapura', 'Malaysia', 'Australia', 'Lainnya'];
 @endphp
 
-<x-card judul="Data Diri" judul-warna="accent">
+<x-card judul="Data Diri">
     @if($terkunci)
         <x-input-locked label="NIK" name="nik" :value="$p['nik'] ?? ''" bantuan="NIK tidak dapat diubah setelah disimpan." />
     @else
@@ -30,7 +30,7 @@
     </div>
 </x-card>
 
-<x-card judul="Alamat" judul-warna="accent" class="mt-6">
+<x-card judul="Alamat" class="mt-6">
     <x-input label="Alamat" name="alamat" wajib placeholder="Nama jalan dan nomor rumah" :value="$p['alamat'] ?? ''" />
 
     <div class="grid grid-cols-[1fr_1fr_2fr] gap-x-4">

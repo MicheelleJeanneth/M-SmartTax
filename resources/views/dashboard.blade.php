@@ -13,7 +13,7 @@
     <form method="GET" action="{{ route('dashboard') }}">
         <label for="tahun" class="sr-only">Tahun pajak</label>
         <select id="tahun" name="tahun" onchange="this.form.submit()"
-            class="h-11 rounded-field border border-line bg-white pr-9 pl-4 text-[15px] text-ink focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
+            class="kolom-isian w-auto pr-9">
             @foreach([2026, 2025, 2024] as $t)
                 <option value="{{ $t }}" @selected($t === $tahun)>Tahun Pajak {{ $t }}</option>
             @endforeach

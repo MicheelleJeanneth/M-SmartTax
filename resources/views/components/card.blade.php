@@ -1,6 +1,6 @@
-@props(['judul' => null, 'keterangan' => null, 'padat' => false, 'judulWarna' => 'primary'])
+@props(['judul' => null, 'keterangan' => null, 'padat' => false, 'judulWarna' => 'subjudul'])
 @php
-    $warnaJudul = ['primary' => 'text-primary', 'ink' => 'text-ink', 'accent' => 'text-accent'][$judulWarna];
+    $warnaJudul = ['primary' => 'text-primary', 'ink' => 'text-ink', 'accent' => 'text-accent', 'subjudul' => 'text-subjudul'][$judulWarna];
 @endphp
 <section {{ $attributes->merge(['class' => 'rounded-card border border-line bg-white [&>:last-child]:mb-0 ' . ($padat ? 'p-5' : 'p-6')]) }}>
     @if($judul || isset($aksi))

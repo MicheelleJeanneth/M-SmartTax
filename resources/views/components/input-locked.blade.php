@@ -6,8 +6,7 @@
     @endif
     <div class="relative">
         <input id="{{ $name }}" value="{{ $value }}" readonly disabled tabindex="-1"
-            class="h-11 w-full cursor-not-allowed rounded-field border border-line-soft bg-page pl-3.5 pr-11
-                   text-[15px] text-ink-2">
+            class="kolom-isian cursor-not-allowed border-line-soft bg-page pr-11 text-ink-2">
         <span class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-locked">
             <x-icon name="lock" :size="16" />
         </span>

@@ -6,9 +6,7 @@
         </label>
     @endif
     <textarea id="{{ $name }}" name="{{ $name }}" rows="{{ $baris }}"
-        {{ $attributes->merge(['class' =>
-            'w-full rounded-field border border-line bg-white px-3.5 py-2.5 text-[15px] text-ink
-             focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary']) }}>{{ old($name, $value) }}</textarea>
+        {{ $attributes->merge(['class' => 'kolom-isian !h-auto py-2.5']) }}>{{ old($name, $value) }}</textarea>
     @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
     @error($name)<p class="mt-1.5 text-sm text-danger">{{ $message }}</p>@enderror
 </div>

@@ -3,7 +3,7 @@
     $tahun = collect(range(date('Y'), 1990))->mapWithKeys(fn (int $t): array => [$t => $t])->all();
 @endphp
 <x-card class="max-w-[840px]">
-    <h2 class="mb-4 text-base font-medium text-primary">Data Utang</h2>
+    <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
 
     <div class="grid grid-cols-2 gap-x-6">
         <x-select label="Kode Utang" name="kode" wajib :pilihan="\App\Support\MockData::kodeUtang()"
@@ -29,7 +29,7 @@
 
     <div class="mb-6 border-t border-line-soft"></div>
 
-    <h2 class="mb-4 text-base font-medium text-primary">Data Kreditur</h2>
+    <h2 class="mb-4 text-base font-medium text-subjudul">Data Kreditur</h2>
 
     <x-input label="Nama Kreditur" name="nama_kreditur" wajib placeholder="Contoh: Bank Mandiri" :value="$u['kreditur'] ?? ''" />
 
