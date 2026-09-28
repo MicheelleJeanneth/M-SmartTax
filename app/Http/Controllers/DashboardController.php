@@ -2,32 +2,45 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AnalisisKeuangan;
+use App\Services\FilterTahun;
 use App\Support\MockData;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly FilterTahun $filterTahun,
+        private readonly AnalisisKeuangan $analisis,
+    ) {}
+
     public function __invoke(Request $request): View
     {
-        $ringkasan = MockData::ringkasan();
+        $tahun = $this->filterTahun->pilih($request->query('tahun'));
 
-        $komposisiHarta = collect(MockData::kategoriHarta())
-            ->mapWithKeys(fn (array $kategori, string $kunci): array => [
-                $kategori['singkat'] => collect(MockData::harta($kunci))->sum('nilai'),
-            ])
-            ->filter()
-            ->sortDesc();
+        $bruto = $this->analisis->peredaranBruto($tahun);
+        $harta = $this->analisis->totalHarta($tahun);
+        $utang = $this->analisis->totalUtang($tahun);
+        $pphFinal = collect(MockData::drafBulanan())->sum('pph_final');
 
         return view('dashboard', [
             'profil' => MockData::profil(),
-            'tahun' => (int) $request->query('tahun', MockData::TAHUN),
-            'ringkasan' => $ringkasan,
-            'bulan' => MockData::bulan(),
-            'bruto' => MockData::bruto(),
-            'komposisiHarta' => $komposisiHarta->map(fn (int $nilai): float => $nilai / $ringkasan['harta'] * 100),
-            'analisis' => MockData::analisis(),
-            'pengingat' => MockData::pengingat(),
+            'tahun' => $tahun,
+            'daftarTahun' => $this->filterTahun->daftar(),
+            'tahunBerjalan' => $this->filterTahun->tahunBerjalan(),
+            'bruto' => $bruto,
+            'pphFinal' => $tahun === MockData::TAHUN ? $pphFinal : 0,
+            'harta' => $harta,
+            'utang' => $utang,
+            'kekayaanBersih' => $harta - $utang,
+            'brutoPerBulan' => $this->analisis->brutoPerBulan($tahun),
+            'komposisiHarta' => $this->analisis->hartaPerKategori($tahun),
+            'pertumbuhan' => $this->analisis->pertumbuhanKekayaan($tahun),
+            'konsistensi' => $this->analisis->rasioKonsistensi($tahun),
+            'pengingat' => collect(MockData::pengingat())->sortBy('jatuh_tempo')->values()->all(),
+            // Keterangan di bawah judul bila tahun terpilih sama sekali tidak punya data.
+            'tanpaData' => $bruto === 0 && $harta === 0 && $utang === 0,
         ]);
     }
 }

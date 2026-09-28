@@ -4,17 +4,18 @@
 @section('keterangan', 'Ringkasan perpajakan dan keuangan')
 
 @php
-    // Pie komposisi harta: gradasi biru sesuai Figma, dari yang terbesar ke terkecil.
-    $warnaHarta = ['#1E5E70', '#3A93B3', '#5DBBD8', '#BDE9F7', '#E1F5FB', '#EEF9FC'];
-    $labelBulan = collect($bulan)->values();
+    // Gradasi biru untuk komposisi harta, dari kategori terbesar ke terkecil.
+    $warnaHarta = ['#1E5E70', '#3A93B3', '#5DBBD8', '#8FCBD8', '#BDE9F7', '#E1F5FB'];
+    $totalKomposisi = array_sum($komposisiHarta);
+    $labelBulan = collect(\App\Support\MockData::bulan())->values();
+    $adaPenghasilan = array_sum($brutoPerBulan) > 0;
 @endphp
 
 @section('aksi-header')
     <form method="GET" action="{{ route('dashboard') }}">
         <label for="tahun" class="sr-only">Tahun pajak</label>
-        <select id="tahun" name="tahun" onchange="this.form.submit()"
-            class="kolom-isian w-auto pr-9">
-            @foreach([2026, 2025, 2024] as $t)
+        <select id="tahun" name="tahun" onchange="this.form.submit()" class="kolom-isian w-auto pr-9">
+            @foreach($daftarTahun as $t)
                 <option value="{{ $t }}" @selected($t === $tahun)>Tahun Pajak {{ $t }}</option>
             @endforeach
         </select>
@@ -22,92 +23,145 @@
 @endsection
 
 @section('isi')
+    @if($tanpaData)
+        <p class="-mt-4 mb-6 text-[15px] text-ink-2">Belum ada data pada tahun {{ $tahun }}.</p>
+    @endif
+
     <p class="mb-3 text-xs font-medium tracking-wider text-ink-3">TAHUN PAJAK {{ $tahun }}</p>
     <div class="grid grid-cols-2 gap-4">
-        <x-stat label="Akumulasi Penghasilan" :nilai="rupiah($ringkasan['penghasilan'])" />
-        <x-stat label="PPh Final Terutang" :nilai="rupiah($ringkasan['pph_final'])" />
+        <x-stat label="Akumulasi Penghasilan" :nilai="rupiah($bruto)" />
+        <x-stat label="PPh Final Terutang" :nilai="rupiah($pphFinal)" />
     </div>
 
     <p class="mt-7 mb-3 text-xs font-medium tracking-wider text-ink-3">POSISI PER AKHIR TAHUN PAJAK</p>
     <div class="grid grid-cols-3 gap-4">
-        <x-stat varian="putih" label="Total Harta" :nilai="rupiah($ringkasan['harta'])" />
-        <x-stat varian="putih" label="Total Utang" :nilai="rupiah($ringkasan['utang'])" />
-        <x-stat varian="putih" label="Kekayaan Bersih" :nilai="rupiah($ringkasan['kekayaan_bersih'])" />
+        <x-stat varian="putih" label="Total Harta" :nilai="rupiah($harta)" />
+        <x-stat varian="putih" label="Total Utang" :nilai="rupiah($utang)" />
+        <x-stat varian="putih" label="Kekayaan Bersih" :nilai="rupiah($kekayaanBersih)" />
     </div>
 
     <div class="mt-4 grid grid-cols-2 gap-4">
         <x-card judul="Grafik Penghasilan Bulanan" judul-warna="ink" padat>
-            <div class="h-[124px]"><canvas id="grafik-penghasilan" role="img" aria-label="Grafik batang penghasilan bulanan Januari sampai Desember"></canvas></div>
-            <p class="mt-2 text-sm text-ink-3">Januari sampai Desember</p>
+            @if($adaPenghasilan)
+                <div class="h-[124px]"><canvas id="grafik-penghasilan" role="img" aria-label="Grafik batang penghasilan bulanan Januari sampai Desember"></canvas></div>
+                <p class="mt-2 text-sm text-ink-3">Januari sampai Desember</p>
+            @else
+                <div class="flex h-[150px] flex-col items-center justify-center gap-2 text-center">
+                    <p class="text-sm text-ink-2">Belum ada data penghasilan pada tahun ini</p>
+                    <a href="{{ route('penghasilan.index') }}" class="rounded text-sm font-medium text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Buka Data Penghasilan</a>
+                </div>
+            @endif
         </x-card>
 
         <x-card judul="Komposisi Harta" judul-warna="ink" padat>
-            <div class="flex items-center gap-8">
-                <div class="h-[150px] w-[150px] shrink-0">
-                    <canvas id="grafik-harta" role="img" aria-label="Grafik lingkaran komposisi harta"></canvas>
+            @if($komposisiHarta)
+                <div class="flex items-center gap-8">
+                    <div class="h-[150px] w-[150px] shrink-0">
+                        <canvas id="grafik-harta" role="img" aria-label="Grafik lingkaran komposisi harta"></canvas>
+                    </div>
+                    <ul class="space-y-1.5 text-[13px] text-ink-2">
+                        @foreach($komposisiHarta as $nama => $nilai)
+                            <li class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 shrink-0 rounded-[2px]" style="background: {{ $warnaHarta[$loop->index] }}"></span>
+                                {{ $nama }} {{ persen($nilai / $totalKomposisi * 100, 0) }}
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
-                <ul class="space-y-1.5 text-[13px] text-ink-2">
-                    @foreach($komposisiHarta as $nama => $persen)
-                        <li class="flex items-center gap-2">
-                            <span class="h-2.5 w-2.5 shrink-0 rounded-[2px]" style="background: {{ $warnaHarta[$loop->index] }}"></span>
-                            {{ $nama }} {{ persen($persen, 0) }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
+            @else
+                <div class="flex h-[150px] flex-col items-center justify-center gap-2 text-center">
+                    <p class="text-sm text-ink-2">Belum ada data harta</p>
+                    <a href="{{ route('harta.index') }}" class="rounded text-sm font-medium text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Buka Data Harta</a>
+                </div>
+            @endif
         </x-card>
     </div>
 
     <div class="mt-4 grid grid-cols-2 gap-4">
         <x-card judul="Analisis Pertumbuhan Kekayaan" judul-warna="ink" padat>
-            <div class="-mt-1 text-[15px] text-ink-2">
-                <div class="flex justify-between py-1.5"><span>Akhir {{ $tahun - 1 }}</span><span class="tabular-nums">{{ rupiah($analisis['kekayaan_lalu']) }}</span></div>
-                <div class="flex justify-between py-1.5"><span>Akhir {{ $tahun }}</span><span class="tabular-nums">{{ rupiah($analisis['kekayaan_kini']) }}</span></div>
-            </div>
-            <div class="mt-2 flex items-center gap-4 border-t border-line-soft pt-3">
-                <span class="inline-flex min-w-[110px] justify-center rounded-field bg-ok-bg px-4 py-2 text-sm font-medium text-ok-ink">+ {{ persen($analisis['pertumbuhan_persen'], 2) }}</span>
-                <span class="text-[15px] text-ink-3 tabular-nums">{{ rupiah($analisis['pertumbuhan']) }}</span>
-            </div>
+            @php
+                // Tahun berjalan memakai nama bulan sekarang, tahun yang sudah lewat memakai "Akhir".
+                $labelKini = $tahun === $tahunBerjalan ? now()->translatedFormat('F Y') : 'Akhir ' . $tahun;
+            @endphp
+
+            @if($pertumbuhan['ada_pembanding'])
+                <div class="-mt-1 text-[15px] text-ink-2">
+                    <div class="flex justify-between py-1.5"><span>Akhir {{ $tahun - 1 }}</span><span class="tabular-nums">{{ rupiah($pertumbuhan['kekayaan_lalu']) }}</span></div>
+                    <div class="flex justify-between py-1.5"><span>{{ $labelKini }}</span><span class="tabular-nums">{{ rupiah($pertumbuhan['kekayaan_kini']) }}</span></div>
+                </div>
+                <div class="mt-2 flex items-center gap-4 border-t border-line-soft pt-3">
+                    @if($pertumbuhan['persen'] !== null)
+                        @php $naik = $pertumbuhan['selisih'] >= 0; @endphp
+                        <span class="inline-flex min-w-[110px] justify-center rounded-field px-4 py-2 text-sm font-medium {{ $naik ? 'bg-ok-bg text-ok-ink' : 'bg-warn-bg text-danger' }}">
+                            {{ $naik ? '+' : '−' }} {{ persen(abs($pertumbuhan['persen']), 2) }}
+                        </span>
+                    @endif
+                    <span class="text-[15px] tabular-nums {{ $pertumbuhan['selisih'] >= 0 ? 'text-ok-ink' : 'text-danger' }}">
+                        {{ $pertumbuhan['selisih'] >= 0 ? '' : '− ' }}{{ rupiah(abs($pertumbuhan['selisih'])) }}
+                    </span>
+                </div>
+            @else
+                <div class="-mt-1 text-[15px] text-ink-2">
+                    <div class="flex justify-between py-1.5"><span>{{ $labelKini }}</span><span class="tabular-nums">{{ rupiah($pertumbuhan['kekayaan_kini']) }}</span></div>
+                </div>
+                <p class="mt-2 border-t border-line-soft pt-3 text-sm text-ink-3">Pertumbuhan akan muncul setelah draf tahunan pertama tersusun</p>
+            @endif
         </x-card>
 
         <x-card judul="Analisis Konsistensi Harta" judul-warna="ink" padat>
-            <div class="-mt-2 text-[15px] text-ink-2">
-                <div class="flex justify-between py-1"><span>Pertambahan harta</span><span class="tabular-nums">{{ rupiah($analisis['pertambahan_harta']) }}</span></div>
-                <div class="flex justify-between py-1"><span>Pertambahan utang</span><span class="tabular-nums">{{ rupiah($analisis['pertambahan_utang']) }}</span></div>
-                <div class="flex justify-between py-1"><span>Selisih bersih</span><span class="tabular-nums">{{ rupiah($analisis['selisih_bersih']) }}</span></div>
-            </div>
-            @php
-                [$gayaStatus, $teksStatus] = match ($analisis['status']) {
-                    'tinjau' => ['bg-warn-bg text-warn-ink', 'Perlu Ditinjau'],
-                    'periksa' => ['bg-danger/10 text-danger', 'Perlu Diperiksa'],
-                    default => ['bg-ok-bg text-ok-ink', 'Normal'],
-                };
-            @endphp
-            <div class="mt-2 flex items-center gap-4 border-t border-line-soft pt-3">
-                <span class="inline-flex min-w-[110px] justify-center rounded-field px-4 py-2 text-sm font-medium {{ $gayaStatus }}">{{ $teksStatus }}</span>
-                <span class="text-[15px] text-ink-3">Rasio {{ persen($analisis['rasio']) }}</span>
-            </div>
+            @if($konsistensi['ada_pembanding'])
+                <div class="-mt-2 text-[15px] text-ink-2">
+                    <div class="flex justify-between py-1"><span>Pertambahan harta</span><span class="tabular-nums">{{ rupiah($konsistensi['pertambahan_harta']) }}</span></div>
+                    <div class="flex justify-between py-1"><span>Pertambahan utang</span><span class="tabular-nums">{{ rupiah($konsistensi['pertambahan_utang']) }}</span></div>
+                    <div class="flex justify-between py-1"><span>Selisih bersih</span><span class="tabular-nums">{{ rupiah($konsistensi['pertambahan_bersih']) }}</span></div>
+                </div>
+                @if($konsistensi['rasio'] !== null)
+                    @php
+                        [$gayaStatus, $teksStatus] = match ($konsistensi['status']) {
+                            'tinjau' => ['bg-warn-bg text-warn-ink', 'Perlu Ditinjau'],
+                            'periksa' => ['bg-warn-bg text-danger', 'Perlu Diperiksa'],
+                            default => ['bg-ok-bg text-ok-ink', 'Normal'],
+                        };
+                    @endphp
+                    <div class="mt-2 flex items-center gap-4 border-t border-line-soft pt-3">
+                        <span class="inline-flex min-w-[110px] justify-center rounded-field px-4 py-2 text-sm font-medium {{ $gayaStatus }}">{{ $teksStatus }}</span>
+                        <span class="text-[15px] text-ink-3">Rasio {{ angka($konsistensi['rasio'], 2) }}</span>
+                    </div>
+                @else
+                    <p class="mt-2 border-t border-line-soft pt-3 text-sm text-ink-3">Rasio belum dapat dihitung karena belum ada peredaran bruto pada tahun ini</p>
+                @endif
+            @else
+                <p class="text-sm text-ink-3">Analisis akan muncul setelah draf tahunan pertama tersusun</p>
+            @endif
         </x-card>
     </div>
 
     <x-card judul="Pengingat" judul-warna="ink" padat class="mt-4">
-        <x-slot:aksi>
-            <span class="rounded-full bg-warn-bg px-3 py-1 text-sm text-warn-ink">{{ count($pengingat) }} belum dibaca</span>
-        </x-slot:aksi>
-        <ul class="-mt-1 divide-y divide-line-soft">
-            @foreach($pengingat as $p)
-                <li class="flex items-center gap-4 py-3">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-field {{ $p['nada'] === 'kuning' ? 'bg-warn-bg text-warn-ink' : 'bg-primary-soft text-primary-ink' }}">
-                        <x-icon :name="$p['ikon']" :size="18" />
-                    </span>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-[15px] text-ink">{{ $p['judul'] }}</p>
-                        <p class="text-[13px] text-ink-3">{{ $p['keterangan'] }}</p>
-                    </div>
-                    <a href="{{ route($p['rute']) }}" class="rounded text-[15px] text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{{ $p['aksi'] }}</a>
-                </li>
-            @endforeach
-        </ul>
+        @php $belumDibaca = collect($pengingat)->where('dibaca', false)->count(); @endphp
+        @if($belumDibaca)
+            <x-slot:aksi>
+                <span class="rounded-full bg-warn-bg px-3 py-1 text-sm text-warn-ink">{{ $belumDibaca }} belum dibaca</span>
+            </x-slot:aksi>
+        @endif
+
+        @if($pengingat)
+            <ul class="-mt-1 divide-y divide-line-soft">
+                @foreach($pengingat as $p)
+                    <li class="flex items-center gap-4 py-3">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-field {{ $p['dibaca'] ? 'bg-page text-ink-3' : 'bg-warn-bg text-warn-ink' }}">
+                            <x-icon :name="$p['ikon']" :size="18" />
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[15px] {{ $p['dibaca'] ? 'text-ink-2' : 'font-medium text-ink' }}">{{ $p['judul'] }}</p>
+                            <p class="text-[13px] text-ink-3">{{ $p['pesan'] }} · Jatuh tempo {{ tanggal_id($p['jatuh_tempo']) }}</p>
+                        </div>
+                        <a href="{{ route($p['rute']) }}" class="rounded text-[15px] text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{{ $p['aksi'] }}</a>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <p class="py-2 text-sm text-ink-2">Tidak ada pengingat saat ini</p>
+        @endif
     </x-card>
 @endsection
 
@@ -115,13 +169,14 @@
 <script type="module">
     const rupiah = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 
-    // Grafik batang: tanpa sumbu dan garis bantu, sesuai Figma. Nilai tampil saat disorot.
+    @if($adaPenghasilan)
+    // Grafik batang: dua belas bulan, tanpa sumbu dan garis bantu.
     new Chart(document.getElementById('grafik-penghasilan'), {
         type: 'bar',
         data: {
             labels: @json($labelBulan),
             datasets: [{
-                data: @json(array_values($bruto)),
+                data: @json(array_values($brutoPerBulan)),
                 backgroundColor: '#4191B0',
                 hoverBackgroundColor: '#0E5F73',
                 borderRadius: { topLeft: 3, topRight: 3 },
@@ -139,23 +194,26 @@
             scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
         },
     });
+    @endif
 
+    @if($komposisiHarta)
     new Chart(document.getElementById('grafik-harta'), {
         type: 'pie',
         data: {
-            labels: @json($komposisiHarta->keys()),
+            labels: @json(array_keys($komposisiHarta)),
             datasets: [{
-                data: @json($komposisiHarta->values()),
-                backgroundColor: @json(array_slice($warnaHarta, 0, $komposisiHarta->count())),
+                data: @json(array_values($komposisiHarta)),
+                backgroundColor: @json(array_slice($warnaHarta, 0, count($komposisiHarta))),
                 borderWidth: 0,
             }],
         },
         options: {
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: (c) => ' ' + c.label + ': ' + c.parsed.toLocaleString('id-ID', { maximumFractionDigits: 0 }) + '%' } },
+                tooltip: { callbacks: { label: (c) => ' ' + c.label + ': ' + rupiah(c.parsed) } },
             },
         },
     });
+    @endif
 </script>
 @endpush

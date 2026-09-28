@@ -111,18 +111,47 @@ class MockData
         return $baris;
     }
 
-    /** Transaksi penghasilan (halaman Data Penghasilan & rincian susun draf). */
+    /**
+     * Transaksi penghasilan tahun berjalan, diturunkan dari peredaran bruto bulanan
+     * supaya angka di Dashboard, Data Penghasilan, dan Draf Bulanan selalu sama.
+     *
+     * @return array<int, array{id: int, tanggal: string, nominal: int, keterangan: string, terkunci: bool}>
+     */
     public static function penghasilan(): array
     {
-        return [
-            ['id' => 1, 'tanggal' => '2026-07-03', 'nominal' => 34_000_000, 'keterangan' => 'Penjualan katalog Juli minggu ke-1', 'terkunci' => false],
-            ['id' => 2, 'tanggal' => '2026-07-09', 'nominal' => 38_000_000, 'keterangan' => 'Pesanan korporat PT Anugerah', 'terkunci' => false],
-            ['id' => 3, 'tanggal' => '2026-07-17', 'nominal' => 29_000_000, 'keterangan' => 'Penjualan marketplace', 'terkunci' => false],
-            ['id' => 4, 'tanggal' => '2026-07-25', 'nominal' => 35_000_000, 'keterangan' => 'Penjualan katalog Juli minggu ke-4', 'terkunci' => false],
-            ['id' => 5, 'tanggal' => '2026-06-28', 'nominal' => 45_000_000, 'keterangan' => 'Penjualan katalog Juni', 'terkunci' => true],
-            ['id' => 6, 'tanggal' => '2026-06-14', 'nominal' => 42_000_000, 'keterangan' => 'Pesanan korporat CV Mandiri', 'terkunci' => true],
-            ['id' => 7, 'tanggal' => '2026-06-05', 'nominal' => 38_000_000, 'keterangan' => 'Penjualan marketplace', 'terkunci' => true],
+        $contoh = [
+            'Penjualan katalog minggu ke-1',
+            'Pesanan korporat',
+            'Penjualan marketplace',
+            'Penjualan katalog minggu ke-4',
         ];
+
+        $baris = [];
+        $id = 1;
+
+        foreach (self::bruto() as $bulan => $nilai) {
+            if ($nilai === 0) {
+                continue;
+            }
+
+            // Dibagi empat transaksi; sisa pembagian ditaruh di transaksi terakhir.
+            $porsi = intdiv($nilai, 4_000_000) * 1_000_000;
+
+            foreach ([5, 12, 19, 26] as $urutan => $hari) {
+                $nominal = $urutan === 3 ? $nilai - ($porsi * 3) : $porsi;
+
+                $baris[] = [
+                    'id' => $id++,
+                    'tanggal' => sprintf('%d-%02d-%02d', self::TAHUN, $bulan, $hari),
+                    'nominal' => $nominal,
+                    'keterangan' => $contoh[$urutan],
+                    // Penghasilan bulan yang drafnya sudah tersusun ikut terkunci.
+                    'terkunci' => $bulan <= self::BULAN_TERSUSUN,
+                ];
+            }
+        }
+
+        return $baris;
     }
 
     /** Definisi enam kategori harta: label kolom nilai dan kolom khasnya. */
@@ -173,20 +202,20 @@ class MockData
     {
         return match ($kategori) {
             'kas' => [
-                ['id' => 1, 'kode' => '011', 'nama' => 'Rekening Operasional', 'tahun' => 2021, 'nilai' => 62_000_000, 'nilai_kini' => 64_500_000, 'khas' => ['Bank Mandiri', '1400012345678', 'Budi Santoso'], 'terkunci' => false],
-                ['id' => 2, 'kode' => '012', 'nama' => 'Deposito Berjangka', 'tahun' => 2023, 'nilai' => 120_000_000, 'nilai_kini' => 126_000_000, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
+                ['id' => 1, 'kode' => '011', 'nama' => 'Rekening Operasional', 'tahun' => 2021, 'nilai' => 62_000_000, 'nilai_kini' => 64_500_000, 'tahun_pelepasan' => null, 'khas' => ['Bank Mandiri', '1400012345678', 'Budi Santoso'], 'terkunci' => false],
+                ['id' => 2, 'kode' => '012', 'nama' => 'Deposito Berjangka', 'tahun' => 2023, 'nilai' => 120_000_000, 'nilai_kini' => 126_000_000, 'tahun_pelepasan' => null, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
             ],
             'piutang' => [],
             'investasi' => [],
             'bergerak' => [
-                ['id' => 6, 'kode' => '041', 'nama' => 'Mobil Toyota Avanza 2022', 'tahun' => 2022, 'nilai' => 112_000_000, 'nilai_kini' => 98_000_000, 'khas' => ['L 1234 BS', 'Milik Sendiri'], 'terkunci' => true],
-                ['id' => 7, 'kode' => '042', 'nama' => 'Motor Honda Vario', 'tahun' => 2023, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'khas' => ['L 5678 BS', 'Milik Sendiri'], 'terkunci' => false],
+                ['id' => 6, 'kode' => '041', 'nama' => 'Mobil Toyota Avanza 2022', 'tahun' => 2022, 'nilai' => 112_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['L 1234 BS', 'Milik Sendiri'], 'terkunci' => true],
+                ['id' => 7, 'kode' => '042', 'nama' => 'Motor Honda Vario', 'tahun' => 2023, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'tahun_pelepasan' => null, 'khas' => ['L 5678 BS', 'Milik Sendiri'], 'terkunci' => false],
             ],
             'tidak-bergerak' => [
-                ['id' => 8, 'kode' => '051', 'nama' => 'Rumah Tinggal', 'tahun' => 2020, 'nilai' => 247_000_000, 'nilai_kini' => 310_000_000, 'khas' => ['Mulyorejo, Surabaya', '120/90', 'SHM 02.11.884'], 'terkunci' => true],
+                ['id' => 8, 'kode' => '051', 'nama' => 'Rumah Tinggal', 'tahun' => 2020, 'nilai' => 247_000_000, 'nilai_kini' => 310_000_000, 'tahun_pelepasan' => null, 'khas' => ['Mulyorejo, Surabaya', '120/90', 'SHM 02.11.884'], 'terkunci' => true],
             ],
             'lainnya' => [
-                ['id' => 9, 'kode' => '061', 'nama' => 'Logam Mulia 50 gram', 'tahun' => 2024, 'nilai' => 91_000_000, 'nilai_kini' => 98_000_000, 'khas' => ['ANTM-LM-778120'], 'terkunci' => false],
+                ['id' => 9, 'kode' => '061', 'nama' => 'Logam Mulia 50 gram', 'tahun' => 2024, 'nilai' => 91_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['ANTM-LM-778120'], 'terkunci' => false],
             ],
             default => [],
         };
@@ -219,41 +248,23 @@ class MockData
     public static function drafTahunan(): array
     {
         return [
-            ['tahun' => 2026, 'draf_bulanan' => 6, 'bruto' => 780_000_000, 'pph_final' => 1_400_000, 'kekayaan_bersih' => 412_000_000, 'status' => 'belum'],
-            ['tahun' => 2025, 'draf_bulanan' => 12, 'bruto' => 742_000_000, 'pph_final' => 1_210_000, 'kekayaan_bersih' => 317_000_000, 'status' => 'tersusun'],
-            ['tahun' => 2024, 'draf_bulanan' => 12, 'bruto' => 604_000_000, 'pph_final' => 520_000, 'kekayaan_bersih' => 248_000_000, 'status' => 'tersusun'],
+            ['tahun' => 2026, 'draf_bulanan' => 6, 'bruto' => 780_000_000, 'pph_final' => 1_400_000, 'total_harta' => 650_000_000, 'total_utang' => 238_000_000, 'kekayaan_bersih' => 412_000_000, 'status' => 'belum'],
+            ['tahun' => 2025, 'draf_bulanan' => 12, 'bruto' => 742_000_000, 'pph_final' => 1_210_000, 'total_harta' => 500_000_000, 'total_utang' => 183_000_000, 'kekayaan_bersih' => 317_000_000, 'status' => 'tersusun'],
+            ['tahun' => 2024, 'draf_bulanan' => 12, 'bruto' => 604_000_000, 'pph_final' => 520_000, 'total_harta' => 410_000_000, 'total_utang' => 162_000_000, 'kekayaan_bersih' => 248_000_000, 'status' => 'tersusun'],
         ];
     }
 
     /**
-     * @return array<int, array{judul: string, keterangan: string, ikon: string, nada: string, aksi: string, rute: string}>
+     * Pengingat aktif milik pengguna, diurutkan dari jatuh tempo terdekat.
+     *
+     * @return array<int, array{judul: string, pesan: string, jatuh_tempo: string, dibaca: bool, ikon: string, aksi: string, rute: string}>
      */
     public static function pengingat(): array
     {
         return [
-            ['judul' => 'Draf pajak bulan Juli belum disusun', 'keterangan' => 'Batas setor 15 Agustus 2026', 'ikon' => 'calendar', 'nada' => 'kuning', 'aksi' => 'Susun', 'rute' => 'draf-bulanan.index'],
-            ['judul' => 'Data harta belum dilengkapi tahun ini', 'keterangan' => 'Diperlukan sebelum menyusun draf tahunan', 'ikon' => 'list', 'nada' => 'biru', 'aksi' => 'Lengkapi', 'rute' => 'harta.index'],
-            ['judul' => 'Data utang belum diperbarui tahun ini', 'keterangan' => 'Periksa saldo utang per akhir tahun pajak', 'ikon' => 'list', 'nada' => 'biru', 'aksi' => 'Perbarui', 'rute' => 'utang.index'],
-        ];
-    }
-
-    /**
-     * Angka kartu analisis dashboard (mengikuti Figma).
-     *
-     * @return array<string, int|float|string>
-     */
-    public static function analisis(): array
-    {
-        return [
-            'kekayaan_lalu' => 317_000_000,
-            'kekayaan_kini' => 412_000_000,
-            'pertumbuhan' => 95_000_000,
-            'pertumbuhan_persen' => 29.97,
-            'pertambahan_harta' => 350_000_000,
-            'pertambahan_utang' => 255_000_000,
-            'selisih_bersih' => 95_000_000,
-            'rasio' => 0.2,
-            'status' => 'normal',
+            ['judul' => 'Draf pajak bulan Juli belum disusun', 'pesan' => 'Susun draf sebelum batas penyetoran', 'jatuh_tempo' => '2026-08-15', 'dibaca' => false, 'ikon' => 'calendar', 'aksi' => 'Susun', 'rute' => 'draf-bulanan.index'],
+            ['judul' => 'Data harta belum dilengkapi tahun ini', 'pesan' => 'Diperlukan sebelum menyusun draf tahunan', 'jatuh_tempo' => '2026-12-31', 'dibaca' => false, 'ikon' => 'list', 'aksi' => 'Lengkapi', 'rute' => 'harta.index'],
+            ['judul' => 'Data utang belum diperbarui tahun ini', 'pesan' => 'Periksa saldo utang per akhir tahun pajak', 'jatuh_tempo' => '2026-12-31', 'dibaca' => true, 'ikon' => 'list', 'aksi' => 'Perbarui', 'rute' => 'utang.index'],
         ];
     }
 

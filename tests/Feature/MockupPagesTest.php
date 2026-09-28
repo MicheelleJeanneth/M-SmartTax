@@ -14,7 +14,7 @@ class MockupPagesTest extends TestCase
     {
         $uri = [
             '/login', '/register', '/profil/lengkapi', '/dashboard',
-            '/penghasilan', '/penghasilan/create', '/penghasilan/1/edit',
+            '/penghasilan', '/penghasilan/create', '/penghasilan/25/edit',
             '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1', '/harta/kas/1/ubah',
             '/utang', '/utang/create', '/utang/2', '/utang/2/edit',
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
@@ -37,7 +37,7 @@ class MockupPagesTest extends TestCase
 
     public function test_data_terkunci_tidak_bisa_diubah_lewat_url(): void
     {
-        $this->get('/penghasilan/5/edit')->assertForbidden();
+        $this->get('/penghasilan/1/edit')->assertForbidden();
         $this->get('/harta/kas/2/ubah')->assertForbidden();
         $this->get('/utang/1/edit')->assertForbidden();
     }
@@ -72,6 +72,19 @@ class MockupPagesTest extends TestCase
 
         // Keluar mengembalikan keadaan awal.
         $this->post('/logout')->assertRedirect('/login');
+    }
+
+    public function test_filter_tahun_dashboard(): void
+    {
+        // Tahun tidak valid kembali ke tahun berjalan.
+        $this->get('/dashboard?tahun=99')->assertOk()->assertSee('TAHUN PAJAK 2026');
+        $this->get('/dashboard?tahun=1899')->assertOk()->assertSee('TAHUN PAJAK 2026');
+
+        // Tahun dalam rentang tetap dipakai, meski datanya kosong.
+        $this->get('/dashboard?tahun=2021')
+            ->assertOk()
+            ->assertSee('TAHUN PAJAK 2021')
+            ->assertSee('Belum ada data penghasilan pada tahun ini');
     }
 
     public function test_pdf_laporan_dapat_diunduh(): void
