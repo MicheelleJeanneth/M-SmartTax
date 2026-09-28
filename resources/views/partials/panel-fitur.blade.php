@@ -1,12 +1,12 @@
 {{-- Panel kanan login & registrasi. Lingkaran corak dipotong oleh overflow-hidden. --}}
-<div class="relative flex h-full min-h-screen items-center overflow-hidden bg-primary-ink px-6 py-16 lg:px-24">
-    <div class="pointer-events-none absolute -top-24 -right-24 h-[420px] w-[420px] rounded-full bg-white/[0.08]"></div>
-    <div class="pointer-events-none absolute -bottom-28 -left-24 h-[320px] w-[320px] rounded-full bg-white/[0.07]"></div>
-    <div class="pointer-events-none absolute -right-16 -bottom-32 h-[280px] w-[280px] rounded-full bg-white/[0.05]"></div>
+<div class="relative flex h-full min-h-screen items-center overflow-hidden bg-panel px-6 py-16 lg:px-24">
+    <div class="pointer-events-none absolute -top-24 -right-24 h-[420px] w-[420px] rounded-full bg-panel-corak"></div>
+    <div class="pointer-events-none absolute -bottom-28 -left-24 h-[320px] w-[320px] rounded-full bg-panel-corak"></div>
+    <div class="pointer-events-none absolute -right-16 -bottom-32 h-[280px] w-[280px] rounded-full bg-panel-corak"></div>
 
     <div class="relative w-full max-w-[540px] text-white">
         <h2 class="text-[40px] leading-[1.15] font-medium">Susun draf pajak sebelum melapor</h2>
-        <p class="mt-5 text-base leading-relaxed text-dark-2">
+        <p class="mt-5 text-base leading-relaxed text-dark-3">
             Catat penghasilan, harta, dan utang usaha Anda. M-SmartTax menghitung PPh Final 0,5% sesuai PP Nomor 20 Tahun 2026.
         </p>
 

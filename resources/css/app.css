@@ -42,7 +42,10 @@
     --color-warn-bg: #FAEEDA;
     --color-warn-ink: #412402;
 
-    --color-dark-2: #9BC9D6;
+    /* Panel gelap pada halaman tamu */
+    --color-panel: #003947;
+    --color-panel-corak: #004C5F;
+    --color-dark-2: #8FCBD8;
     --color-dark-3: #CBF2FF;
 
     --radius-card: 12px;
