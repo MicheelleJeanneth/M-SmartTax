@@ -24,7 +24,7 @@
                     class="h-[18px] w-[18px] rounded-[4px] border-line text-primary focus:ring-2 focus:ring-accent">
                 Ingat saya
             </label>
-            <a href="#" class="rounded text-[15px] text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Lupa kata sandi?</a>
+            <a href="#" class="rounded text-[15px] text-tautan hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Lupa kata sandi?</a>
         </div>
 
         <x-button type="submit" class="!h-[52px] w-full">Masuk</x-button>

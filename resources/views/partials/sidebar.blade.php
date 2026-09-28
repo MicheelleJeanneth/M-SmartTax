@@ -35,7 +35,7 @@
 <aside class="sticky top-0 flex h-screen w-sidebar shrink-0 flex-col border-r border-line bg-white">
     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 pt-7 pb-5">
         <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 object-contain">
-        <span class="text-lg font-medium text-ink">M-SmartTax</span>
+        <span class="text-lg font-medium text-merek">M-SmartTax</span>
     </a>
 
     <nav class="flex-1 overflow-y-auto pb-4" aria-label="Menu utama">
