@@ -145,13 +145,24 @@
         @endif
 
         @if($pengingat)
-            <ul class="-mt-1 divide-y divide-line-soft">
-                @foreach($pengingat as $p)
+            {{--
+                Daftar bergulir sendiri bila isinya lebih dari tiga sampai empat pengingat.
+                Kepala kartu tetap di tempatnya karena berada di luar bagian ini.
+                Memakai tinggi maksimal, bukan tinggi tetap, supaya kartu menyusut saat pengingatnya sedikit.
+            --}}
+            <div class="relative"
+                 x-data="{ diBawah: true }"
+                 x-init="$nextTick(() => { const d = $refs.daftar; diBawah = d.scrollHeight <= d.clientHeight + 2 })">
+                <ul x-ref="daftar" tabindex="0" role="group" aria-label="Daftar pengingat"
+                    @scroll="diBawah = $el.scrollTop + $el.clientHeight >= $el.scrollHeight - 2"
+                    class="daftar-gulir -mt-1 max-h-[280px] divide-y divide-line-soft overflow-y-auto rounded-field
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                    @foreach($pengingat as $p)
                     <li>
                         {{-- Menekan pengingat menandainya dibaca lalu membuka halaman terkait. --}}
                         <form method="POST" action="{{ route('pengingat.buka', $p['jenis']) }}">
                             @csrf
-                            <button type="submit" class="flex w-full items-center gap-3 rounded-field py-3 text-left transition hover:bg-page focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                            <button type="submit" class="flex w-full items-center gap-3 rounded-field py-3 pr-1 text-left transition hover:bg-page focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
                                 <span class="h-2 w-2 shrink-0 rounded-full {{ $p['dibaca'] ? 'bg-transparent' : 'bg-accent' }}" aria-hidden="true"></span>
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-field {{ $p['dibaca'] ? 'bg-page text-ink-3' : 'bg-warn-bg text-warn-ink' }}">
                                     <x-icon :name="$p['ikon']" :size="18" />
@@ -167,8 +178,13 @@
                             </button>
                         </form>
                     </li>
-                @endforeach
-            </ul>
+                    @endforeach
+                </ul>
+
+                {{-- Gradasi tipis sebagai penanda masih ada pengingat di bawah. --}}
+                <div x-show="!diBawah" x-transition.opacity aria-hidden="true"
+                     class="pointer-events-none absolute inset-x-0 -bottom-px h-10 bg-gradient-to-t from-white to-transparent"></div>
+            </div>
         @else
             <p class="py-2 text-sm text-ink-2">Tidak ada pengingat saat ini</p>
         @endif

@@ -84,3 +84,25 @@
         @apply focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none;
     }
 }
+
+/*
+ | Batang gulir tipis yang selalu terlihat pada daftar yang bisa digulir.
+ | Di macOS batang gulir bawaan hanya muncul saat digulir, sehingga pengguna
+ | tidak tahu masih ada isi di bawah.
+ */
+.daftar-gulir {
+    scrollbar-gutter: stable;
+}
+
+.daftar-gulir::-webkit-scrollbar {
+    width: 6px;
+}
+
+.daftar-gulir::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 999px;
+}
+
+.daftar-gulir::-webkit-scrollbar-track {
+    background: transparent;
+}
