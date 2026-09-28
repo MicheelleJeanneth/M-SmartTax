@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\AnalisisKeuangan;
 use App\Services\FilterTahun;
+use App\Services\Pengingat;
 use App\Support\MockData;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,6 +14,7 @@ class DashboardController extends Controller
     public function __construct(
         private readonly FilterTahun $filterTahun,
         private readonly AnalisisKeuangan $analisis,
+        private readonly Pengingat $pengingat,
     ) {}
 
     public function __invoke(Request $request): View
@@ -38,7 +40,8 @@ class DashboardController extends Controller
             'komposisiHarta' => $this->analisis->hartaPerKategori($tahun),
             'pertumbuhan' => $this->analisis->pertumbuhanKekayaan($tahun),
             'konsistensi' => $this->analisis->rasioKonsistensi($tahun),
-            'pengingat' => collect(MockData::pengingat())->sortBy('jatuh_tempo')->values()->all(),
+            // Pengingat dihitung ulang setiap Dashboard dibuka.
+            'pengingat' => $this->pengingat->segarkan(),
             // Keterangan di bawah judul bila tahun terpilih sama sekali tidak punya data.
             'tanpaData' => $bruto === 0 && $harta === 0 && $utang === 0,
         ]);

@@ -87,6 +87,17 @@ class MockupPagesTest extends TestCase
             ->assertSee('Belum ada data penghasilan pada tahun ini');
     }
 
+    public function test_pengingat_dihitung_dan_dapat_ditandai_dibaca(): void
+    {
+        $this->get('/dashboard')
+            ->assertSee('Draf pajak Juli 2026 belum disusun')
+            ->assertSee('Ambang bebas pajak telah terlampaui')
+            ->assertSee('3 belum dibaca');
+
+        $this->post('/pengingat/draf_bulanan_2026_07/buka')->assertRedirect('/draf-bulanan');
+        $this->get('/dashboard')->assertSee('2 belum dibaca');
+    }
+
     public function test_pdf_laporan_dapat_diunduh(): void
     {
         $this->get('/laporan/utang/unduh')

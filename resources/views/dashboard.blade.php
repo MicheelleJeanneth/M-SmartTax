@@ -147,15 +147,25 @@
         @if($pengingat)
             <ul class="-mt-1 divide-y divide-line-soft">
                 @foreach($pengingat as $p)
-                    <li class="flex items-center gap-4 py-3">
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-field {{ $p['dibaca'] ? 'bg-page text-ink-3' : 'bg-warn-bg text-warn-ink' }}">
-                            <x-icon :name="$p['ikon']" :size="18" />
-                        </span>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-[15px] {{ $p['dibaca'] ? 'text-ink-2' : 'font-medium text-ink' }}">{{ $p['judul'] }}</p>
-                            <p class="text-[13px] text-ink-3">{{ $p['pesan'] }} · Jatuh tempo {{ tanggal_id($p['jatuh_tempo']) }}</p>
-                        </div>
-                        <a href="{{ route($p['rute']) }}" class="rounded text-[15px] text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{{ $p['aksi'] }}</a>
+                    <li>
+                        {{-- Menekan pengingat menandainya dibaca lalu membuka halaman terkait. --}}
+                        <form method="POST" action="{{ route('pengingat.buka', $p['jenis']) }}">
+                            @csrf
+                            <button type="submit" class="flex w-full items-center gap-3 rounded-field py-3 text-left transition hover:bg-page focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                                <span class="h-2 w-2 shrink-0 rounded-full {{ $p['dibaca'] ? 'bg-transparent' : 'bg-accent' }}" aria-hidden="true"></span>
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-field {{ $p['dibaca'] ? 'bg-page text-ink-3' : 'bg-warn-bg text-warn-ink' }}">
+                                    <x-icon :name="$p['ikon']" :size="18" />
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-[15px] {{ $p['dibaca'] ? 'text-ink-2' : 'font-medium text-ink' }}">{{ $p['judul'] }}</span>
+                                    <span class="block text-[13px] text-ink-3">
+                                        {{ $p['pesan'] }}
+                                        @if($p['jatuh_tempo'])· Jatuh tempo {{ tanggal_id($p['jatuh_tempo']) }}@endif
+                                    </span>
+                                </span>
+                                <span class="shrink-0 pr-2 text-[15px] text-accent">{{ $p['aksi'] }}</span>
+                            </button>
+                        </form>
                     </li>
                 @endforeach
             </ul>

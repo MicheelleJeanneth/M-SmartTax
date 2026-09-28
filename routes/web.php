@@ -9,6 +9,7 @@ use App\Http\Controllers\HartaController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PanduanController;
 use App\Http\Controllers\PenghasilanController;
+use App\Http\Controllers\PengingatController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\SimulasiController;
 use App\Http\Controllers\UtangController;
@@ -82,6 +83,10 @@ Route::middleware('profil.lengkap')->group(function () {
     Route::get('/profil', [ProfilController::class, 'show'])->name('profil.show');
     Route::get('/profil/ubah', [ProfilController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
+
+    Route::post('/pengingat/{jenis}/buka', [PengingatController::class, 'buka'])
+        ->name('pengingat.buka')
+        ->where('jenis', '[a-z0-9_]+');
 
     Route::get('/panduan', PanduanController::class)->name('panduan');
 });

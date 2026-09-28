@@ -24,6 +24,23 @@ class MockData
         ];
     }
 
+    /**
+     * Konfigurasi pajak yang berlaku pada suatu tahun.
+     *
+     * Angka ambang tidak boleh ditulis langsung di kode, semuanya dibaca dari sini.
+     *
+     * @return array{tarif_final: float, ambang_bebas: int, ambang_maksimal: int, dasar_hukum: string}
+     */
+    public static function konfigurasiPajak(int $tahun = self::TAHUN): array
+    {
+        return [
+            'tarif_final' => 0.5,
+            'ambang_bebas' => 500_000_000,
+            'ambang_maksimal' => 4_800_000_000,
+            'dasar_hukum' => 'PP Nomor 20 Tahun 2026',
+        ];
+    }
+
     public static function profil(): array
     {
         return [
@@ -255,20 +272,6 @@ class MockData
     }
 
     /**
-     * Pengingat aktif milik pengguna, diurutkan dari jatuh tempo terdekat.
-     *
-     * @return array<int, array{judul: string, pesan: string, jatuh_tempo: string, dibaca: bool, ikon: string, aksi: string, rute: string}>
-     */
-    public static function pengingat(): array
-    {
-        return [
-            ['judul' => 'Draf pajak bulan Juli belum disusun', 'pesan' => 'Susun draf sebelum batas penyetoran', 'jatuh_tempo' => '2026-08-15', 'dibaca' => false, 'ikon' => 'calendar', 'aksi' => 'Susun', 'rute' => 'draf-bulanan.index'],
-            ['judul' => 'Data harta belum dilengkapi tahun ini', 'pesan' => 'Diperlukan sebelum menyusun draf tahunan', 'jatuh_tempo' => '2026-12-31', 'dibaca' => false, 'ikon' => 'list', 'aksi' => 'Lengkapi', 'rute' => 'harta.index'],
-            ['judul' => 'Data utang belum diperbarui tahun ini', 'pesan' => 'Periksa saldo utang per akhir tahun pajak', 'jatuh_tempo' => '2026-12-31', 'dibaca' => true, 'ikon' => 'list', 'aksi' => 'Perbarui', 'rute' => 'utang.index'],
-        ];
-    }
-
-    /**
      * Rekap 12 bulan untuk tahun yang drafnya sudah lengkap (dipakai Susun/Lihat Draf Tahunan).
      *
      * @return array<int, array{nama: string, bruto: int, akumulasi: int, omzet_kena_pajak: int, pph_final: int}>
@@ -308,7 +311,8 @@ class MockData
         $akumulasiSebelum = array_sum(array_slice($bruto, 0, $bulan - 1, true));
         $brutoBulanIni = $bruto[$bulan];
         $akumulasi = $akumulasiSebelum + $brutoBulanIni;
-        $batasBebas = 500_000_000;
+        $konfigurasi = self::konfigurasiPajak();
+        $batasBebas = $konfigurasi['ambang_bebas'];
         $omzetKenaPajak = max(0, min($akumulasi - $batasBebas, $brutoBulanIni));
 
         $transaksi = collect(self::penghasilan())
@@ -327,8 +331,8 @@ class MockData
             'batasBebas' => $batasBebas,
             'sisaBebas' => max(0, $batasBebas - $akumulasiSebelum),
             'omzetKenaPajak' => $omzetKenaPajak,
-            'tarif' => 0.5,
-            'pphFinal' => (int) round($omzetKenaPajak * 0.005),
+            'tarif' => $konfigurasi['tarif_final'],
+            'pphFinal' => (int) round($omzetKenaPajak * $konfigurasi['tarif_final'] / 100),
             'nihil' => $brutoBulanIni === 0,
         ];
     }
