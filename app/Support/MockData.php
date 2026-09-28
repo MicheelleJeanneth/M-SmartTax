@@ -188,7 +188,7 @@ class MockData
                 'kolom' => ['Nama Peminjam', 'NIK/NPWP'],
             ],
             'investasi' => [
-                'nama' => 'Investasi',
+                'nama' => 'Investasi / Sekuritas',
                 'singkat' => 'Investasi',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nama Penerbit', 'Nomor Akun'],

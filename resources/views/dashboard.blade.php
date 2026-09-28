@@ -4,8 +4,16 @@
 @section('keterangan', 'Ringkasan perpajakan dan keuangan')
 
 @php
-    // Gradasi biru untuk komposisi harta, dari kategori terbesar ke terkecil.
-    $warnaHarta = ['#1E5E70', '#3A93B3', '#5DBBD8', '#8FCBD8', '#BDE9F7', '#E1F5FB'];
+    // Gradasi biru untuk keenam kategori harta, urutannya tetap.
+    $warnaHarta = [
+        'kas' => '#0E2A33',
+        'piutang' => '#285F73',
+        'investasi' => '#4294B5',
+        'bergerak' => '#5FBFD8',
+        'tidak-bergerak' => '#CBF2FD',
+        'lainnya' => '#E7F9FE',
+    ];
+    $namaKategori = collect(\App\Support\MockData::kategoriHarta())->map(fn (array $k): string => $k['nama']);
     $totalKomposisi = array_sum($komposisiHarta);
     $labelBulan = collect(\App\Support\MockData::bulan())->values();
     $adaPenghasilan = array_sum($brutoPerBulan) > 0;
@@ -54,16 +62,17 @@
         </x-card>
 
         <x-card judul="Komposisi Harta" judul-warna="ink" padat>
-            @if($komposisiHarta)
+            @if($totalKomposisi > 0)
                 <div class="flex items-center gap-8">
                     <div class="h-[150px] w-[150px] shrink-0">
                         <canvas id="grafik-harta" role="img" aria-label="Grafik lingkaran komposisi harta"></canvas>
                     </div>
-                    <ul class="space-y-1.5 text-[13px] text-ink-2">
-                        @foreach($komposisiHarta as $nama => $nilai)
-                            <li class="flex items-center gap-2">
-                                <span class="h-2.5 w-2.5 shrink-0 rounded-[2px]" style="background: {{ $warnaHarta[$loop->index] }}"></span>
-                                {{ $nama }} {{ persen($nilai / $totalKomposisi * 100, 0) }}
+                    {{-- Keenam kategori selalu tampil, termasuk yang bernilai nol. --}}
+                    <ul class="space-y-2 text-[13px] text-ink-2">
+                        @foreach($komposisiHarta as $kunci => $nilai)
+                            <li class="flex items-center gap-2.5">
+                                <span class="h-3 w-3 shrink-0 rounded-[3px]" style="background: {{ $warnaHarta[$kunci] }}"></span>
+                                {{ $namaKategori[$kunci] }} {{ persen($nilai / $totalKomposisi * 100, 0) }}
                             </li>
                         @endforeach
                     </ul>
@@ -222,14 +231,15 @@
     });
     @endif
 
-    @if($komposisiHarta)
+    @if($totalKomposisi > 0)
+    // Kategori bernilai nol tidak menggambar bagian apa pun pada diagram.
     new Chart(document.getElementById('grafik-harta'), {
         type: 'pie',
         data: {
-            labels: @json(array_keys($komposisiHarta)),
+            labels: @json($namaKategori->values()),
             datasets: [{
                 data: @json(array_values($komposisiHarta)),
-                backgroundColor: @json(array_slice($warnaHarta, 0, count($komposisiHarta))),
+                backgroundColor: @json(array_values($warnaHarta)),
                 borderWidth: 0,
             }],
         },

@@ -69,7 +69,10 @@ class AnalisisKeuangan
     }
 
     /**
-     * Nilai harta per kategori, kategori kosong tidak disertakan.
+     * Nilai harta untuk keenam kategori, urut tetap.
+     *
+     * Kategori tanpa harta tetap disertakan bernilai nol supaya selalu muncul
+     * di legenda; pada diagram lingkaran bagiannya memang tidak tergambar.
      *
      * @return array<string, int>
      */
@@ -78,14 +81,8 @@ class AnalisisKeuangan
         $kategori = [];
 
         foreach (MockData::kategoriHarta() as $kunci => $info) {
-            $nilai = collect($this->harta($tahun, $kunci))->sum('nilai');
-
-            if ($nilai > 0) {
-                $kategori[$info['singkat']] = $nilai;
-            }
+            $kategori[$kunci] = collect($this->harta($tahun, $kunci))->sum('nilai');
         }
-
-        arsort($kategori);
 
         return $kategori;
     }
