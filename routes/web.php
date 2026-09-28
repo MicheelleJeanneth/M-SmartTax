@@ -37,7 +37,7 @@ Route::post('/profil/lengkapi', [ProfilController::class, 'simpanLengkapi']);
 Route::middleware('profil.lengkap')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    Route::resource('penghasilan', PenghasilanController::class)->except('show')
+    Route::resource('penghasilan', PenghasilanController::class)
         ->parameters(['penghasilan' => 'id']);
 
     $kategori = 'kas|piutang|investasi|bergerak|tidak-bergerak|lainnya';

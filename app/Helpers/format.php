@@ -45,6 +45,18 @@ if (! function_exists('tanggal_id')) {
     }
 }
 
+if (! function_exists('tanggal_singkat')) {
+    /** 03 Jun 2026 */
+    function tanggal_singkat(DateTimeInterface|string|null $tanggal): string
+    {
+        if (blank($tanggal)) {
+            return '-';
+        }
+
+        return Carbon::parse($tanggal)->translatedFormat('d M Y');
+    }
+}
+
 if (! function_exists('terbilang')) {
     /** "empat juta delapan ratus ribu rupiah" — dipakai pada kotak hasil draf. */
     function terbilang(int|float|null $nilai): string

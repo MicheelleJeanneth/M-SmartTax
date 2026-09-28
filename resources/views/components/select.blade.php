@@ -1,4 +1,5 @@
 @props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'pilihan' => [], 'terpilih' => null, 'bantuan' => null, 'kosong' => 'Pilih salah satu'])
+@php $pilihan = collect($pilihan)->all(); @endphp
 <div class="{{ $rapat ? '' : 'mb-5' }}">
     @if($label)
         <label for="{{ $name }}" class="mb-2 block text-[15px] text-label">
