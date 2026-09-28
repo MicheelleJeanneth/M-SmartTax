@@ -29,13 +29,13 @@
                     <x-row label="Tempat, tanggal lahir">{{ $profil['tempat_lahir'] }}, {{ tanggal_id($profil['tanggal_lahir']) }}</x-row>
                     <x-row label="Jenis kelamin">{{ $profil['jenis_kelamin'] }}</x-row>
                     <x-row label="Kewarganegaraan">{{ $profil['kewarganegaraan'] }}</x-row>
-                    <x-row label="Nomor telepon">{{ $profil['telepon'] }}</x-row>
+                    <x-row label="Nomor handphone">{{ $profil['telepon'] }}</x-row>
                 </div>
             </x-card>
             <x-card judul="Alamat">
                 <div class="divide-y divide-line-soft">
                     <x-row label="Alamat">{{ $profil['alamat'] }}</x-row>
-                    <x-row label="RT / RW">{{ $profil['rt_rw'] }}</x-row>
+                    <x-row label="RT / RW">{{ $profil['rt'] }} / {{ $profil['rw'] }}</x-row>
                     <x-row label="Kelurahan">{{ $profil['kelurahan'] }}</x-row>
                     <x-row label="Kecamatan">{{ $profil['kecamatan'] }}</x-row>
                     <x-row label="Kota / Kabupaten">{{ $profil['kota'] }}</x-row>

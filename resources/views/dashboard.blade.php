@@ -36,12 +36,12 @@
     </div>
 
     <div class="mt-4 grid grid-cols-2 gap-4">
-        <x-card judul="Grafik Penghasilan Bulanan" judul-ink padat>
+        <x-card judul="Grafik Penghasilan Bulanan" judul-warna="ink" padat>
             <div class="h-[124px]"><canvas id="grafik-penghasilan" role="img" aria-label="Grafik batang penghasilan bulanan Januari sampai Desember"></canvas></div>
             <p class="mt-2 text-sm text-ink-3">Januari sampai Desember</p>
         </x-card>
 
-        <x-card judul="Komposisi Harta" judul-ink padat>
+        <x-card judul="Komposisi Harta" judul-warna="ink" padat>
             <div class="flex items-center gap-8">
                 <div class="h-[150px] w-[150px] shrink-0">
                     <canvas id="grafik-harta" role="img" aria-label="Grafik lingkaran komposisi harta"></canvas>
@@ -59,7 +59,7 @@
     </div>
 
     <div class="mt-4 grid grid-cols-2 gap-4">
-        <x-card judul="Analisis Pertumbuhan Kekayaan" judul-ink padat>
+        <x-card judul="Analisis Pertumbuhan Kekayaan" judul-warna="ink" padat>
             <div class="-mt-1 text-[15px] text-ink-2">
                 <div class="flex justify-between py-1.5"><span>Akhir {{ $tahun - 1 }}</span><span class="tabular-nums">{{ rupiah($analisis['kekayaan_lalu']) }}</span></div>
                 <div class="flex justify-between py-1.5"><span>Akhir {{ $tahun }}</span><span class="tabular-nums">{{ rupiah($analisis['kekayaan_kini']) }}</span></div>
@@ -70,7 +70,7 @@
             </div>
         </x-card>
 
-        <x-card judul="Analisis Konsistensi Harta" judul-ink padat>
+        <x-card judul="Analisis Konsistensi Harta" judul-warna="ink" padat>
             <div class="-mt-2 text-[15px] text-ink-2">
                 <div class="flex justify-between py-1"><span>Pertambahan harta</span><span class="tabular-nums">{{ rupiah($analisis['pertambahan_harta']) }}</span></div>
                 <div class="flex justify-between py-1"><span>Pertambahan utang</span><span class="tabular-nums">{{ rupiah($analisis['pertambahan_utang']) }}</span></div>
@@ -90,7 +90,7 @@
         </x-card>
     </div>
 
-    <x-card judul="Pengingat" judul-ink padat class="mt-4">
+    <x-card judul="Pengingat" judul-warna="ink" padat class="mt-4">
         <x-slot:aksi>
             <span class="rounded-full bg-warn-bg px-3 py-1 text-sm text-warn-ink">{{ count($pengingat) }} belum dibaca</span>
         </x-slot:aksi>
