@@ -28,7 +28,7 @@
             @endforeach
         </ul>
 
-        <p class="mt-10 border-t border-white/15 pt-6 text-sm leading-relaxed text-dark-2">
+        <p class="mt-10 border-t border-white/15 pt-6 text-sm leading-relaxed text-dark-3">
             Draf disusun secara mandiri. Penyetoran dan pelaporan tetap dilakukan melalui saluran resmi Direktorat Jenderal Pajak.
         </p>
     </div>
