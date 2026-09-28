@@ -18,14 +18,11 @@
         <x-input label="Email" name="email" type="email" wajib tinggi="h-[52px]" autocomplete="email" placeholder="nama@email.com" />
         <x-input-password label="Kata Sandi" name="password" tinggi="h-[52px]" autocomplete="current-password" rapat />
 
-        <div class="mt-3 mb-6 flex items-center justify-between gap-4">
-            <label class="flex items-center gap-2.5 text-[15px] text-ink">
-                <input type="checkbox" name="remember" value="1"
-                    class="h-[18px] w-[18px] rounded-[4px] border-line text-primary focus:ring-2 focus:ring-accent">
-                Ingat saya
-            </label>
-            <a href="#" class="rounded text-[15px] text-tautan hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Lupa kata sandi?</a>
-        </div>
+        <label class="mt-3 mb-6 flex w-fit items-center gap-2.5 text-[15px] text-ink">
+            <input type="checkbox" name="remember" value="1"
+                class="h-[18px] w-[18px] rounded-[4px] border-line text-primary focus:ring-2 focus:ring-accent">
+            Ingat saya
+        </label>
 
         <x-button type="submit" class="!h-[52px] w-full">Masuk</x-button>
     </form>
