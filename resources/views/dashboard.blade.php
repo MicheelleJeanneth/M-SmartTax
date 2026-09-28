@@ -15,7 +15,8 @@
     ];
     $namaKategori = collect(\App\Support\MockData::kategoriHarta())->map(fn (array $k): string => $k['nama']);
     $totalKomposisi = array_sum($komposisiHarta);
-    $labelBulan = collect(\App\Support\MockData::bulan())->values();
+    $bulanPenuh = collect(\App\Support\MockData::bulan())->values();
+    $bulanSingkat = $bulanPenuh->map(fn (string $nama): string => mb_substr($nama, 0, 3));
     $adaPenghasilan = array_sum($brutoPerBulan) > 0;
 @endphp
 
@@ -51,8 +52,9 @@
     <div class="mt-4 grid grid-cols-2 gap-4">
         <x-card judul="Grafik Penghasilan Bulanan" judul-warna="ink" padat>
             @if($adaPenghasilan)
-                <div class="h-[124px]"><canvas id="grafik-penghasilan" role="img" aria-label="Grafik batang penghasilan bulanan Januari sampai Desember"></canvas></div>
-                <p class="mt-2 text-sm text-ink-3">Januari sampai Desember</p>
+                {{-- Judul sumbu Y ditulis mendatar di atas sumbu, bukan diputar tegak. --}}
+                <p class="mb-1 text-xs font-medium text-ink-2">Penghasilan (juta rupiah)</p>
+                <div class="h-[200px]"><canvas id="grafik-penghasilan" role="img" aria-label="Grafik batang penghasilan bulanan Januari sampai Desember"></canvas></div>
             @else
                 <div class="flex h-[150px] flex-col items-center justify-center gap-2 text-center">
                     <p class="text-sm text-ink-2">Belum ada data penghasilan pada tahun ini</p>
@@ -205,11 +207,14 @@
     const rupiah = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 
     @if($adaPenghasilan)
-    // Grafik batang: dua belas bulan, tanpa sumbu dan garis bantu.
+    const bulanPenuh = @json($bulanPenuh);
+    const huruf = { family: getComputedStyle(document.body).fontFamily, size: 12 };
+
+    // Grafik batang: dua belas bulan, sumbu Y dalam satuan juta rupiah.
     new Chart(document.getElementById('grafik-penghasilan'), {
         type: 'bar',
         data: {
-            labels: @json($labelBulan),
+            labels: @json($bulanSingkat),
             datasets: [{
                 data: @json(array_values($brutoPerBulan)),
                 backgroundColor: '#4191B0',
@@ -224,9 +229,33 @@
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } },
+                tooltip: {
+                    displayColors: false,
+                    callbacks: {
+                        title: () => '',
+                        label: (c) => bulanPenuh[c.dataIndex] + ' {{ $tahun }} · ' + rupiah(c.parsed.y),
+                    },
+                },
             },
-            scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    border: { color: '#E5E3DC' },
+                    ticks: { color: '#7A7975', font: huruf, maxRotation: 0, autoSkip: false },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#E5E3DC' },
+                    border: { display: false },
+                    ticks: {
+                        color: '#7A7975',
+                        font: huruf,
+                        maxTicksLimit: 5,
+                        // Satuan juta: batang setinggi 150 berarti Rp 150.000.000.
+                        callback: (nilai) => (nilai / 1e6).toLocaleString('id-ID'),
+                    },
+                },
+            },
         },
     });
     @endif
