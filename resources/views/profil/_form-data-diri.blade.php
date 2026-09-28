@@ -2,7 +2,6 @@
 @php
     $p = $profil ?? [];
     $terkunci = $terkunci ?? false;
-    $negara = ['Indonesia', 'Singapura', 'Malaysia', 'Australia', 'Lainnya'];
 @endphp
 
 <x-card judul="Data Diri">
@@ -23,8 +22,9 @@
     <x-radio label="Jenis Kelamin" name="jenis_kelamin" wajib :pilihan="['Pria', 'Wanita']" :terpilih="$p['jenis_kelamin'] ?? null" />
 
     <div class="grid grid-cols-2 gap-x-4">
-        <x-select label="Kewarganegaraan" name="kewarganegaraan" wajib :pilihan="$negara"
-            :terpilih="$p['kewarganegaraan'] ?? 'Indonesia'" :kosong="false" />
+        {{-- M-SmartTax hanya untuk wajib pajak WNI, jadi kolom ini tetap tampil tetapi terkunci. --}}
+        <x-input-locked label="Kewarganegaraan" name="kewarganegaraan" value="WNI"
+            bantuan="M-SmartTax hanya untuk wajib pajak berkewarganegaraan Indonesia." />
         <x-input label="Nomor Handphone" name="nomor_handphone" type="tel" wajib
             placeholder="08xx xxxx xxxx" :value="$p['telepon'] ?? ''" />
     </div>
@@ -43,7 +43,6 @@
         <x-input label="Kecamatan" name="kecamatan" wajib placeholder="Contoh: Rungkut" :value="$p['kecamatan'] ?? ''" />
         <x-input label="Kota" name="kota" wajib placeholder="Contoh: Surabaya" :value="$p['kota'] ?? ''" />
         <x-input label="Provinsi" name="provinsi" wajib placeholder="Contoh: Jawa Timur" :value="$p['provinsi'] ?? ''" />
-        {{-- Negara satu-satunya kolom yang terisi sejak awal. --}}
-        <x-input label="Negara" name="negara" wajib :value="$p['negara'] ?? 'Indonesia'" />
+        <x-input-locked label="Negara" name="negara" value="Indonesia" :bantuan="null" />
     </div>
 </x-card>

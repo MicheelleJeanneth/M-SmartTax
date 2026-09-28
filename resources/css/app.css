@@ -74,6 +74,10 @@
  | saja bila ukurannya berubah, jangan menulis ulang kelasnya di komponen.
  */
 @layer components {
+    .kolom-isian:user-invalid {
+        @apply border-danger focus:border-danger focus:ring-danger;
+    }
+
     .kolom-isian {
         @apply h-11 w-full rounded-field border border-line bg-white px-3.5 text-[15px] text-ink;
         @apply placeholder:text-ink-3/70;

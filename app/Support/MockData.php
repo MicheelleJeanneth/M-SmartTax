@@ -35,7 +35,7 @@ class MockData
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1990-09-05',
             'jenis_kelamin' => 'Pria',
-            'kewarganegaraan' => 'Indonesia',
+            'kewarganegaraan' => 'WNI',
             'telepon' => '0812-3456-7890',
             'alamat' => 'Jl. Raya Kertajaya Indah No. 42',
             'rt' => '004',
