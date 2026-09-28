@@ -19,6 +19,8 @@ class ProfilController extends Controller
      */
     public function simpanLengkapi(Request $request): RedirectResponse
     {
+        $request->session()->put('profil_lengkap', true);
+
         return redirect()->route('dashboard')->with('sukses', 'Profil tersimpan. Selamat datang di M-SmartTax.');
     }
 

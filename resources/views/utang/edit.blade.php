@@ -7,6 +7,6 @@
     <form method="POST" action="{{ route('utang.update', $utang['id']) }}">
         @csrf
         @method('PUT')
-        @include('utang._form', ['tombol' => 'Simpan Perubahan'])
+        @include('utang._form', ['tombol' => 'Simpan'])
     </form>
 @endsection

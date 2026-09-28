@@ -26,7 +26,6 @@
             <x-card judul="Data Diri">
                 <div class="divide-y divide-line-soft">
                     <x-row label="NIK">{{ $profil['nik'] }}</x-row>
-                    <x-row label="NPWP">{{ $profil['npwp'] }}</x-row>
                     <x-row label="Tempat, tanggal lahir">{{ $profil['tempat_lahir'] }}, {{ tanggal_id($profil['tanggal_lahir']) }}</x-row>
                     <x-row label="Jenis kelamin">{{ $profil['jenis_kelamin'] }}</x-row>
                     <x-row label="Kewarganegaraan">{{ $profil['kewarganegaraan'] }}</x-row>
@@ -40,7 +39,7 @@
                     <x-row label="Kelurahan">{{ $profil['kelurahan'] }}</x-row>
                     <x-row label="Kecamatan">{{ $profil['kecamatan'] }}</x-row>
                     <x-row label="Kota / Kabupaten">{{ $profil['kota'] }}</x-row>
-                    <x-row label="Provinsi">{{ $profil['provinsi'] }} {{ $profil['kode_pos'] }}</x-row>
+                    <x-row label="Provinsi">{{ $profil['provinsi'] }}</x-row>
                     <x-row label="Negara">{{ $profil['negara'] }}</x-row>
                 </div>
             </x-card>
@@ -52,7 +51,7 @@
                     <x-icon name="shield-check" :size="20" class="text-primary" />
                     <div>
                         <p class="text-[15px] text-ink">Kata sandi</p>
-                        <p class="text-sm text-ink-3">Terakhir diubah 12 Maret 2026</p>
+                        <p class="text-sm text-ink-3">Perbarui kata sandi secara berkala untuk menjaga keamanan akun.</p>
                     </div>
                 </div>
                 <x-button varian="secondary">Ubah Kata Sandi</x-button>

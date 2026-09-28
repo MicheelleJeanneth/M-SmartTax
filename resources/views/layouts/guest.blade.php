@@ -11,7 +11,7 @@
     <div class="flex min-h-screen">
         {{-- Panel kiri: form. Lebar isi 440, rata tengah. --}}
         <div class="flex w-full items-center justify-center bg-white px-8 py-12 lg:w-1/2">
-            <div class="w-full max-w-[440px]">
+            <div class="w-full max-w-[636px]">
                 @yield('isi')
             </div>
         </div>

@@ -32,7 +32,6 @@ class MockData
             'peran' => 'Wajib Pajak UMKM',
             'email' => 'budi.santoso@example.com',
             'nik' => '3578010509900002',
-            'npwp' => '09.254.294.8-617.000',
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1990-09-05',
             'jenis_kelamin' => 'Laki-laki',
@@ -44,7 +43,6 @@ class MockData
             'kecamatan' => 'Mulyorejo',
             'kota' => 'Surabaya',
             'provinsi' => 'Jawa Timur',
-            'kode_pos' => '60116',
             'negara' => 'Indonesia',
             'profil_lengkap' => true,
         ];
@@ -193,12 +191,27 @@ class MockData
         };
     }
 
+    /**
+     * Kode utang sesuai lampiran SPT.
+     *
+     * @return array<string, string>
+     */
+    public static function kodeUtang(): array
+    {
+        return [
+            '101' => '101 - Utang Bank / LKBB',
+            '102' => '102 - Kartu Kredit',
+            '103' => '103 - Utang Afiliasi',
+            '109' => '109 - Utang Lainnya',
+        ];
+    }
+
     public static function utang(): array
     {
         return [
-            ['id' => 1, 'kode' => '101', 'kreditur' => 'Bank Mandiri', 'jenis' => 'Kredit Pemilikan Rumah', 'tahun' => 2020, 'saldo' => 180_000_000, 'terkunci' => true],
-            ['id' => 2, 'kode' => '102', 'kreditur' => 'Bank BCA', 'jenis' => 'Kredit Kendaraan Bermotor', 'tahun' => 2022, 'saldo' => 45_000_000, 'terkunci' => false],
-            ['id' => 3, 'kode' => '103', 'kreditur' => 'Koperasi Sejahtera', 'jenis' => 'Utang Usaha', 'tahun' => 2025, 'saldo' => 13_000_000, 'terkunci' => false],
+            ['id' => 1, 'kode' => '101', 'deskripsi' => 'KPR rumah tinggal', 'kreditur' => 'Bank Mandiri', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2020, 'tahun_pelunasan' => null, 'saldo' => 180_000_000, 'cicilan' => 4_100_000, 'keterangan' => 'Angsuran ke-73 dari 180', 'terkunci' => true],
+            ['id' => 2, 'kode' => '101', 'deskripsi' => 'Kredit kendaraan bermotor', 'kreditur' => 'Bank BCA', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2022, 'tahun_pelunasan' => null, 'saldo' => 45_000_000, 'cicilan' => 1_750_000, 'keterangan' => null, 'terkunci' => false],
+            ['id' => 3, 'kode' => '109', 'deskripsi' => 'Pinjaman modal usaha', 'kreditur' => 'Koperasi Sejahtera', 'nik_kreditur' => '3578012207800004', 'negara' => 'Indonesia', 'tahun' => 2025, 'tahun_pelunasan' => null, 'saldo' => 13_000_000, 'cicilan' => null, 'keterangan' => 'Dibayar sekaligus saat jatuh tempo', 'terkunci' => false],
         ];
     }
 
@@ -360,7 +373,7 @@ class MockData
                 'total_harta' => 650_000_000,
                 'total_utang' => 238_000_000,
                 'kekayaan_bersih' => 412_000_000,
-                'cicilan_berjalan' => 6_400_000,
+                'cicilan_berjalan' => collect(self::utang())->sum('cicilan'),
             ],
             'rencana' => [
                 'harga_aset' => 450_000_000,

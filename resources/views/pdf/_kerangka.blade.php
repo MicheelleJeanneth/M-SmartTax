@@ -50,8 +50,8 @@
 
     <table class="identitas">
         <tr><td class="l">Nama</td><td>: {{ $profil['nama'] }}</td></tr>
-        <tr><td class="l">NIK / NPWP</td><td>: {{ $profil['nik'] }} / {{ $profil['npwp'] }}</td></tr>
-        <tr><td class="l">Alamat</td><td>: {{ $profil['alamat'] }}, {{ $profil['kelurahan'] }}, {{ $profil['kecamatan'] }}, {{ $profil['kota'] }} {{ $profil['kode_pos'] }}</td></tr>
+        <tr><td class="l">NIK</td><td>: {{ $profil['nik'] }}</td></tr>
+        <tr><td class="l">Alamat</td><td>: {{ $profil['alamat'] }}, {{ $profil['kelurahan'] }}, {{ $profil['kecamatan'] }}, {{ $profil['kota'] }}</td></tr>
         <tr><td class="l">Periode</td><td>: @yield('periode')</td></tr>
     </table>
 

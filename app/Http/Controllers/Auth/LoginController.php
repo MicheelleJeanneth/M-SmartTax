@@ -15,15 +15,22 @@ class LoginController extends Controller
     }
 
     /**
-     * Mockup: belum ada autentikasi, langsung diarahkan ke dashboard.
+     * Setelah masuk, kelengkapan profil diperiksa: belum lengkap menuju Lengkapi Profil,
+     * sudah lengkap menuju Dashboard.
+     *
+     * Mockup: belum ada autentikasi, kelengkapan profil dibaca dari session.
      */
     public function store(Request $request): RedirectResponse
     {
-        return redirect()->route('dashboard');
+        return $request->session()->get('profil_lengkap', true) === false
+            ? redirect()->route('profil.lengkapi')
+            : redirect()->route('dashboard');
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $request->session()->forget('profil_lengkap');
+
         return redirect()->route('login');
     }
 }

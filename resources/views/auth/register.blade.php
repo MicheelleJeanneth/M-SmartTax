@@ -5,21 +5,22 @@
     @include('partials.logo')
 
     {{-- Registrasi tidak memakai penanda langkah (panduan 8.1). --}}
-    <h1 class="mt-8 text-[28px] leading-tight font-medium text-ink">Buat akun baru</h1>
-    <p class="mt-2 text-base text-ink-2">Daftar dengan email Anda. Data diri dilengkapi setelah masuk.</p>
+    <h1 class="mt-14 text-[34px] leading-tight font-medium text-ink">Buat akun</h1>
+    <p class="mt-1.5 text-base text-ink-2">Mulai menyusun draf pajak Anda sendiri</p>
 
     <form method="POST" action="{{ route('register') }}" class="mt-8">
         @csrf
-        <x-input label="Email" name="email" type="email" wajib autocomplete="email" placeholder="nama@email.com" />
-        <x-input-password label="Kata Sandi" name="password" autocomplete="new-password"
-            bantuan="Gunakan kombinasi huruf dan angka" />
-        <x-input-password label="Ulangi Kata Sandi" name="password_confirmation" autocomplete="new-password" />
+        <x-input label="Email" name="email" type="email" wajib tinggi="h-[52px]" autocomplete="email" placeholder="nama@email.com" />
+        <x-input-password label="Kata Sandi" name="password" tinggi="h-[52px]" autocomplete="new-password"
+            placeholder="Minimal 8 karakter" bantuan="Gunakan kombinasi huruf dan angka" />
+        <x-input-password label="Ulangi Kata Sandi" name="password_confirmation" tinggi="h-[52px]" autocomplete="new-password"
+            placeholder="Ketik ulang kata sandi" />
 
-        <x-button type="submit" class="mt-2 w-full">Daftar</x-button>
+        <x-button type="submit" class="mt-1 !h-[52px] w-full">Daftar</x-button>
     </form>
 
-    <p class="mt-6 text-center text-[15px] text-ink-2">
+    <p class="mt-7 text-center text-[15px] font-medium text-ink">
         Sudah punya akun?
-        <a href="{{ route('login') }}" class="font-medium text-primary hover:underline">Masuk</a>
+        <a href="{{ route('login') }}" class="rounded text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Masuk</a>
     </p>
 @endsection

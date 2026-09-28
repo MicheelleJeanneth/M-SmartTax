@@ -15,10 +15,13 @@ class RegisterController extends Controller
     }
 
     /**
-     * Setelah registrasi berhasil, pengguna diarahkan ke login (panduan 8.1).
+     * Akun baru tersimpan dengan profil_lengkap bernilai false, lalu pengguna
+     * diarahkan ke halaman login beserta pesan sukses.
      */
     public function store(Request $request): RedirectResponse
     {
+        $request->session()->put('profil_lengkap', false);
+
         return redirect()->route('login')->with('sukses', 'Akun berhasil dibuat. Silakan masuk.');
     }
 }

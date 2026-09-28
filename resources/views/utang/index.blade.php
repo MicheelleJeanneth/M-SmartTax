@@ -8,12 +8,12 @@
             <x-button :href="route('utang.create')"><x-icon name="plus" :size="18" /> Tambah Utang</x-button>
         </x-slot:aksi>
 
-        <x-table :kepala="['Kode', 'Nama Kreditur', 'Jenis Utang', 'Tahun Peminjaman', ['teks' => 'Saldo', 'kanan' => true], ['teks' => 'Aksi', 'kanan' => true]]">
+        <x-table :kepala="['Kode', 'Deskripsi Utang', 'Nama Kreditur', 'Tahun Peminjaman', ['teks' => 'Saldo', 'kanan' => true], ['teks' => 'Aksi', 'kanan' => true]]">
             @foreach($utang as $u)
                 <tr>
                     <td class="text-ink-2 tabular-nums">{{ $u['kode'] }}</td>
-                    <td class="font-medium">{{ $u['kreditur'] }}</td>
-                    <td class="text-ink-2">{{ $u['jenis'] }}</td>
+                    <td class="font-medium">{{ $u['deskripsi'] }}</td>
+                    <td class="text-ink-2">{{ $u['kreditur'] }}</td>
                     <td class="tabular-nums">{{ $u['tahun'] }}</td>
                     <td class="text-right tabular-nums whitespace-nowrap">{{ rupiah($u['saldo']) }}</td>
                     <td>
@@ -40,7 +40,7 @@
     @foreach(collect($utang)->where('terkunci', false) as $u)
         @include('partials.dialog-hapus', [
             'id' => 'hapus-utang-' . $u['id'],
-            'pesan' => 'Utang kepada ' . $u['kreditur'] . ' sebesar ' . rupiah($u['saldo']) . ' akan dihapus.',
+            'pesan' => $u['deskripsi'] . ' (' . $u['kreditur'] . ') sebesar ' . rupiah($u['saldo']) . ' akan dihapus.',
             'action' => route('utang.destroy', $u['id']),
         ])
     @endforeach

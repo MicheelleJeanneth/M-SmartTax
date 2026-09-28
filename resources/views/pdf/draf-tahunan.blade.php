@@ -35,13 +35,13 @@
 
     <h2>D. Utang</h2>
     <table class="data">
-        <thead><tr><th>Kode</th><th>Kreditur</th><th>Tahun</th><th class="r">Saldo</th></tr></thead>
+        <thead><tr><th>Kode</th><th>Nama Kreditur</th><th class="r">Saldo</th></tr></thead>
         <tbody>
             @foreach($utang as $u)
-                <tr><td>{{ $u['kode'] }}</td><td>{{ $u['kreditur'] }}</td><td>{{ $u['tahun'] }}</td><td class="r">{{ rupiah($u['saldo']) }}</td></tr>
+                <tr><td>{{ $u['kode'] }}</td><td>{{ $u['kreditur'] }}</td><td class="r">{{ rupiah($u['saldo']) }}</td></tr>
             @endforeach
         </tbody>
-        <tfoot><tr><td colspan="3">Total utang</td><td class="r">{{ rupiah($totalUtang) }}</td></tr></tfoot>
+        <tfoot><tr><td colspan="2">Total utang</td><td class="r">{{ rupiah($totalUtang) }}</td></tr></tfoot>
     </table>
 
     <h2>E. Kekayaan Bersih</h2>

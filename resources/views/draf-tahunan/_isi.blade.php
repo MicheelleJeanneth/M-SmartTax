@@ -40,7 +40,7 @@
     <x-card judul="{{ $ringkas ? 'Utang' : 'C. Lampiran Utang' }}">
         <div class="divide-y divide-line-soft">
             @foreach($utang as $u)
-                <x-row :label="$u['kreditur'] . ' · ' . $u['jenis']">{{ rupiah($u['saldo']) }}</x-row>
+                <x-row :label="$u['deskripsi'] . ' · ' . $u['kreditur']">{{ rupiah($u['saldo']) }}</x-row>
             @endforeach
             <x-row label="Total Utang" tebal>{{ rupiah($totalUtang) }}</x-row>
         </div>

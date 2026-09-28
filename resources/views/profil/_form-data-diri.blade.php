@@ -22,7 +22,6 @@
     <x-textarea label="Alamat Lengkap" name="alamat" wajib :baris="2" placeholder="Nama jalan dan nomor rumah" :value="$p['alamat'] ?? ''" />
     <div class="grid grid-cols-2 gap-x-4">
         <x-input label="RT / RW" name="rt_rw" placeholder="001 / 002" :value="$p['rt_rw'] ?? ''" />
-        <x-input label="Kode Pos" name="kode_pos" inputmode="numeric" :value="$p['kode_pos'] ?? ''" />
         <x-input label="Kelurahan / Desa" name="kelurahan" wajib :value="$p['kelurahan'] ?? ''" />
         <x-input label="Kecamatan" name="kecamatan" wajib :value="$p['kecamatan'] ?? ''" />
         <x-input label="Kota / Kabupaten" name="kota" wajib :value="$p['kota'] ?? ''" />

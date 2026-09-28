@@ -49,6 +49,31 @@ class MockupPagesTest extends TestCase
             ->assertDontSee(route('draf-bulanan.create', ['bulan' => 8]), false);
     }
 
+    public function test_judul_halaman_dan_sapaan_dashboard_tampil(): void
+    {
+        $this->get('/profil')->assertSee('<h1', false)->assertSee('Profil')->assertDontSee('@yield', false);
+        $this->get('/dashboard')->assertSee('Hi, Budi Santoso')->assertDontSee('@yield', false);
+    }
+
+    public function test_alur_registrasi_sampai_dashboard(): void
+    {
+        $this->post('/register')->assertRedirect('/login');
+        $this->get('/login')->assertSee('Akun berhasil dibuat');
+
+        // Profil belum lengkap: login dan URL langsung sama-sama diarahkan ke Lengkapi Profil.
+        $this->post('/login')->assertRedirect('/profil/lengkapi');
+        $this->get('/dashboard')->assertRedirect('/profil/lengkapi');
+        $this->get('/harta/kas')->assertRedirect('/profil/lengkapi');
+        $this->get('/profil/lengkapi')->assertOk();
+
+        // Setelah profil tersimpan, seluruh halaman terbuka.
+        $this->post('/profil/lengkapi')->assertRedirect('/dashboard');
+        $this->get('/dashboard')->assertOk();
+
+        // Keluar mengembalikan keadaan awal.
+        $this->post('/logout')->assertRedirect('/login');
+    }
+
     public function test_pdf_laporan_dapat_diunduh(): void
     {
         $this->get('/laporan/utang/unduh')

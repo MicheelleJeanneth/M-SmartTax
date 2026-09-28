@@ -12,6 +12,7 @@
                 <x-row label="Kekayaan bersih">{{ rupiah($kondisi['kekayaan_bersih']) }}</x-row>
                 <x-row label="Cicilan berjalan per bulan" tebal>{{ rupiah($kondisi['cicilan_berjalan']) }}</x-row>
             </div>
+            <p class="mt-3 text-[13px] text-ink-3">Cicilan berjalan dijumlahkan dari utang yang diangsur berkala pada Data Utang.</p>
         </x-card>
 
         <x-card judul="Rencana Pembelian" class="xl:col-span-3">
