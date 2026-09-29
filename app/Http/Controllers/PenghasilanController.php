@@ -32,7 +32,8 @@ class PenghasilanController extends Controller
                     && ($bulan === 0 || (int) $tanggal->month === $bulan)
                     && ($cari === '' || str_contains(mb_strtolower($p['keterangan']), mb_strtolower($cari)));
             })
-            ->sortBy('tanggal')
+            // Terbaru di atas: transaksi terbaru yang paling sering diubah.
+            ->sortByDesc('tanggal')
             ->values();
 
         return view('penghasilan.index', [
