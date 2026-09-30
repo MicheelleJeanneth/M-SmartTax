@@ -8,7 +8,10 @@ Alpine.start();
 
 /*
  | Kolom tanggal: browser membolehkan tahun diketik lebih dari empat digit,
- | misalnya 222222. Nilai di luar rentang min/max dikembalikan ke batasnya.
+ | misalnya 222222. Batasnya dibaca dari data-min/data-max, bukan atribut
+ | min/max asli, karena Chrome menimpa tahun di tengah pengetikan bila
+ | atribut itu dipasang. Peristiwa change baru menyala setelah tanggalnya
+ | lengkap, jadi koreksi ini tidak pernah mengganggu saat mengetik.
  */
 document.addEventListener('change', (peristiwa) => {
     const kolom = peristiwa.target;
@@ -17,9 +20,11 @@ document.addEventListener('change', (peristiwa) => {
         return;
     }
 
-    if (kolom.max && kolom.value > kolom.max) {
-        kolom.value = kolom.max;
-    } else if (kolom.min && kolom.value < kolom.min) {
-        kolom.value = kolom.min;
+    const paling = { awal: kolom.dataset.min ?? kolom.min, akhir: kolom.dataset.max ?? kolom.max };
+
+    if (paling.akhir && kolom.value > paling.akhir) {
+        kolom.value = paling.akhir;
+    } else if (paling.awal && kolom.value < paling.awal) {
+        kolom.value = paling.awal;
     }
 });

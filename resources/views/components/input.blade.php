@@ -1,9 +1,11 @@
 @props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null])
 @php
     // Kolom tanggal bawaan browser membolehkan tahun lebih dari 4 digit.
-    // Rentang ini membatasinya, dan masih bisa ditimpa lewat atribut min/max.
+    // Batasnya disimpan sebagai data-* lalu ditegakkan di app.js sesudah kolom
+    // selesai diisi. Memakai atribut min/max asli membuat Chrome menimpa tahun
+    // di tengah pengetikan: menekan "2" langsung berubah menjadi 1900.
     $batas = $type === 'date'
-        ? ['min' => '1900-01-01', 'max' => now()->toDateString()]
+        ? ['data-min' => '1900-01-01', 'data-max' => now()->toDateString()]
         : [];
 @endphp
 <div class="{{ $rapat ? '' : 'mb-5' }}">
