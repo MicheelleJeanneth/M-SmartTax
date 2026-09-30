@@ -20,7 +20,9 @@ class PenghasilanController extends Controller
 
     public function index(Request $request): View
     {
-        $tahun = $this->filterTahun->pilih($request->query('tahun'));
+        // Hanya tahun yang sudah punya catatan penghasilan sampai tahun berjalan.
+        $daftarTahun = $this->filterTahun->daftarPenghasilan();
+        $tahun = $this->filterTahun->pilih($request->query('tahun'), $daftarTahun);
         $bulan = (int) $request->query('bulan', 0);
         $cari = trim((string) $request->query('cari', ''));
 
@@ -43,7 +45,7 @@ class PenghasilanController extends Controller
             'tahun' => $tahun,
             'bulan' => $bulan,
             'cari' => $cari,
-            'daftarTahun' => $this->filterTahun->daftar(),
+            'daftarTahun' => $daftarTahun,
         ]);
     }
 

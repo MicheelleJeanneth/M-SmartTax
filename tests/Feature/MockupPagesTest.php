@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Services\FilterTahun;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -40,6 +41,20 @@ class MockupPagesTest extends TestCase
         $this->get('/penghasilan/1/edit')->assertForbidden();
         $this->get('/harta/kas/2/ubah')->assertForbidden();
         $this->get('/utang/1/edit')->assertForbidden();
+    }
+
+    public function test_filter_tahun_penghasilan_mulai_dari_catatan_pertama(): void
+    {
+        $filter = app(FilterTahun::class);
+        $terlama = min($filter->daftarPenghasilan());
+
+        $this->assertSame($filter->tahunBerjalan(), max($filter->daftarPenghasilan()));
+
+        // Tahun sebelum pencatatan dimulai tidak boleh dipakai, termasuk lewat URL.
+        $this->assertSame($filter->tahunBerjalan(), $filter->pilih($terlama - 1, $filter->daftarPenghasilan()));
+        $this->get('/penghasilan?tahun='.($terlama - 1))
+            ->assertOk()
+            ->assertDontSee('<option value="'.($terlama - 1).'"', false);
     }
 
     public function test_hanya_bulan_berikutnya_yang_bisa_disusun(): void
