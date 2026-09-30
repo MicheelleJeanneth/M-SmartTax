@@ -14,12 +14,19 @@
     </div>
 
     {{-- Pencarian dan filter dikirim lewat query string agar tautan halaman tetap membawanya. --}}
-    <form method="GET" class="mt-4 flex flex-wrap items-center gap-3">
-        <x-input name="cari" rapat :value="$cari" placeholder="Cari keterangan" class="min-w-[280px] flex-1" />
-        <x-select name="bulan" rapat kosong="Semua bulan" :pilihan="\App\Support\MockData::bulan()" :terpilih="$bulan ?: null"
-            onchange="this.form.submit()" class="w-44" />
-        <x-select name="tahun" rapat :kosong="false" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])"
-            :terpilih="$tahun" onchange="this.form.submit()" class="w-32" />
+    {{-- Lebar mengikuti Figma: kolom cari mengisi sisa baris, kedua dropdown sama lebar. --}}
+    <form method="GET" class="mt-4 flex items-center gap-3">
+        <div class="min-w-0 flex-1">
+            <x-input name="cari" rapat :value="$cari" placeholder="Cari keterangan" />
+        </div>
+        <div class="w-40 shrink-0">
+            <x-select name="bulan" rapat kosong="Semua bulan" :pilihan="\App\Support\MockData::bulan()"
+                :terpilih="$bulan ?: null" onchange="this.form.submit()" />
+        </div>
+        <div class="w-40 shrink-0">
+            <x-select name="tahun" rapat :kosong="false" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])"
+                :terpilih="$tahun" onchange="this.form.submit()" />
+        </div>
         <noscript><x-button type="submit" varian="secondary">Tampilkan</x-button></noscript>
     </form>
 
