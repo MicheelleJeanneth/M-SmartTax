@@ -2,9 +2,11 @@
 @section('judul', $item['nama'])
 @section('keterangan', $info['nama'] . ' · Kode ' . $item['kode'])
 
-@section('isi')
+@section('kembali')
     <x-back :href="route('harta.index', $kategori)">Kembali ke Data Harta</x-back>
+@endsection
 
+@section('isi')
     <div class="grid max-w-[960px] gap-6 lg:grid-cols-3">
         <x-card judul="Rincian Harta" class="lg:col-span-2">
             <div class="divide-y divide-line-soft">

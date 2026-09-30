@@ -2,9 +2,12 @@
 @section('judul', 'Draf ' . $namaBulan . ' ' . $tahun)
 @section('keterangan', 'Draf tersusun. Data penghasilan bulan ini terkunci.')
 
+@section('kembali')
+    <x-back :href="route('draf-bulanan.index')">Kembali ke Draf Bulanan</x-back>
+@endsection
+
 @section('isi')
     <div class="flex items-center justify-between">
-        <x-back :href="route('draf-bulanan.index')">Kembali ke Draf Bulanan</x-back>
         <x-button varian="secondary" :href="route('laporan.draf-bulanan', ['tahun' => $tahun, 'bulan' => $bulan])" class="mb-5">
             <x-icon name="file-text" :size="16" /> Lihat Laporan
         </x-button>

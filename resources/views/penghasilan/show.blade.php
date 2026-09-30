@@ -2,9 +2,11 @@
 @section('judul', 'Rincian Penghasilan')
 @section('keterangan', tanggal_id($penghasilan['tanggal']))
 
-@section('isi')
+@section('kembali')
     <x-back :href="route('penghasilan.index')">Kembali ke Data Penghasilan</x-back>
+@endsection
 
+@section('isi')
     <div class="grid max-w-[960px] gap-6 lg:grid-cols-3">
         <x-card judul="Rincian" class="lg:col-span-2">
             <div class="divide-y divide-line-soft">

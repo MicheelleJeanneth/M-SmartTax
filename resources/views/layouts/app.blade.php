@@ -12,6 +12,11 @@
         @include('partials.sidebar')
 
         <main class="min-w-0 flex-1 p-10">
+            {{-- Tautan kembali berdiri di atas judul halaman. --}}
+            @hasSection('kembali')
+                @yield('kembali')
+            @endif
+
             <header class="mb-8 flex items-start justify-between gap-6">
                 <div>
                     <h1 class="text-[28px] leading-tight font-medium text-ink">

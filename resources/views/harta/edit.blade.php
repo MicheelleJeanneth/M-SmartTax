@@ -2,8 +2,11 @@
 @section('judul', 'Ubah Harta')
 @section('keterangan', 'Kategori: ' . $info['nama'])
 
-@section('isi')
+@section('kembali')
     <x-back :href="route('harta.show', [$kategori, $item['id']])">Kembali ke detail harta</x-back>
+@endsection
+
+@section('isi')
     <form method="POST" action="{{ route('harta.update', [$kategori, $item['id']]) }}">
         @csrf
         @method('PUT')

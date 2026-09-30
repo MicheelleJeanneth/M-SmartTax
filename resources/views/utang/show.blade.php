@@ -2,9 +2,11 @@
 @section('judul', $utang['deskripsi'])
 @section('keterangan', \App\Support\MockData::kodeUtang()[$utang['kode']] . ' · ' . $utang['kreditur'])
 
-@section('isi')
+@section('kembali')
     <x-back :href="route('utang.index')">Kembali ke Data Utang</x-back>
+@endsection
 
+@section('isi')
     <div class="grid max-w-[960px] gap-6 lg:grid-cols-3">
         <x-card judul="Rincian Utang" class="lg:col-span-2">
             <div class="divide-y divide-line-soft">

@@ -2,8 +2,11 @@
 @section('judul', 'Ubah Profil')
 @section('keterangan', 'NIK dan email tidak dapat diubah.')
 
-@section('isi')
+@section('kembali')
     <x-back :href="route('profil.show')">Kembali ke Profil</x-back>
+@endsection
+
+@section('isi')
     <form method="POST" action="{{ route('profil.update') }}" class="max-w-[720px]">
         @csrf
         @method('PUT')

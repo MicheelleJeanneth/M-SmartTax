@@ -2,9 +2,11 @@
 @section('judul', 'Susun Draf ' . $namaBulan . ' ' . $tahun)
 @section('keterangan', 'Periksa rincian dan perhitungan sebelum menyimpan draf.')
 
-@section('isi')
+@section('kembali')
     <x-back :href="route('draf-bulanan.index')">Kembali ke Draf Bulanan</x-back>
+@endsection
 
+@section('isi')
     @include('draf-bulanan._perhitungan')
 
     <x-info varian="kuning" class="mt-6">
