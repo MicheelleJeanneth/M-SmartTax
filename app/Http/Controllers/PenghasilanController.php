@@ -14,7 +14,7 @@ use Illuminate\View\View;
 class PenghasilanController extends Controller
 {
     /** Banyak baris per halaman pada tabel. */
-    private const PER_HALAMAN = 8;
+    private const PER_HALAMAN = 10;
 
     public function __construct(private readonly FilterTahun $filterTahun) {}
 
