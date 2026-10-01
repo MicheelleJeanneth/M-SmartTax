@@ -7,30 +7,19 @@
 @endsection
 
 @section('isi')
-    <div class="grid max-w-[960px] gap-6 lg:grid-cols-3">
-        <x-card judul="Rincian" class="lg:col-span-2">
-            <div class="divide-y divide-line-soft">
-                <x-row label="Tanggal">{{ tanggal_id($penghasilan['tanggal']) }}</x-row>
-                <x-row label="Keterangan">{{ $penghasilan['keterangan'] }}</x-row>
-                <x-row label="Status">{{ $penghasilan['terkunci'] ? 'Terkunci' : 'Aktif' }}</x-row>
-                <x-row label="Nominal" tebal>{{ rupiah($penghasilan['nominal']) }}</x-row>
-            </div>
-        </x-card>
-
-        <div class="space-y-6">
-            @if($penghasilan['terkunci'])
-                <x-info varian="abu">Penghasilan ini sudah masuk draf pajak bulanan. Batalkan draf bulan tersebut terlebih dahulu untuk mengubahnya.</x-info>
-            @else
-                <div class="flex gap-3">
-                    <x-button varian="secondary" :href="route('penghasilan.edit', $penghasilan['id'])" class="flex-1"><x-icon name="pencil" :size="16" /> Ubah</x-button>
-                    <x-button varian="secondary" class="flex-1 !text-danger" @click="$dispatch('buka-dialog', 'hapus-penghasilan')"><x-icon name="trash-2" :size="16" /> Hapus</x-button>
-                </div>
-                @include('partials.dialog-hapus', [
-                    'id' => 'hapus-penghasilan',
-                    'pesan' => 'Penghasilan ' . tanggal_id($penghasilan['tanggal']) . ' sebesar ' . rupiah($penghasilan['nominal']) . ' akan dihapus permanen.',
-                    'action' => route('penghasilan.destroy', $penghasilan['id']),
-                ])
-            @endif
+    {{-- Halaman ini hanya untuk melihat. Mengubah dan menghapus dilakukan dari tabel Data Penghasilan. --}}
+    <x-card judul="Rincian">
+        <div class="divide-y divide-line-soft">
+            <x-row label="Tanggal">{{ tanggal_id($penghasilan['tanggal']) }}</x-row>
+            <x-row label="Keterangan">{{ $penghasilan['keterangan'] }}</x-row>
+            <x-row label="Status">{{ $penghasilan['terkunci'] ? 'Terkunci' : 'Aktif' }}</x-row>
+            <x-row label="Nominal" tebal>{{ rupiah($penghasilan['nominal']) }}</x-row>
         </div>
-    </div>
+    </x-card>
+
+    @if($penghasilan['terkunci'])
+        <x-info varian="abu" class="mt-4">
+            Penghasilan ini sudah masuk draf pajak bulanan. Batalkan draf bulan tersebut terlebih dahulu untuk mengubahnya.
+        </x-info>
+    @endif
 @endsection
