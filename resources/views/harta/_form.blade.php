@@ -12,8 +12,8 @@
         @endforeach
     </div>
     <div class="grid grid-cols-2 gap-x-4">
-        <x-input :label="$info['label_nilai']" name="nilai" wajib inputmode="numeric" placeholder="Rp 0" :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
-        <x-input label="Nilai Saat Ini" name="nilai_kini" inputmode="numeric" placeholder="Rp 0" :value="isset($h['nilai_kini']) ? angka($h['nilai_kini']) : ''"
+        <x-input :label="$info['label_nilai']" name="nilai" wajib uang placeholder="0" :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
+        <x-input label="Nilai Saat Ini" name="nilai_kini" uang placeholder="0" :value="isset($h['nilai_kini']) ? angka($h['nilai_kini']) : ''"
             bantuan="Perkiraan nilai pasar. Hanya tampil di halaman detail." />
     </div>
     <x-textarea label="Keterangan" name="keterangan" :baris="2" />

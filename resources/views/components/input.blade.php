@@ -1,4 +1,4 @@
-@props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null])
+@props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null, 'uang' => false])
 @php
     // Kolom tanggal bawaan browser membolehkan tahun lebih dari 4 digit.
     // Batasnya disimpan sebagai data-* lalu ditegakkan di app.js sesudah kolom
@@ -7,6 +7,11 @@
     $batas = $type === 'date'
         ? ['data-min' => '1900-01-01', 'data-max' => now()->toDateString()]
         : [];
+
+    // Kolom uang: "Rp" jadi awalan tetap, pemisah ribuan dibubuhkan app.js saat mengetik.
+    $gayaUang = $uang
+        ? ['data-uang' => true, 'inputmode' => 'numeric', 'class' => 'kolom-isian pl-11']
+        : ['class' => 'kolom-isian'];
 @endphp
 <div class="{{ $rapat ? '' : 'mb-5' }}">
     @if($label)
@@ -14,8 +19,13 @@
             {{ $label }}@if($wajib)<span class="text-danger"> *</span>@endif
         </label>
     @endif
-    <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}" value="{{ old($name, $value) }}"
-        {{ $attributes->merge([...$batas, 'class' => 'kolom-isian']) }}>
+    <div class="relative">
+        @if($uang)
+            <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-[15px] text-ink-3" aria-hidden="true">Rp</span>
+        @endif
+        <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}" value="{{ old($name, $value) }}"
+            {{ $attributes->merge([...$batas, ...$gayaUang]) }}>
+    </div>
     @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
     @error($name)<p class="mt-1.5 text-sm text-danger">{{ $message }}</p>@enderror
 </div>

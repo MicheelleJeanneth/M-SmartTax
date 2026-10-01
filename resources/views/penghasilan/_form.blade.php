@@ -2,7 +2,7 @@
 <x-card>
     <x-input label="Tanggal" name="tanggal" type="date" wajib :value="$p['tanggal'] ?? ''"
         bantuan="Tanggal penerimaan uang, bukan tanggal pemesanan." />
-    <x-input label="Nominal" name="nominal" wajib inputmode="numeric" placeholder="Rp 0"
+    <x-input label="Nominal" name="nominal" wajib uang placeholder="0"
         :value="isset($p['nominal']) ? angka($p['nominal']) : ''"
         bantuan="Isi dengan peredaran bruto, sebelum dikurangi diskon atau potongan penjualan." />
     <x-input label="Keterangan" name="keterangan" placeholder="Contoh: Penjualan toko" :value="$p['keterangan'] ?? ''"

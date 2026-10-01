@@ -8,9 +8,9 @@
     <div class="grid grid-cols-2 gap-x-6">
         <x-select label="Kode Utang" name="kode" wajib :pilihan="\App\Support\MockData::kodeUtang()"
             :terpilih="$u['kode'] ?? '101'" :kosong="false" />
-        <x-input label="Saldo Utang" name="saldo" wajib inputmode="numeric" placeholder="Rp 0"
+        <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
             :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
-        <x-input label="Cicilan Bulanan" name="cicilan_bulanan" inputmode="numeric" placeholder="Rp 0"
+        <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
             :value="isset($u['cicilan']) ? angka($u['cicilan']) : ''"
             bantuan="Kosongkan bila utang tidak diangsur secara berkala" />
     </div>

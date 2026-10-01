@@ -104,13 +104,17 @@ class MockupPagesTest extends TestCase
 
     public function test_pengingat_dihitung_dan_dapat_ditandai_dibaca(): void
     {
-        $this->get('/dashboard')
+        $awal = $this->get('/dashboard')
             ->assertSee('Draf pajak Juli 2026 belum disusun')
-            ->assertSee('Ambang bebas pajak telah terlampaui')
-            ->assertSee('3 belum dibaca');
+            ->assertSee('Ambang bebas pajak telah terlampaui');
+
+        // Jumlahnya ikut tanggal berjalan: tiap bulan lewat menambah satu draf yang belum disusun.
+        $this->assertSame(1, preg_match('/(\d+) belum dibaca/', $awal->getContent(), $cocok));
+        $belumDibaca = (int) $cocok[1];
+        $this->assertGreaterThan(1, $belumDibaca);
 
         $this->post('/pengingat/draf_bulanan_2026_07/buka')->assertRedirect('/draf-bulanan');
-        $this->get('/dashboard')->assertSee('2 belum dibaca');
+        $this->get('/dashboard')->assertSee(($belumDibaca - 1).' belum dibaca');
     }
 
     public function test_pdf_laporan_dapat_diunduh(): void

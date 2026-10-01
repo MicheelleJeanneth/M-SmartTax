@@ -34,6 +34,42 @@ const koreksiTanggal = (kolom) => {
 
 document.addEventListener('focusout', (peristiwa) => koreksiTanggal(peristiwa.target));
 
+/*
+ | Kolom uang: pemisah ribuan dibubuhkan sambil mengetik, misalnya 16500000
+ | menjadi 16.500.000. Hanya angka yang disimpan; "Rp" adalah awalan tetap
+ | di dalam kotak, bukan bagian dari nilai yang dikirim.
+ */
+document.addEventListener('input', (peristiwa) => {
+    const kolom = peristiwa.target;
+
+    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.uang === undefined) {
+        return;
+    }
+
+    // Hitung posisi kursor dalam satuan digit supaya tidak terlempar ke ujung.
+    const kursor = kolom.selectionStart ?? kolom.value.length;
+    const digitSebelumKursor = kolom.value.slice(0, kursor).replace(/\D/g, '').length;
+
+    const digit = kolom.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+    kolom.value = digit === '' ? '' : digit.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    let terhitung = 0;
+    let posisiBaru = digitSebelumKursor === 0 ? 0 : kolom.value.length;
+
+    for (let i = 0; i < kolom.value.length && digitSebelumKursor > 0; i++) {
+        if (/\d/.test(kolom.value[i])) {
+            terhitung++;
+        }
+
+        if (terhitung === digitSebelumKursor) {
+            posisiBaru = i + 1;
+            break;
+        }
+    }
+
+    kolom.setSelectionRange(posisiBaru, posisiBaru);
+});
+
 // Jaring pengaman bila kolom dikirim tanpa pernah kehilangan fokus, misalnya lewat tombol Enter.
 document.addEventListener('submit', (peristiwa) => {
     peristiwa.target.querySelectorAll?.('input[type="date"]').forEach(koreksiTanggal);
