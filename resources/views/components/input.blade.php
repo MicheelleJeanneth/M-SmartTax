@@ -12,6 +12,9 @@
     $gayaUang = $uang
         ? ['data-uang' => true, 'inputmode' => 'numeric', 'class' => 'kolom-isian pl-11']
         : ['class' => 'kolom-isian'];
+
+    // Kolom bertanda wajib ikut menahan tombol kirim selama masih kosong.
+    $penanda = $wajib ? ['required' => true] : [];
 @endphp
 <div class="{{ $rapat ? '' : 'mb-5' }}">
     @if($label)
@@ -24,7 +27,7 @@
             <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-[15px] text-ink-3" aria-hidden="true">Rp</span>
         @endif
         <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}" value="{{ old($name, $value) }}"
-            {{ $attributes->merge([...$batas, ...$gayaUang]) }}>
+            {{ $attributes->merge([...$batas, ...$gayaUang, ...$penanda]) }}>
     </div>
     @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
     @error($name)<p class="mt-1.5 text-sm text-danger">{{ $message }}</p>@enderror

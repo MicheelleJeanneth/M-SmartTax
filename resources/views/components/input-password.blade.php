@@ -5,7 +5,7 @@
     </label>
     <div class="relative">
         <input id="{{ $name }}" name="{{ $name }}" :type="tampil ? 'text' : 'password'"
-            {{ $attributes->merge(['class' => 'kolom-isian pr-11']) }}>
+            {{ $attributes->merge(['class' => 'kolom-isian pr-11', ...($wajib ? ['required' => true] : [])]) }}>
         <button type="button" @click="tampil = !tampil"
             class="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-field text-ink-3
                    focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"

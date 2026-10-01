@@ -35,6 +35,29 @@ const koreksiTanggal = (kolom) => {
 document.addEventListener('focusout', (peristiwa) => koreksiTanggal(peristiwa.target));
 
 /*
+ | Tombol kirim dimatikan selama kolom bertanda wajib di formulir yang sama
+ | masih kosong atau belum sah. Hanya formulir yang memang punya kolom wajib
+ | yang terpengaruh, jadi tombol seperti Hapus dan Keluar tidak ikut mati.
+ */
+const perbaruiTombolKirim = () => {
+    document.querySelectorAll('form').forEach((formulir) => {
+        const tombol = formulir.querySelector('button[type="submit"]');
+
+        if (!tombol || formulir.querySelectorAll('[required]').length === 0) {
+            return;
+        }
+
+        tombol.disabled = formulir.querySelectorAll(':invalid').length > 0;
+    });
+};
+
+document.addEventListener('input', perbaruiTombolKirim);
+document.addEventListener('change', perbaruiTombolKirim);
+
+// Berkas ini dimuat sebagai modul, jadi DOM sudah siap saat baris ini berjalan.
+perbaruiTombolKirim();
+
+/*
  | Kolom uang: pemisah ribuan dibubuhkan sambil mengetik, misalnya 16500000
  | menjadi 16.500.000. Hanya angka yang disimpan; "Rp" adalah awalan tetap
  | di dalam kotak, bukan bagian dari nilai yang dikirim.
