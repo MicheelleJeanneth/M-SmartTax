@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Services\FilterTahun;
+use App\Services\KunciPencatatan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -41,6 +42,31 @@ class MockupPagesTest extends TestCase
         $this->get('/penghasilan/1/edit')->assertForbidden();
         $this->get('/harta/kas/2/ubah')->assertForbidden();
         $this->get('/utang/1/edit')->assertForbidden();
+    }
+
+    public function test_tanggal_tidak_boleh_dipindah_ke_bulan_yang_drafnya_sudah_disusun(): void
+    {
+        $terkunci = app(KunciPencatatan::class)->awalTerbuka()->subDay()->toDateString();
+        $terbuka = app(KunciPencatatan::class)->awalTerbuka()->toDateString();
+
+        // Transaksi aktif dipindahkan mundur ke bulan yang drafnya sudah disusun.
+        $this->from('/penghasilan/25/edit')
+            ->put('/penghasilan/25', ['tanggal' => $terkunci, 'nominal' => '1.000.000'])
+            ->assertRedirect('/penghasilan/25/edit')
+            ->assertSessionHasErrors('tanggal');
+
+        // Transaksi baru pada bulan yang sama juga ditolak.
+        $this->from('/penghasilan/create')
+            ->post('/penghasilan', ['tanggal' => $terkunci, 'nominal' => '1.000.000'])
+            ->assertSessionHasErrors('tanggal');
+
+        // Bulan yang drafnya belum disusun tetap boleh.
+        $this->put('/penghasilan/25', ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
+            ->assertRedirect('/penghasilan')
+            ->assertSessionHasNoErrors();
+
+        // Baris yang sudah terkunci tidak bisa diubah lewat request langsung.
+        $this->put('/penghasilan/1', ['tanggal' => $terbuka, 'nominal' => '1.000.000'])->assertForbidden();
     }
 
     public function test_filter_tahun_penghasilan_mulai_dari_catatan_pertama(): void

@@ -1,6 +1,6 @@
 @php $p = $penghasilan ?? []; @endphp
 <x-card>
-    <x-input label="Tanggal" name="tanggal" type="date" wajib :value="$p['tanggal'] ?? ''"
+    <x-input label="Tanggal" name="tanggal" type="date" wajib :value="$p['tanggal'] ?? ''" :kunci-sebelum="$awalTerbuka"
         bantuan="Tanggal penerimaan uang, bukan tanggal pemesanan." />
     <x-input label="Nominal" name="nominal" wajib uang placeholder="0"
         :value="isset($p['nominal']) ? angka($p['nominal']) : ''"

@@ -1,4 +1,4 @@
-@props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null, 'uang' => false])
+@props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null, 'uang' => false, 'kunciSebelum' => null])
 @php
     // Kolom tanggal bawaan browser membolehkan tahun lebih dari 4 digit.
     // Batasnya disimpan sebagai data-* lalu ditegakkan di app.js sesudah kolom
@@ -15,6 +15,9 @@
 
     // Kolom bertanda wajib ikut menahan tombol kirim selama masih kosong.
     $penanda = $wajib ? ['required' => true] : [];
+
+    // Tanggal sebelum batas ini ditolak karena drafnya sudah disusun; app.js memperingatkan lebih awal.
+    $kunci = $kunciSebelum ? ['data-kunci-sebelum' => $kunciSebelum] : [];
 @endphp
 <div class="{{ $rapat ? '' : 'mb-5' }}">
     @if($label)
@@ -27,8 +30,9 @@
             <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-[15px] text-ink-3" aria-hidden="true">Rp</span>
         @endif
         <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}" value="{{ old($name, $value) }}"
-            {{ $attributes->merge([...$batas, ...$gayaUang, ...$penanda]) }}>
+            {{ $attributes->merge([...$batas, ...$gayaUang, ...$penanda, ...$kunci]) }}>
     </div>
     @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
+    @if($kunciSebelum)<p id="{{ $name }}-kunci" role="alert" class="mt-1.5 hidden text-sm text-danger"></p>@endif
     @error($name)<p class="mt-1.5 text-sm text-danger">{{ $message }}</p>@enderror
 </div>

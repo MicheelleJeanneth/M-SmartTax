@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Services\FilterTahun;
+use App\Services\KunciPencatatan;
 use App\Support\MockData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PenghasilanController extends Controller
@@ -16,7 +18,10 @@ class PenghasilanController extends Controller
     /** Banyak baris per halaman pada tabel. */
     private const PER_HALAMAN = 10;
 
-    public function __construct(private readonly FilterTahun $filterTahun) {}
+    public function __construct(
+        private readonly FilterTahun $filterTahun,
+        private readonly KunciPencatatan $kunci,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -51,11 +56,13 @@ class PenghasilanController extends Controller
 
     public function create(): View
     {
-        return view('penghasilan.create');
+        return view('penghasilan.create', ['awalTerbuka' => $this->kunci->awalTerbuka()->toDateString()]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->pastikanBulanTerbuka($request);
+
         return redirect()->route('penghasilan.index')->with('sukses', 'Data penghasilan tersimpan.');
     }
 
@@ -72,17 +79,41 @@ class PenghasilanController extends Controller
             abort(403, 'Data penghasilan ini sudah masuk draf. Batalkan draf bulan tersebut terlebih dahulu untuk mengubahnya.');
         }
 
-        return view('penghasilan.edit', ['penghasilan' => $penghasilan]);
+        return view('penghasilan.edit', [
+            'penghasilan' => $penghasilan,
+            'awalTerbuka' => $this->kunci->awalTerbuka()->toDateString(),
+        ]);
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
+        if ($this->cari($id)['terkunci']) {
+            abort(403, 'Data penghasilan ini sudah masuk draf dan tidak dapat diubah.');
+        }
+
+        $this->pastikanBulanTerbuka($request);
+
         return redirect()->route('penghasilan.index')->with('sukses', 'Perubahan data penghasilan tersimpan.');
     }
 
     public function destroy(int $id): RedirectResponse
     {
         return redirect()->route('penghasilan.index')->with('sukses', 'Data penghasilan dihapus.');
+    }
+
+    /**
+     * Menolak tanggal yang jatuh pada bulan yang drafnya sudah disusun, baik saat
+     * menambah transaksi baru maupun saat memindahkan tanggal transaksi lama.
+     *
+     * @throws ValidationException
+     */
+    private function pastikanBulanTerbuka(Request $request): void
+    {
+        $tanggal = (string) $request->input('tanggal', '');
+
+        if ($tanggal !== '' && $this->kunci->terkunci($tanggal)) {
+            throw ValidationException::withMessages(['tanggal' => $this->kunci->pesan($tanggal)]);
+        }
     }
 
     /**

@@ -54,7 +54,50 @@ const perbaruiTombolKirim = () => {
 document.addEventListener('input', perbaruiTombolKirim);
 document.addEventListener('change', perbaruiTombolKirim);
 
+/*
+ | Peringatan dini untuk tanggal yang jatuh pada bulan yang drafnya sudah
+ | disusun. Pemeriksaan yang sesungguhnya tetap di server, karena yang di
+ | browser bisa dilewati; bagian ini hanya supaya ketahuan sebelum tombol
+ | Simpan ditekan dan isian yang sudah diketik tidak terbuang percuma.
+ */
+const peringatkanBulanTerkunci = (kolom) => {
+    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.kunciSebelum === undefined) {
+        return;
+    }
+
+    const batas = kolom.dataset.kunciSebelum;
+    const melanggar = kolom.value !== '' && kolom.value < batas;
+
+    let pesan = '';
+
+    if (melanggar) {
+        // Tanggal ISO tanpa zona waktu supaya tidak bergeser sehari.
+        const bulan = new Date(`${kolom.value}T00:00:00`)
+            .toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
+        pesan = `Draf pajak ${bulan} sudah disusun, sehingga transaksi tidak dapat `
+            + 'dicatat pada bulan itu. Batalkan draf bulan tersebut terlebih dahulu.';
+    }
+
+    // setCustomValidity membuat kolom ini ikut terhitung :invalid, sehingga
+    // tombol kirim otomatis mati lewat perbaruiTombolKirim di bawah.
+    kolom.setCustomValidity(pesan);
+
+    const baris = document.getElementById(`${kolom.id}-kunci`);
+
+    if (baris) {
+        baris.textContent = pesan;
+        baris.classList.toggle('hidden', pesan === '');
+    }
+
+    perbaruiTombolKirim();
+};
+
+document.addEventListener('input', (peristiwa) => peringatkanBulanTerkunci(peristiwa.target));
+document.addEventListener('change', (peristiwa) => peringatkanBulanTerkunci(peristiwa.target));
+
 // Berkas ini dimuat sebagai modul, jadi DOM sudah siap saat baris ini berjalan.
+document.querySelectorAll('input[data-kunci-sebelum]').forEach(peringatkanBulanTerkunci);
 perbaruiTombolKirim();
 
 /*
