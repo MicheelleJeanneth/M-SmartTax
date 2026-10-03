@@ -20,7 +20,7 @@
                 @foreach($harta as $h)
                     <tr>
                         <td class="text-ink-2 tabular-nums">{{ $h['kode'] }}</td>
-                        <td class="font-medium">{{ $h['nama'] }}</td>
+                        <td class="w-full max-w-0 truncate font-medium" title="{{ $h['nama'] }}">{{ $h['nama'] }}</td>
                         <td class="tabular-nums">{{ $h['tahun'] }}</td>
                         @foreach($h['khas'] as $nilai)
                             <td class="text-ink-2">{{ $nilai }}</td>

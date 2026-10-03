@@ -28,7 +28,7 @@
             @else
                 <div class="flex gap-3">
                     <x-button varian="secondary" :href="route('utang.edit', $utang['id'])" class="flex-1"><x-icon name="pencil" :size="16" /> Ubah</x-button>
-                    <x-button varian="secondary" class="flex-1 !text-danger" @click="$dispatch('buka-dialog', 'hapus-utang')"><x-icon name="trash-2" :size="16" /> Hapus</x-button>
+                    <x-button varian="secondary" class="flex-1 !text-danger" x-data @click="$dispatch('buka-dialog', 'hapus-utang')"><x-icon name="trash-2" :size="16" /> Hapus</x-button>
                 </div>
                 @include('partials.dialog-hapus', [
                     'id' => 'hapus-utang',

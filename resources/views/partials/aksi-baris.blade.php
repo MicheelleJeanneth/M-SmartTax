@@ -14,7 +14,8 @@
         <a href="{{ $ubah }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Ubah">
             <x-icon name="pencil" :size="18" />
         </a>
-        <button type="button" @click="$dispatch('buka-dialog', '{{ $dialog }}')"
+        {{-- x-data kosong: Alpine hanya memproses @click bila ada cakupan di atasnya. --}}
+        <button type="button" x-data @click="$dispatch('buka-dialog', '{{ $dialog }}')"
             class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Hapus">
             <x-icon name="trash-2" :size="18" />
         </button>

@@ -42,7 +42,7 @@
                     <tr>
                         <td class="text-ink-2">{{ $penghasilan->firstItem() + $loop->index }}</td>
                         <td class="whitespace-nowrap">{{ tanggal_singkat($p['tanggal']) }}</td>
-                        <td>{{ $p['keterangan'] }}</td>
+                        <td class="w-full max-w-0 truncate" title="{{ $p['keterangan'] }}">{{ $p['keterangan'] }}</td>
                         <td class="text-right tabular-nums whitespace-nowrap">{{ rupiah($p['nominal']) }}</td>
                         <td><x-badge :status="$p['terkunci'] ? 'terkunci' : 'aktif'" /></td>
                         <td>
@@ -74,7 +74,12 @@
     @foreach($penghasilan->where('terkunci', false) as $p)
         @include('partials.dialog-hapus', [
             'id' => 'hapus-penghasilan-' . $p['id'],
-            'pesan' => 'Penghasilan ' . tanggal_id($p['tanggal']) . ' sebesar ' . rupiah($p['nominal']) . ' akan dihapus permanen.',
+            'judul' => 'Hapus data penghasilan?',
+            'rincian' => [
+                'Tanggal' => tanggal_id($p['tanggal']),
+                'Keterangan' => $p['keterangan'],
+                'Nominal' => rupiah($p['nominal']),
+            ],
             'action' => route('penghasilan.destroy', $p['id']),
         ])
     @endforeach

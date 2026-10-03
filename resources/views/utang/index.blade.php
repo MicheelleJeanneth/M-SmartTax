@@ -12,7 +12,7 @@
             @foreach($utang as $u)
                 <tr>
                     <td class="text-ink-2 tabular-nums">{{ $u['kode'] }}</td>
-                    <td class="font-medium">{{ $u['deskripsi'] }}</td>
+                    <td class="w-full max-w-0 truncate font-medium" title="{{ $u['deskripsi'] }}">{{ $u['deskripsi'] }}</td>
                     <td class="text-ink-2">{{ $u['kreditur'] }}</td>
                     <td class="tabular-nums">{{ $u['tahun'] }}</td>
                     <td class="text-right tabular-nums whitespace-nowrap">{{ rupiah($u['saldo']) }}</td>
