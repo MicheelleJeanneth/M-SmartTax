@@ -22,7 +22,7 @@
             <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Support\MockData::kodeUtang()"
                 :terpilih="$kode ?: null" onchange="this.form.submit()" />
         </div>
-        <div class="w-40 shrink-0">
+        <div class="w-52 shrink-0">
             <x-select name="tahun" rapat kosong="Semua tahun" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])"
                 :terpilih="$tahun ?: null" onchange="this.form.submit()" />
         </div>
