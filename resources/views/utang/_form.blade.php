@@ -12,11 +12,9 @@
             :value="$u['deskripsi'] ?? ''" />
     </div>
 
-    <div class="grid grid-cols-2 gap-x-6">
-        <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
-            :value="isset($u['cicilan']) ? angka($u['cicilan']) : ''"
-            bantuan="Kosongkan bila utang tidak diangsur secara berkala" />
-    </div>
+    <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
+        :value="isset($u['cicilan']) ? angka($u['cicilan']) : ''"
+        bantuan="Kosongkan bila utang tidak diangsur secara berkala" />
 
     <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
         :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
