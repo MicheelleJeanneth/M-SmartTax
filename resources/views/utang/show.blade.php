@@ -1,41 +1,58 @@
 @extends('layouts.app')
-@section('judul', $utang['deskripsi'])
-@section('keterangan', \App\Support\MockData::kodeUtang()[$utang['kode']] . ' · ' . $utang['kreditur'])
+@section('judul', 'Detail Utang')
+@section('keterangan', 'Rincian data utang yang tercatat')
 
 @section('kembali')
     <x-back :href="route('utang.index')">Kembali ke Data Utang</x-back>
 @endsection
 
 @section('isi')
-    <div class="grid max-w-[960px] gap-6 lg:grid-cols-3">
-        <x-card judul="Rincian Utang" class="lg:col-span-2">
-            <div class="divide-y divide-line-soft">
-                <x-row label="Kode Utang">{{ \App\Support\MockData::kodeUtang()[$utang['kode']] }}</x-row>
-                <x-row label="Deskripsi Utang">{{ $utang['deskripsi'] }}</x-row>
-                <x-row label="Tahun Peminjaman">{{ $utang['tahun'] }}</x-row>
-                <x-row label="Tahun Pelunasan">{{ $utang['tahun_pelunasan'] ?? 'Belum lunas' }}</x-row>
-                <x-row label="Nama Kreditur">{{ $utang['kreditur'] }}</x-row>
-                <x-row label="NIK / NPWP Kreditur">{{ $utang['nik_kreditur'] ?? '-' }}</x-row>
-                <x-row label="Negara Kreditur">{{ $utang['negara'] }}</x-row>
-                <x-row label="Cicilan per Bulan">{{ $utang['cicilan'] ? rupiah($utang['cicilan']) : 'Tidak diangsur berkala' }}</x-row>
-                <x-row label="Saldo Akhir Tahun" tebal>{{ rupiah($utang['saldo']) }}</x-row>
-                @if($utang['keterangan'])<x-row label="Keterangan">{{ $utang['keterangan'] }}</x-row>@endif
-            </div>
-        </x-card>
-        <div class="space-y-6">
-            @if($utang['terkunci'])
-                <x-info varian="abu">Utang ini sudah masuk draf tahunan. Batalkan draf tahunan terlebih dahulu untuk mengubahnya.</x-info>
-            @else
-                <div class="flex gap-3">
-                    <x-button varian="secondary" :href="route('utang.edit', $utang['id'])" class="flex-1"><x-icon name="pencil" :size="16" /> Ubah</x-button>
-                    <x-button varian="secondary" class="flex-1 !text-danger" x-data @click="$dispatch('buka-dialog', 'hapus-utang')"><x-icon name="trash-2" :size="16" /> Hapus</x-button>
-                </div>
-                @include('partials.dialog-hapus', [
-                    'id' => 'hapus-utang',
-                    'pesan' => 'Utang kepada ' . $utang['kreditur'] . ' akan dihapus.',
-                    'action' => route('utang.destroy', $utang['id']),
-                ])
-            @endif
+    {{-- Halaman ini hanya untuk melihat. Mengubah dan menghapus dilakukan dari tabel Data Utang. --}}
+    <x-card>
+        <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
+
+        <div class="grid grid-cols-2 gap-x-6">
+            <x-kolom-baca label="Kode Utang">{{ \App\Support\MockData::kodeUtang()[$utang['kode']] }}</x-kolom-baca>
+            <x-kolom-baca label="Deskripsi Utang">{{ $utang['deskripsi'] }}</x-kolom-baca>
         </div>
-    </div>
+
+        <div class="grid grid-cols-2 gap-x-6">
+            <x-kolom-baca label="Cicilan Bulanan" bantuan="Kosongkan bila utang tidak diangsur secara berkala">
+                {{ $utang['cicilan'] ? rupiah($utang['cicilan']) : 'Tidak diangsur berkala' }}
+            </x-kolom-baca>
+        </div>
+
+        <x-kolom-baca label="Saldo Utang">{{ rupiah($utang['saldo']) }}</x-kolom-baca>
+
+        <div class="grid grid-cols-2 gap-x-6">
+            <x-kolom-baca label="Tahun Peminjaman">{{ $utang['tahun'] }}</x-kolom-baca>
+            <x-kolom-baca label="Tahun Pelunasan">{{ $utang['tahun_pelunasan'] ?? 'Belum lunas' }}</x-kolom-baca>
+        </div>
+        <p class="-mt-3 mb-6 text-sm text-ink-3">
+            Biarkan &ldquo;Belum lunas&rdquo; jika utang masih berjalan. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal
+        </p>
+
+        <div class="mb-6 border-t border-line-soft"></div>
+
+        <h2 class="mb-4 text-base font-medium text-subjudul">Data Kreditur</h2>
+
+        <x-kolom-baca label="Nama Kreditur">{{ $utang['kreditur'] }}</x-kolom-baca>
+
+        <div class="grid grid-cols-2 gap-x-6">
+            <x-kolom-baca label="NIK Kreditur" bantuan="NIK boleh dikosongkan jika kreditur berupa lembaga keuangan.">
+                {{ $utang['nik_kreditur'] ?? '—' }}
+            </x-kolom-baca>
+            <x-kolom-baca label="Negara Kreditur">{{ $utang['negara'] }}</x-kolom-baca>
+        </div>
+
+        <div class="mb-6 border-t border-line-soft"></div>
+
+        <x-kolom-baca label="Keterangan">{{ $utang['keterangan'] ?? '—' }}</x-kolom-baca>
+    </x-card>
+
+    @if($utang['terkunci'])
+        <x-info varian="abu" class="mt-4">
+            Utang ini sudah masuk draf pajak tahunan. Batalkan draf tahun tersebut terlebih dahulu untuk mengubahnya.
+        </x-info>
+    @endif
 @endsection

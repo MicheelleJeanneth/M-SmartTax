@@ -1,4 +1,6 @@
 {{-- Kolom terkunci: tidak bisa diketik, ditandai ikon gembok. --}}
+{{-- Teks bantuan disembunyikan dengan :bantuan="false"; null tidak bisa dipakai karena
+     @props menerjemahkannya menjadi "$bantuan ?? bawaan" sehingga nilai bawaan kembali muncul. --}}
 @props(['label' => null, 'name', 'value' => null, 'bantuan' => 'Kolom ini tidak dapat diubah.'])
 <div class="mb-5">
     @if($label)

@@ -43,6 +43,6 @@
         <x-input label="Kecamatan" name="kecamatan" wajib placeholder="Contoh: Rungkut" :value="$p['kecamatan'] ?? ''" />
         <x-input label="Kota" name="kota" wajib placeholder="Contoh: Surabaya" :value="$p['kota'] ?? ''" />
         <x-input label="Provinsi" name="provinsi" wajib placeholder="Contoh: Jawa Timur" :value="$p['provinsi'] ?? ''" />
-        <x-input-locked label="Negara" name="negara" value="Indonesia" :bantuan="null" />
+        <x-input-locked label="Negara" name="negara" value="Indonesia" :bantuan="false" />
     </div>
 </x-card>
