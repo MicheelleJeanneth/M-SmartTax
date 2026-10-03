@@ -11,4 +11,8 @@
         @csrf
         @include('penghasilan._form', ['tombol' => 'Simpan'])
     </form>
+
+    <x-info varian="biru-muda" class="mt-4">
+        Data yang sudah masuk draf pajak bulanan tidak dapat diubah. Pastikan tanggal dan nominalnya benar sebelum menyimpan.
+    </x-info>
 @endsection

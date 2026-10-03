@@ -14,7 +14,3 @@
         <x-button varian="secondary" :href="route('penghasilan.index')" class="min-w-39">Batal</x-button>
     </div>
 </x-card>
-
-<x-info varian="biru-muda" class="mt-4">
-    Data yang sudah masuk draf pajak bulanan tidak dapat diubah. Pastikan tanggal dan nominalnya benar sebelum menyimpan.
-</x-info>
