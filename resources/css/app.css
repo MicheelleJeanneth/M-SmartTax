@@ -96,6 +96,8 @@
 
 .daftar-gulir::-webkit-scrollbar {
     width: 6px;
+    /* Tinggi untuk batang geser mendatar, dipakai tabel berkolom banyak. */
+    height: 6px;
 }
 
 .daftar-gulir::-webkit-scrollbar-thumb {

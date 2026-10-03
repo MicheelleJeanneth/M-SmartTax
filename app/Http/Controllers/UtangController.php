@@ -9,9 +9,40 @@ use Illuminate\View\View;
 
 class UtangController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        return view('utang.index', ['utang' => MockData::utang()]);
+        $cari = trim((string) $request->query('cari', ''));
+        $kode = trim((string) $request->query('kode', ''));
+        $tahun = trim((string) $request->query('tahun', ''));
+
+        $semua = collect(MockData::utang());
+
+        $terpilih = $semua
+            ->filter(function (array $u) use ($cari, $kode, $tahun): bool {
+                $kataKunci = mb_strtolower($cari);
+
+                $cocokCari = $cari === ''
+                    || str_contains(mb_strtolower($u['deskripsi']), $kataKunci)
+                    || str_contains(mb_strtolower($u['kreditur']), $kataKunci);
+
+                return $cocokCari
+                    && ($kode === '' || $u['kode'] === $kode)
+                    && ($tahun === '' || (int) $u['tahun'] === (int) $tahun);
+            })
+            // Terbaru di atas: tahun peminjaman terbaru dulu, lalu catatan yang paling akhir dibuat.
+            ->sortByDesc(fn (array $u): array => [$u['tahun'], $u['id']])
+            ->values();
+
+        return view('utang.index', [
+            'utang' => $this->halaman($terpilih, $request),
+            'total' => $terpilih->sum('saldo'),
+            'jumlah' => $terpilih->count(),
+            'cari' => $cari,
+            'kode' => $kode,
+            'tahun' => $tahun,
+            // Hanya tahun yang benar-benar punya utang tercatat.
+            'daftarTahun' => $semua->pluck('tahun')->unique()->sortDesc()->values()->all(),
+        ]);
     }
 
     public function create(): View

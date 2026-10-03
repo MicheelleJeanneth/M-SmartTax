@@ -3,7 +3,7 @@
     Tiap kepala boleh string, atau ['teks' => ..., 'kanan' => true] untuk angka.
 --}}
 @props(['kepala' => []])
-<div {{ $attributes->merge(['class' => 'overflow-x-auto']) }}>
+<div {{ $attributes->merge(['class' => 'daftar-gulir overflow-x-auto']) }}>
     <table class="w-full border-collapse text-left">
         <thead>
             <tr class="border-b border-line">

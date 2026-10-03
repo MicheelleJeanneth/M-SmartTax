@@ -7,17 +7,12 @@ use App\Services\KunciPencatatan;
 use App\Support\MockData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PenghasilanController extends Controller
 {
-    /** Banyak baris per halaman pada tabel. */
-    private const PER_HALAMAN = 10;
-
     public function __construct(
         private readonly FilterTahun $filterTahun,
         private readonly KunciPencatatan $kunci,
@@ -114,23 +109,6 @@ class PenghasilanController extends Controller
         if ($tanggal !== '' && $this->kunci->terkunci($tanggal)) {
             throw ValidationException::withMessages(['tanggal' => $this->kunci->pesan($tanggal)]);
         }
-    }
-
-    /**
-     * @param  Collection<int, array<string, mixed>>  $baris
-     * @return LengthAwarePaginator<int, array<string, mixed>>
-     */
-    private function halaman(Collection $baris, Request $request): LengthAwarePaginator
-    {
-        $halaman = LengthAwarePaginator::resolveCurrentPage();
-
-        return new LengthAwarePaginator(
-            $baris->forPage($halaman, self::PER_HALAMAN)->values(),
-            $baris->count(),
-            self::PER_HALAMAN,
-            $halaman,
-            ['path' => $request->url(), 'query' => $request->query()],
-        );
     }
 
     /**
