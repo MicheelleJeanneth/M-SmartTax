@@ -19,11 +19,11 @@
         <div class="min-w-0 flex-1">
             <x-input name="cari" rapat :value="$cari" placeholder="Cari keterangan" />
         </div>
-        <div class="w-40 shrink-0">
+        <div class="w-52 shrink-0">
             <x-select name="bulan" rapat kosong="Semua bulan" :pilihan="\App\Support\MockData::bulan()"
                 :terpilih="$bulan ?: null" onchange="this.form.submit()" />
         </div>
-        <div class="w-40 shrink-0">
+        <div class="w-52 shrink-0">
             <x-select name="tahun" rapat :kosong="false" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])"
                 :terpilih="$tahun" onchange="this.form.submit()" />
         </div>
