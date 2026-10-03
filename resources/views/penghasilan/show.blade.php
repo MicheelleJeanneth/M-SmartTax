@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('judul', 'Rincian Penghasilan')
-@section('keterangan', tanggal_id($penghasilan['tanggal']))
+@section('judul', 'Detail Penghasilan')
+@section('keterangan', 'Rincian data penghasilan yang tercatat')
 
 @section('kembali')
     <x-back :href="route('penghasilan.index')">Kembali ke Data Penghasilan</x-back>
@@ -8,13 +8,10 @@
 
 @section('isi')
     {{-- Halaman ini hanya untuk melihat. Mengubah dan menghapus dilakukan dari tabel Data Penghasilan. --}}
-    <x-card judul="Rincian">
-        <div class="divide-y divide-line-soft">
-            <x-row label="Tanggal">{{ tanggal_id($penghasilan['tanggal']) }}</x-row>
-            <x-row label="Keterangan">{{ $penghasilan['keterangan'] }}</x-row>
-            <x-row label="Status">{{ $penghasilan['terkunci'] ? 'Terkunci' : 'Aktif' }}</x-row>
-            <x-row label="Nominal" tebal>{{ rupiah($penghasilan['nominal']) }}</x-row>
-        </div>
+    <x-card>
+        <x-kolom-baca label="Tanggal">{{ tanggal_id($penghasilan['tanggal']) }}</x-kolom-baca>
+        <x-kolom-baca label="Nominal">{{ rupiah($penghasilan['nominal']) }}</x-kolom-baca>
+        <x-kolom-baca label="Keterangan">{{ $penghasilan['keterangan'] }}</x-kolom-baca>
     </x-card>
 
     @if($penghasilan['terkunci'])
