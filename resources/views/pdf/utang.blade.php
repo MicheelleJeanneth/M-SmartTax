@@ -17,7 +17,7 @@
     <table class="data">
         <tbody>
             @foreach(collect($utang)->groupBy('kode') as $kode => $baris)
-                <tr><td>{{ \App\Support\MockData::kodeUtang()[$kode] }}</td><td class="r">{{ rupiah($baris->sum('saldo')) }}</td></tr>
+                <tr><td>{{ \App\Support\MockData::kodeUtangSingkat()[$kode] }}</td><td class="r">{{ rupiah($baris->sum('saldo')) }}</td></tr>
             @endforeach
         </tbody>
         <tfoot><tr><td>Total</td><td class="r">{{ rupiah(collect($utang)->sum('saldo')) }}</td></tr></tfoot>

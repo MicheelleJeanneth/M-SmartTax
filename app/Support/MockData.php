@@ -239,17 +239,34 @@ class MockData
     }
 
     /**
-     * Kode utang sesuai lampiran SPT.
+     * Kode utang sesuai lampiran SPT, dengan uraian lengkapnya.
+     * Dipakai pada daftar pilihan saat menambah atau mengubah utang.
      *
      * @return array<string, string>
      */
     public static function kodeUtang(): array
     {
         return [
-            '101' => '101 - Utang Bank / LKBB',
-            '102' => '102 - Kartu Kredit',
-            '103' => '103 - Utang Afiliasi',
-            '109' => '109 - Utang Lainnya',
+            '101' => '101 – Utang Bank/Lembaga Keuangan Bukan Bank (KPR, Leasing Kendaraan Bermotor, dan sejenisnya)',
+            '102' => '102 – Kartu Kredit',
+            '103' => '103 – Utang Afiliasi',
+            '109' => '109 – Utang Lainnya',
+        ];
+    }
+
+    /**
+     * Uraian ringkas kode utang untuk tempat yang sempit: filter, tabel,
+     * halaman detail, dan laporan PDF.
+     *
+     * @return array<string, string>
+     */
+    public static function kodeUtangSingkat(): array
+    {
+        return [
+            '101' => '101 – Utang Bank/LKBB',
+            '102' => '102 – Kartu Kredit',
+            '103' => '103 – Utang Afiliasi',
+            '109' => '109 – Utang Lainnya',
         ];
     }
 

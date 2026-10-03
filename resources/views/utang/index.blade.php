@@ -19,7 +19,7 @@
             <x-input name="cari" rapat :value="$cari" placeholder="Cari deskripsi atau nama kreditur" />
         </div>
         <div class="w-52 shrink-0">
-            <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Support\MockData::kodeUtang()"
+            <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Support\MockData::kodeUtangSingkat()"
                 :terpilih="$kode ?: null" onchange="this.form.submit()" />
         </div>
         <div class="w-52 shrink-0">
@@ -39,7 +39,7 @@
             {{-- Negara Kreditur tidak ditampilkan: aplikasi ini khusus WNI sehingga nilainya selalu Indonesia. --}}
             <x-table :kepala="['No', 'Kode', 'Deskripsi', 'Tahun Peminjaman', 'NIK Kreditur', 'Nama Kreditur', ['teks' => 'Saldo Utang', 'kanan' => true], 'Status', '']">
                 @foreach($utang as $u)
-                    @php $namaKode = \App\Support\MockData::kodeUtang()[$u['kode']]; @endphp
+                    @php $namaKode = \App\Support\MockData::kodeUtangSingkat()[$u['kode']]; @endphp
                     <tr>
                         <td class="text-ink-2">{{ $utang->firstItem() + $loop->index }}</td>
                         <td class="tabular-nums text-ink-2" title="{{ $namaKode }}">{{ $u['kode'] }}</td>
