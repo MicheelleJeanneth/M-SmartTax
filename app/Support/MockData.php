@@ -180,6 +180,7 @@ class MockData
                 'singkat' => 'Kas',
                 'label_nilai' => 'Saldo',
                 'kolom' => ['Nama Bank', 'Nomor Rekening', 'Atas Nama'],
+                'judul_rincian' => 'Rincian Rekening',
                 'catatan' => 'Untuk kas dan setara kas, saldo dicatat sebesar jumlah pada akhir tahun pajak.',
             ],
             'piutang' => [
@@ -187,6 +188,7 @@ class MockData
                 'singkat' => 'Piutang',
                 'label_nilai' => 'Saldo Saat Ini',
                 'kolom' => ['Nama Peminjam', 'NIK/NPWP'],
+                'judul_rincian' => 'Rincian Piutang',
                 'catatan' => 'Untuk piutang, nilai dicatat sebesar sisa tagihan pada akhir tahun pajak.',
             ],
             'investasi' => [
@@ -194,6 +196,7 @@ class MockData
                 'singkat' => 'Investasi',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nama Penerbit', 'Nomor Akun'],
+                'judul_rincian' => 'Rincian Investasi',
                 'catatan' => 'Investasi dicatat sebesar harga perolehan, bukan nilai pasar saat ini.',
             ],
             'bergerak' => [
@@ -201,6 +204,7 @@ class MockData
                 'singkat' => 'Bergerak',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nomor Polisi', 'Kepemilikan'],
+                'judul_rincian' => 'Rincian Kendaraan',
                 'catatan' => 'Harta bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
             ],
             'tidak-bergerak' => [
@@ -208,6 +212,7 @@ class MockData
                 'singkat' => 'Tidak bergerak',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Lokasi', 'Luas T/B', 'No. Sertifikat'],
+                'judul_rincian' => 'Rincian Properti',
                 'catatan' => 'Harta tidak bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
             ],
             'lainnya' => [
@@ -215,6 +220,7 @@ class MockData
                 'singkat' => 'Lainnya',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nomor Kepemilikan'],
+                'judul_rincian' => 'Rincian Harta',
                 'catatan' => 'Harta lainnya dicatat sebesar harga perolehan.',
             ],
         ];
@@ -223,25 +229,29 @@ class MockData
     /** Baris harta per kategori. 'khas' sejajar dengan 'kolom' di kategoriHarta(). */
     public static function harta(string $kategori): array
     {
-        return match ($kategori) {
-            'kas' => [
-                ['id' => 1, 'kode' => '011', 'nama' => 'Rekening Operasional', 'tahun' => 2021, 'nilai' => 62_000_000, 'nilai_kini' => 64_500_000, 'tahun_pelepasan' => null, 'khas' => ['Bank Mandiri', '1400012345678', 'Budi Santoso'], 'terkunci' => false],
-                ['id' => 2, 'kode' => '012', 'nama' => 'Deposito Berjangka', 'tahun' => 2023, 'nilai' => 120_000_000, 'nilai_kini' => 126_000_000, 'tahun_pelepasan' => null, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
-            ],
-            'piutang' => [],
-            'investasi' => [],
-            'bergerak' => [
-                ['id' => 6, 'kode' => '041', 'nama' => 'Mobil Toyota Avanza 2022', 'tahun' => 2022, 'nilai' => 112_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['L 1234 BS', 'Milik Sendiri'], 'terkunci' => true],
-                ['id' => 7, 'kode' => '042', 'nama' => 'Motor Honda Vario', 'tahun' => 2023, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'tahun_pelepasan' => null, 'khas' => ['L 5678 BS', 'Milik Sendiri'], 'terkunci' => false],
-            ],
-            'tidak-bergerak' => [
-                ['id' => 8, 'kode' => '051', 'nama' => 'Rumah Tinggal', 'tahun' => 2020, 'nilai' => 247_000_000, 'nilai_kini' => 310_000_000, 'tahun_pelepasan' => null, 'khas' => ['Mulyorejo, Surabaya', '120/90', 'SHM 02.11.884'], 'terkunci' => true],
-            ],
-            'lainnya' => [
-                ['id' => 9, 'kode' => '061', 'nama' => 'Logam Mulia 50 gram', 'tahun' => 2024, 'nilai' => 91_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['ANTM-LM-778120'], 'terkunci' => false],
-            ],
-            default => [],
-        };
+        // Negara selalu Indonesia: aplikasi ini khusus wajib pajak dalam negeri.
+        return array_map(
+            fn (array $baris): array => $baris + ['negara' => 'Indonesia'],
+            match ($kategori) {
+                'kas' => [
+                    ['id' => 1, 'kode' => '011', 'nama' => 'Rekening Operasional', 'keterangan' => 'Rekening utama untuk transaksi harian toko', 'tahun' => 2021, 'nilai' => 62_000_000, 'nilai_kini' => 64_500_000, 'tahun_pelepasan' => null, 'khas' => ['Bank Mandiri', '1400012345678', 'Budi Santoso'], 'terkunci' => false],
+                    ['id' => 2, 'kode' => '012', 'nama' => 'Deposito Berjangka', 'keterangan' => 'Jatuh tempo setiap 12 bulan', 'tahun' => 2023, 'nilai' => 120_000_000, 'nilai_kini' => 126_000_000, 'tahun_pelepasan' => null, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
+                ],
+                'piutang' => [],
+                'investasi' => [],
+                'bergerak' => [
+                    ['id' => 6, 'kode' => '041', 'nama' => 'Mobil Toyota Avanza 2022', 'keterangan' => 'Dipakai untuk pengiriman pesanan', 'tahun' => 2022, 'nilai' => 112_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['L 1234 BS', 'Milik Sendiri'], 'terkunci' => true],
+                    ['id' => 7, 'kode' => '042', 'nama' => 'Motor Honda Vario', 'keterangan' => null, 'tahun' => 2023, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'tahun_pelepasan' => null, 'khas' => ['L 5678 BS', 'Milik Sendiri'], 'terkunci' => false],
+                ],
+                'tidak-bergerak' => [
+                    ['id' => 8, 'kode' => '051', 'nama' => 'Rumah Tinggal', 'keterangan' => 'Ditempati sendiri', 'tahun' => 2020, 'nilai' => 247_000_000, 'nilai_kini' => 310_000_000, 'tahun_pelepasan' => null, 'khas' => ['Mulyorejo, Surabaya', '120/90', 'SHM 02.11.884'], 'terkunci' => true],
+                ],
+                'lainnya' => [
+                    ['id' => 9, 'kode' => '061', 'nama' => 'Logam Mulia 50 gram', 'keterangan' => null, 'tahun' => 2024, 'nilai' => 91_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['ANTM-LM-778120'], 'terkunci' => false],
+                ],
+                default => [],
+            },
+        );
     }
 
     /**

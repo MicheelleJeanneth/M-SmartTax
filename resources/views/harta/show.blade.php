@@ -1,42 +1,40 @@
 @extends('layouts.app')
-@section('judul', $item['nama'])
-@section('keterangan', $info['nama'] . ' · Kode ' . $item['kode'])
+@section('judul', 'Detail Harta - ' . $info['nama'])
+@section('keterangan', 'Rincian data ' . strtolower($info['nama']) . ' yang tercatat')
 
 @section('kembali')
     <x-back :href="route('harta.index', $kategori)">Kembali ke Data Harta</x-back>
 @endsection
 
 @section('isi')
-    <div class="grid max-w-[960px] gap-6 lg:grid-cols-3">
-        <x-card judul="Rincian Harta" class="lg:col-span-2">
-            <div class="divide-y divide-line-soft">
-                <x-row label="Kode">{{ $item['kode'] }}</x-row>
-                <x-row label="Nama Harta">{{ $item['nama'] }}</x-row>
-                <x-row label="Tahun Perolehan">{{ $item['tahun'] }}</x-row>
-                @foreach($info['kolom'] as $i => $kolom)
-                    <x-row :label="$kolom">{{ $item['khas'][$i] }}</x-row>
-                @endforeach
-                <x-row :label="$info['label_nilai']" tebal>{{ rupiah($item['nilai']) }}</x-row>
-            </div>
-        </x-card>
+    {{-- Halaman ini hanya untuk melihat. Mengubah dan menghapus dilakukan dari tabel Data Harta. --}}
+    <x-card>
+        <h2 class="mb-4 text-base font-medium text-subjudul">Data Harta</h2>
 
-        <div class="space-y-6">
-            <x-stat label="Nilai Saat Ini" :nilai="rupiah($item['nilai_kini'])"
-                :catatan="($item['nilai_kini'] >= $item['nilai'] ? 'Naik ' : 'Turun ') . persen(abs($item['nilai_kini'] - $item['nilai']) / $item['nilai'] * 100) . ' dari perolehan'" />
-
-            @if($item['terkunci'])
-                <x-info varian="abu">Harta ini sudah masuk draf tahunan. Batalkan draf tahunan terlebih dahulu untuk mengubahnya.</x-info>
-            @else
-                <div class="flex gap-3">
-                    <x-button varian="secondary" :href="route('harta.edit', [$kategori, $item['id']])" class="flex-1"><x-icon name="pencil" :size="16" /> Ubah</x-button>
-                    <x-button varian="secondary" class="flex-1 !text-danger" x-data @click="$dispatch('buka-dialog', 'hapus-harta')"><x-icon name="trash-2" :size="16" /> Hapus</x-button>
-                </div>
-                @include('partials.dialog-hapus', [
-                    'id' => 'hapus-harta',
-                    'pesan' => $item['nama'] . ' akan dihapus dari daftar harta.',
-                    'action' => route('harta.destroy', [$kategori, $item['id']]),
-                ])
-            @endif
+        <div class="grid grid-cols-2 gap-x-6">
+            <x-kolom-baca label="Kode Harta">{{ $item['kode'] }}</x-kolom-baca>
+            <x-kolom-baca label="Deskripsi">{{ $item['nama'] }}</x-kolom-baca>
         </div>
-    </div>
+
+        <x-kolom-baca label="Keterangan">{{ $item['keterangan'] ?? '—' }}</x-kolom-baca>
+
+        <x-kolom-baca :label="$info['label_nilai']">{{ rupiah($item['nilai']) }}</x-kolom-baca>
+
+        <div class="grid grid-cols-2 gap-x-6">
+            <x-kolom-baca label="Tahun Perolehan">{{ $item['tahun'] }}</x-kolom-baca>
+            <x-kolom-baca label="Tahun Pelepasan">{{ $item['tahun_pelepasan'] ?? 'Belum dilepas' }}</x-kolom-baca>
+        </div>
+
+        {{-- Garis pemisah memakai jarak yang sama dengan antar kotak: 20px di atas dan di bawah. --}}
+        <div class="mb-5 border-t border-line-soft"></div>
+
+        <h2 class="mb-4 text-base font-medium text-subjudul">{{ $info['judul_rincian'] }}</h2>
+
+        <div class="grid grid-cols-2 gap-x-6">
+            @foreach($info['kolom'] as $i => $kolom)
+                <x-kolom-baca :label="$kolom">{{ $item['khas'][$i] }}</x-kolom-baca>
+            @endforeach
+            <x-kolom-baca label="Lokasi / Negara">{{ $item['negara'] }}</x-kolom-baca>
+        </div>
+    </x-card>
 @endsection
