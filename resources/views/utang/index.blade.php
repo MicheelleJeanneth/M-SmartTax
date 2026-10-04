@@ -80,9 +80,10 @@
             'id' => 'hapus-utang-' . $u['id'],
             'judul' => 'Hapus data utang?',
             'rincian' => [
+                'Kode Utang' => \App\Support\MockData::kodeUtangSingkat()[$u['kode']],
                 'Deskripsi' => $u['deskripsi'],
-                'Nama Kreditur' => $u['kreditur'],
-                'Saldo Utang' => rupiah($u['saldo']),
+                'Kreditur' => $u['kreditur'],
+                'Saldo' => rupiah($u['saldo']),
             ],
             'action' => route('utang.destroy', $u['id']),
         ])
