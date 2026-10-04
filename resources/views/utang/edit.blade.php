@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('judul', 'Ubah Utang')
-@section('keterangan', 'Perubahan hanya dapat dilakukan sebelum data masuk draf tahunan')
+@section('keterangan', 'Perbarui data utang yang sudah tercatat')
 
 @section('kembali')
     <x-back :href="route('utang.index')">Kembali ke Data Utang</x-back>
