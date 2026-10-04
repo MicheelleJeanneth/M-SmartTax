@@ -178,38 +178,44 @@ class MockData
             'kas' => [
                 'nama' => 'Kas dan Setara Kas',
                 'singkat' => 'Kas',
-                'label_nilai' => 'Saldo Akhir Tahun',
+                'label_nilai' => 'Saldo',
                 'kolom' => ['Nama Bank', 'Nomor Rekening', 'Atas Nama'],
+                'catatan' => 'Untuk kas dan setara kas, saldo dicatat sebesar jumlah pada akhir tahun pajak.',
             ],
             'piutang' => [
                 'nama' => 'Piutang',
                 'singkat' => 'Piutang',
                 'label_nilai' => 'Saldo Saat Ini',
                 'kolom' => ['Nama Peminjam', 'NIK/NPWP'],
+                'catatan' => 'Untuk piutang, nilai dicatat sebesar sisa tagihan pada akhir tahun pajak.',
             ],
             'investasi' => [
                 'nama' => 'Investasi / Sekuritas',
                 'singkat' => 'Investasi',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nama Penerbit', 'Nomor Akun'],
+                'catatan' => 'Investasi dicatat sebesar harga perolehan, bukan nilai pasar saat ini.',
             ],
             'bergerak' => [
                 'nama' => 'Harta Bergerak',
                 'singkat' => 'Bergerak',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nomor Polisi', 'Kepemilikan'],
+                'catatan' => 'Harta bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
             ],
             'tidak-bergerak' => [
                 'nama' => 'Harta Tidak Bergerak',
                 'singkat' => 'Tidak bergerak',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Lokasi', 'Luas T/B', 'No. Sertifikat'],
+                'catatan' => 'Harta tidak bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
             ],
             'lainnya' => [
                 'nama' => 'Harta Lainnya',
                 'singkat' => 'Lainnya',
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nomor Kepemilikan'],
+                'catatan' => 'Harta lainnya dicatat sebesar harga perolehan.',
             ],
         ];
     }

@@ -9,11 +9,43 @@ use Illuminate\View\View;
 
 class HartaController extends Controller
 {
-    public function index(string $kategori = 'kas'): View
+    public function index(Request $request, string $kategori = 'kas'): View
     {
+        $cari = trim((string) $request->query('cari', ''));
+        $kode = trim((string) $request->query('kode', ''));
+        $tahun = trim((string) $request->query('tahun', ''));
+
+        $semua = collect(MockData::harta($kategori));
+
+        $terpilih = $semua
+            ->filter(function (array $h) use ($cari, $kode, $tahun): bool {
+                $kataKunci = mb_strtolower($cari);
+
+                $cocokCari = $cari === ''
+                    || str_contains(mb_strtolower($h['nama']), $kataKunci)
+                    // Kolom khas tiap kategori ikut dicari: nama bank, nomor polisi, dan seterusnya.
+                    || collect($h['khas'])->contains(
+                        fn (mixed $nilai): bool => str_contains(mb_strtolower((string) $nilai), $kataKunci)
+                    );
+
+                return $cocokCari
+                    && ($kode === '' || $h['kode'] === $kode)
+                    && ($tahun === '' || (int) $h['tahun'] === (int) $tahun);
+            })
+            // Terbaru di atas, sama seperti Data Penghasilan dan Data Utang.
+            ->sortByDesc(fn (array $h): array => [$h['tahun'], $h['id']])
+            ->values();
+
         return view('harta.index', [
             ...$this->dataKategori($kategori),
-            'harta' => MockData::harta($kategori),
+            'harta' => $this->halaman($terpilih, $request),
+            'total' => $terpilih->sum('nilai'),
+            'jumlah' => $terpilih->count(),
+            'cari' => $cari,
+            'kode' => $kode,
+            'tahun' => $tahun,
+            'daftarKode' => $semua->pluck('kode')->unique()->sort()->values()->all(),
+            'daftarTahun' => $semua->pluck('tahun')->unique()->sortDesc()->values()->all(),
         ]);
     }
 
