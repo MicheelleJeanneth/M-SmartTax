@@ -13,10 +13,4 @@
         <x-kolom-baca label="Nominal">{{ rupiah($penghasilan['nominal']) }}</x-kolom-baca>
         <x-kolom-baca label="Keterangan">{{ $penghasilan['keterangan'] }}</x-kolom-baca>
     </x-card>
-
-    @if($penghasilan['terkunci'])
-        <x-info varian="abu" class="mt-4">
-            Penghasilan ini sudah masuk draf pajak bulanan. Batalkan draf bulan tersebut terlebih dahulu untuk mengubahnya.
-        </x-info>
-    @endif
 @endsection

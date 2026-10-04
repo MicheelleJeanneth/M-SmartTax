@@ -43,10 +43,4 @@
 
         <x-kolom-baca label="Keterangan">{{ $utang['keterangan'] ?? '—' }}</x-kolom-baca>
     </x-card>
-
-    @if($utang['terkunci'])
-        <x-info varian="abu" class="mt-4">
-            Utang ini sudah masuk draf pajak tahunan. Batalkan draf tahun tersebut terlebih dahulu untuk mengubahnya.
-        </x-info>
-    @endif
 @endsection
