@@ -1,7 +1,4 @@
-@php
-    $u = $utang ?? [];
-    $tahun = collect(range(date('Y'), 1990))->mapWithKeys(fn (int $t): array => [$t => $t])->all();
-@endphp
+@php $u = $utang ?? []; @endphp
 <x-card>
     <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
 
@@ -19,14 +16,15 @@
     <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
         :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
 
+    {{-- Tahun diketik langsung, bukan dipilih, supaya pengguna bebas mengisi tahun berapa pun. --}}
     <div class="grid grid-cols-2 gap-x-6">
-        <x-select label="Tahun Peminjaman" name="tahun_peminjaman" wajib :pilihan="$tahun"
-            :terpilih="$u['tahun'] ?? date('Y')" :kosong="false" />
-        <x-select label="Tahun Pelunasan" name="tahun_pelunasan" :pilihan="$tahun"
-            :terpilih="$u['tahun_pelunasan'] ?? null" kosong="Belum lunas" />
+        <x-input label="Tahun Peminjaman" name="tahun_peminjaman" wajib inputmode="numeric" maxlength="4"
+            pattern="\d{4}" data-digit placeholder="Contoh: 2024" :value="$u['tahun'] ?? ''" />
+        <x-input label="Tahun Pelunasan" name="tahun_pelunasan" inputmode="numeric" maxlength="4"
+            pattern="\d{4}" data-digit placeholder="Kosongkan bila belum lunas" :value="$u['tahun_pelunasan'] ?? ''" />
     </div>
     <p class="-mt-3 mb-6 text-sm text-ink-3">
-        Biarkan &ldquo;Belum lunas&rdquo; jika utang masih berjalan. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal
+        Kosongkan Tahun Pelunasan bila utang masih berjalan. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal
     </p>
 
     <div class="mb-6 border-t border-line-soft"></div>
@@ -36,7 +34,7 @@
     <x-input label="Nama Kreditur" name="nama_kreditur" wajib placeholder="Contoh: Bank Mandiri" :value="$u['kreditur'] ?? ''" />
 
     <div class="grid grid-cols-2 gap-x-6">
-        <x-input label="NIK Kreditur" name="nik_kreditur" inputmode="numeric" maxlength="16" placeholder="16 digit"
+        <x-input label="NIK Kreditur" name="nik_kreditur" inputmode="numeric" maxlength="16" data-digit placeholder="16 digit"
             :value="$u['nik_kreditur'] ?? ''"
             bantuan="NIK boleh dikosongkan jika kreditur berupa lembaga keuangan." />
         {{-- Kreditur selalu dalam negeri: terlihat tetapi tidak dapat diubah, sama seperti Negara di Lengkapi Profil. --}}

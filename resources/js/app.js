@@ -55,6 +55,29 @@ document.addEventListener('input', perbaruiTombolKirim);
 document.addEventListener('change', perbaruiTombolKirim);
 
 /*
+ | Kolom bertanda data-digit hanya menerima angka, misalnya tahun empat digit
+ | dan NIK. Panjangnya sendiri sudah dijaga oleh maxlength.
+ */
+document.addEventListener('input', (peristiwa) => {
+    const kolom = peristiwa.target;
+
+    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.digit === undefined) {
+        return;
+    }
+
+    const bersih = kolom.value.replace(/\D/g, '');
+
+    if (bersih === kolom.value) {
+        return;
+    }
+
+    // Kursor dimundurkan sebanyak karakter yang dibuang agar tidak melompat ke ujung.
+    const kursor = (kolom.selectionStart ?? kolom.value.length) - (kolom.value.length - bersih.length);
+    kolom.value = bersih;
+    kolom.setSelectionRange(kursor, kursor);
+});
+
+/*
  | Peringatan dini untuk tanggal yang jatuh pada bulan yang drafnya sudah
  | disusun. Pemeriksaan yang sesungguhnya tetap di server, karena yang di
  | browser bisa dilewati; bagian ini hanya supaya ketahuan sebelum tombol
