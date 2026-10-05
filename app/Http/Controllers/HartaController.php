@@ -81,7 +81,7 @@ class HartaController extends Controller
 
     public function update(Request $request, string $kategori, int $id): RedirectResponse
     {
-        return redirect()->route('harta.show', [$kategori, $id])->with('sukses', 'Perubahan data harta tersimpan.');
+        return redirect()->route('harta.index', $kategori)->with('sukses', 'Perubahan data harta tersimpan.');
     }
 
     public function destroy(string $kategori, int $id): RedirectResponse

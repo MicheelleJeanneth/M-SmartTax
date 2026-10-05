@@ -69,6 +69,14 @@ class MockupPagesTest extends TestCase
         $this->put('/penghasilan/1', ['tanggal' => $terbuka, 'nominal' => '1.000.000'])->assertForbidden();
     }
 
+    public function test_simpan_perubahan_kembali_ke_daftar_bukan_ke_detail(): void
+    {
+        // Halaman detail sudah tidak punya tombol Ubah, jadi daftar adalah tempat asal pengguna.
+        $this->put('/harta/kas/1', ['nama' => 'Deposito'])->assertRedirect('/harta/kas');
+        $this->put('/utang/2', ['deskripsi' => 'Kredit kendaraan bermotor'])->assertRedirect('/utang');
+        $this->put('/penghasilan/25', ['tanggal' => '2026-07-05'])->assertRedirect('/penghasilan');
+    }
+
     public function test_filter_tahun_penghasilan_mulai_dari_catatan_pertama(): void
     {
         $filter = app(FilterTahun::class);

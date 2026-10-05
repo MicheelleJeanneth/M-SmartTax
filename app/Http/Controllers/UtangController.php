@@ -73,7 +73,7 @@ class UtangController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        return redirect()->route('utang.show', $id)->with('sukses', 'Perubahan data utang tersimpan.');
+        return redirect()->route('utang.index')->with('sukses', 'Perubahan data utang tersimpan.');
     }
 
     public function destroy(int $id): RedirectResponse

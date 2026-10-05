@@ -11,10 +11,8 @@
     <x-card>
         <h2 class="mb-4 text-base font-medium text-subjudul">Data Harta</h2>
 
-        <div class="grid grid-cols-2 gap-x-6">
-            <x-kolom-baca label="Kode Harta">{{ $item['kode'] }}</x-kolom-baca>
-            <x-kolom-baca label="Deskripsi">{{ $item['nama'] }}</x-kolom-baca>
-        </div>
+        {{-- Kode dan uraiannya tampil menyatu, sama seperti pilihan di formulir. --}}
+        <x-kolom-baca label="Kode Harta">{{ $item['kode'] }} - {{ $item['nama'] }}</x-kolom-baca>
 
         <x-kolom-baca label="Keterangan">{{ $item['keterangan'] ?? '—' }}</x-kolom-baca>
 
