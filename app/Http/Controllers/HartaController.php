@@ -23,6 +23,7 @@ class HartaController extends Controller
 
                 $cocokCari = $cari === ''
                     || str_contains(mb_strtolower($h['nama']), $kataKunci)
+                    || str_contains(mb_strtolower((string) $h['keterangan']), $kataKunci)
                     // Kolom khas tiap kategori ikut dicari: nama bank, nomor polisi, dan seterusnya.
                     || collect($h['khas'])->contains(
                         fn (mixed $nilai): bool => str_contains(mb_strtolower((string) $nilai), $kataKunci)

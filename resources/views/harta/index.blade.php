@@ -93,7 +93,7 @@
             'id' => 'hapus-harta-' . $h['id'],
             'judul' => 'Hapus data harta?',
             'rincian' => array_merge(
-                ['Kode Harta' => $h['kode'], 'Deskripsi' => $h['nama']],
+                ['Kode Harta' => $h['kode'], 'Deskripsi' => $h['nama'], 'Keterangan' => $h['keterangan'] ?? '—'],
                 array_combine($info['kolom'], $h['khas']),
                 ['Tahun Perolehan' => $h['tahun'], $info['label_nilai'] => rupiah($h['nilai'])]
             ),
