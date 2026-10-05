@@ -24,7 +24,7 @@
 
         <div class="grid grid-cols-2 gap-x-6">
             <x-kolom-baca label="Tahun Peminjaman">{{ $utang['tahun'] }}</x-kolom-baca>
-            <x-kolom-baca label="Tahun Pelunasan">{{ $utang['tahun_pelunasan'] ?? 'Belum lunas' }}</x-kolom-baca>
+            <x-kolom-baca label="Tahun Pelunasan">{{ $utang['tahun_pelunasan'] }}</x-kolom-baca>
         </div>
         {{-- Garis pemisah memakai jarak yang sama dengan antar kotak: 20px di atas dan di bawah. --}}
         <div class="mb-5 border-t border-line-soft"></div>

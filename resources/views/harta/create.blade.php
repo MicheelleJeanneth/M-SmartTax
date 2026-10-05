@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('judul', 'Tambah Harta')
-@section('keterangan', 'Kategori: ' . $info['nama'])
+@section('judul', 'Tambah Harta - ' . $info['nama'])
+@section('keterangan', 'Isi data ' . strtolower($info['nama']) . ' yang dimiliki')
 
 @section('kembali')
     <x-back :href="route('harta.index', $kategori)">Kembali ke Data Harta</x-back>
@@ -9,6 +9,6 @@
 @section('isi')
     <form method="POST" action="{{ route('harta.store', $kategori) }}">
         @csrf
-        @include('harta._form', ['tombol' => 'Simpan Harta'])
+        @include('harta._form', ['tombol' => 'Simpan'])
     </form>
 @endsection

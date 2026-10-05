@@ -22,7 +22,7 @@
 
         <div class="grid grid-cols-2 gap-x-6">
             <x-kolom-baca label="Tahun Perolehan">{{ $item['tahun'] }}</x-kolom-baca>
-            <x-kolom-baca label="Tahun Pelepasan">{{ $item['tahun_pelepasan'] ?? 'Belum dilepas' }}</x-kolom-baca>
+            <x-kolom-baca label="Tahun Pelepasan">{{ $item['tahun_pelepasan'] }}</x-kolom-baca>
         </div>
 
         {{-- Garis pemisah memakai jarak yang sama dengan antar kotak: 20px di atas dan di bawah. --}}

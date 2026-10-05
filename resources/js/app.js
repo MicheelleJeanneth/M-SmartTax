@@ -55,6 +55,26 @@ document.addEventListener('input', perbaruiTombolKirim);
 document.addEventListener('change', perbaruiTombolKirim);
 
 /*
+ | Daftar pilihan bertanda data-isi-uraian mengisi kolom lain dengan uraian
+ | resmi dari pilihan yang dipakai, misalnya kode harta 0102 mengisi kolom
+ | Deskripsi dengan "Tabungan (Bank/Lembaga Keuangan)".
+ */
+const isiUraian = (pilihan) => {
+    if (!(pilihan instanceof HTMLSelectElement) || pilihan.dataset.isiUraian === undefined) {
+        return;
+    }
+
+    const tujuan = document.getElementById(pilihan.dataset.isiUraian);
+
+    if (tujuan) {
+        tujuan.value = JSON.parse(pilihan.dataset.uraian ?? '{}')[pilihan.value] ?? '';
+    }
+};
+
+document.addEventListener('change', (peristiwa) => isiUraian(peristiwa.target));
+document.querySelectorAll('select[data-isi-uraian]').forEach(isiUraian);
+
+/*
  | Kolom bertanda data-digit hanya menerima angka, misalnya tahun empat digit
  | dan NIK. Panjangnya sendiri sudah dijaga oleh maxlength.
  */

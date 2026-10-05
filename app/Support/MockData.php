@@ -171,6 +171,32 @@ class MockData
         return $baris;
     }
 
+    /**
+     * Kode harta sesuai lampiran SPT beserta uraian resminya, per kategori.
+     * Uraian inilah yang mengisi kolom Deskripsi secara otomatis.
+     *
+     * Kategori yang daftarnya belum tersedia mengembalikan array kosong.
+     *
+     * @return array<string, string>
+     */
+    public static function kodeHarta(string $kategori): array
+    {
+        return match ($kategori) {
+            'kas' => [
+                '0101' => 'Uang Tunai/Bank Note/Koin',
+                '0102' => 'Tabungan (Bank/Lembaga Keuangan)',
+                '0103' => 'Giro',
+                '0104' => 'Deposito',
+                '0105' => 'Uang Elektronik',
+                '0106' => 'Cek',
+                '0107' => 'Wessel',
+                '0108' => 'Kertas Komersial',
+                '0109' => 'Setara Kas Lainnya',
+            ],
+            default => [],
+        };
+    }
+
     /** Definisi enam kategori harta: label kolom nilai dan kolom khasnya. */
     public static function kategoriHarta(): array
     {
@@ -181,6 +207,10 @@ class MockData
                 'label_nilai' => 'Saldo',
                 'kolom' => ['Nama Bank', 'Nomor Rekening', 'Atas Nama'],
                 'judul_rincian' => 'Rincian Rekening',
+                'contoh' => ['Bank BCA', '1234567890', 'Budi Santoso'],
+                'contoh_keterangan' => 'Tabungan operasional',
+                'bantuan_pelepasan' => 'Isi tahun pelepasan bila rekening telah ditutup',
+                'bantuan_kolom' => [null, null, 'Kosongkan bagian rekening jika harta berupa uang tunai'],
                 'catatan' => 'Untuk kas dan setara kas, saldo dicatat sebesar jumlah pada akhir tahun pajak.',
             ],
             'piutang' => [
@@ -189,6 +219,10 @@ class MockData
                 'label_nilai' => 'Saldo Saat Ini',
                 'kolom' => ['Nama Peminjam', 'NIK/NPWP'],
                 'judul_rincian' => 'Rincian Piutang',
+                'contoh' => ['Andi Wijaya', '3578010101900001'],
+                'bantuan_kolom' => [null, null],
+                'contoh_keterangan' => 'Pinjaman modal kepada rekan usaha',
+                'bantuan_pelepasan' => 'Isi tahun pelepasan bila piutang telah lunas diterima',
                 'catatan' => 'Untuk piutang, nilai dicatat sebesar sisa tagihan pada akhir tahun pajak.',
             ],
             'investasi' => [
@@ -197,6 +231,10 @@ class MockData
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nama Penerbit', 'Nomor Akun'],
                 'judul_rincian' => 'Rincian Investasi',
+                'contoh' => ['PT Bank Central Asia Tbk', 'RD-00912345'],
+                'bantuan_kolom' => [null, null],
+                'contoh_keterangan' => 'Reksa dana pasar uang',
+                'bantuan_pelepasan' => 'Isi tahun pelepasan bila investasi telah dijual',
                 'catatan' => 'Investasi dicatat sebesar harga perolehan, bukan nilai pasar saat ini.',
             ],
             'bergerak' => [
@@ -205,6 +243,10 @@ class MockData
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nomor Polisi', 'Kepemilikan'],
                 'judul_rincian' => 'Rincian Kendaraan',
+                'contoh' => ['L 1234 BS', 'Milik Sendiri'],
+                'bantuan_kolom' => [null, null],
+                'contoh_keterangan' => 'Kendaraan operasional toko',
+                'bantuan_pelepasan' => 'Isi tahun pelepasan bila harta telah dijual atau dialihkan',
                 'catatan' => 'Harta bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
             ],
             'tidak-bergerak' => [
@@ -213,6 +255,10 @@ class MockData
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Lokasi', 'Luas T/B', 'No. Sertifikat'],
                 'judul_rincian' => 'Rincian Properti',
+                'contoh' => ['Mulyorejo, Surabaya', '120/90', 'SHM 02.11.884'],
+                'contoh_keterangan' => 'Rumah tinggal keluarga',
+                'bantuan_pelepasan' => 'Isi tahun pelepasan bila harta telah dijual atau dialihkan',
+                'bantuan_kolom' => [null, 'Luas tanah/bangunan dalam m², contoh 120/90', null],
                 'catatan' => 'Harta tidak bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
             ],
             'lainnya' => [
@@ -221,6 +267,10 @@ class MockData
                 'label_nilai' => 'Harga Perolehan',
                 'kolom' => ['Nomor Kepemilikan'],
                 'judul_rincian' => 'Rincian Harta',
+                'contoh' => ['ANTM-LM-778120'],
+                'bantuan_kolom' => [null],
+                'contoh_keterangan' => 'Logam mulia batangan',
+                'bantuan_pelepasan' => 'Isi tahun pelepasan bila harta telah dijual atau dialihkan',
                 'catatan' => 'Harta lainnya dicatat sebesar harga perolehan.',
             ],
         ];
@@ -234,8 +284,8 @@ class MockData
             fn (array $baris): array => $baris + ['negara' => 'Indonesia'],
             match ($kategori) {
                 'kas' => [
-                    ['id' => 1, 'kode' => '011', 'nama' => 'Rekening Operasional', 'keterangan' => 'Rekening utama untuk transaksi harian toko', 'tahun' => 2021, 'nilai' => 62_000_000, 'nilai_kini' => 64_500_000, 'tahun_pelepasan' => null, 'khas' => ['Bank Mandiri', '1400012345678', 'Budi Santoso'], 'terkunci' => false],
-                    ['id' => 2, 'kode' => '012', 'nama' => 'Deposito Berjangka', 'keterangan' => 'Jatuh tempo setiap 12 bulan', 'tahun' => 2023, 'nilai' => 120_000_000, 'nilai_kini' => 126_000_000, 'tahun_pelepasan' => null, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
+                    ['id' => 1, 'kode' => '0102', 'nama' => 'Tabungan (Bank/Lembaga Keuangan)', 'keterangan' => 'Rekening utama untuk transaksi harian toko', 'tahun' => 2021, 'nilai' => 62_000_000, 'nilai_kini' => 64_500_000, 'tahun_pelepasan' => null, 'khas' => ['Bank Mandiri', '1400012345678', 'Budi Santoso'], 'terkunci' => false],
+                    ['id' => 2, 'kode' => '0104', 'nama' => 'Deposito', 'keterangan' => 'Deposito berjangka, jatuh tempo setiap 12 bulan', 'tahun' => 2023, 'nilai' => 120_000_000, 'nilai_kini' => 126_000_000, 'tahun_pelepasan' => null, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
                 ],
                 'piutang' => [],
                 'investasi' => [],
