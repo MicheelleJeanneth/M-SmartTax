@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('judul', 'Tambah Harta - ' . $info['nama'])
-@section('keterangan', 'Isi data ' . strtolower($info['nama']) . ' yang dimiliki')
+@section('keterangan', $info['keterangan_isi'])
 
 @section('kembali')
     <x-back :href="route('harta.index', $kategori)">Kembali ke Data Harta</x-back>

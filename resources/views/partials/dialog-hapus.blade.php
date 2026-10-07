@@ -17,10 +17,11 @@
     @if($rincian)
         <dl class="mt-4 rounded-field bg-page px-4 py-3 text-[15px]">
             @foreach($rincian as $label => $nilai)
-                {{-- Nilai yang kepanjangan dipotong dengan elipsis; teks utuhnya jadi tooltip. --}}
-                <div class="flex items-baseline justify-between gap-6 py-1">
-                    <dt class="shrink-0 text-ink-2">{{ $label }}</dt>
-                    <dd class="min-w-0 truncate text-right text-ink" title="{{ $nilai }}">{{ $nilai }}</dd>
+                {{-- Lebar label dan nilai tetap, jadi nilai yang panjang tidak melebar ke kiri
+                     melainkan dipotong dengan elipsis; teks utuhnya jadi tooltip. --}}
+                <div class="grid grid-cols-[2fr_3fr] items-baseline gap-6 py-1">
+                    <dt class="truncate text-ink-2">{{ $label }}</dt>
+                    <dd class="truncate text-right text-ink" title="{{ $nilai }}">{{ $nilai }}</dd>
                 </div>
             @endforeach
         </dl>
