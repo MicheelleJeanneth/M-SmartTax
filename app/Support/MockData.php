@@ -313,6 +313,8 @@ class MockData
                 'contoh' => ['Contoh: Siti Aminah', '16 digit'],
                 'bantuan_kolom' => [null, 'NIK boleh dikosongkan jika penerima berupa badan usaha.'],
                 'wajib_kolom' => [true, false],
+                // Banyaknya digit untuk kolom yang hanya boleh berisi angka; null = teks bebas.
+                'digit_kolom' => [null, 16],
                 'tabel' => [
                     ['judul' => 'Kode', 'isi' => 'kode'],
                     ['judul' => 'Deskripsi', 'isi' => 'deskripsi'],

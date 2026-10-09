@@ -8,7 +8,7 @@
     @if($terkunci)
         <x-input-locked label="NIK" name="nik" :value="$p['nik'] ?? ''" bantuan="NIK tidak dapat diubah setelah disimpan." />
     @else
-        <x-input label="NIK" name="nik" wajib inputmode="numeric" maxlength="16"
+        <x-input label="NIK" name="nik" wajib inputmode="numeric" maxlength="16" pattern="\d{16}" data-digit
             placeholder="16 digit sesuai kartu tanda penduduk" :value="$p['nik'] ?? ''" />
     @endif
 
