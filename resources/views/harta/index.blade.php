@@ -9,6 +9,30 @@
     $petunjukCari = 'Cari '.($kolom->count() > 1
         ? $kolom->slice(0, -1)->implode(', ').', atau '.$kolom->last()
         : $kolom->first());
+
+    // Susunan kolom tabel. Kategori yang tidak menentukannya memakai pola umum:
+    // kode, deskripsi, kolom khas, tahun, lalu nilai.
+    $kolomTabel = $info['tabel'] ?? array_merge(
+        [['judul' => 'Kode Harta', 'isi' => 'kode'], ['judul' => 'Deskripsi', 'isi' => 'deskripsi']],
+        collect($info['kolom'])->map(fn (string $k, int $i): array => ['judul' => $k, 'isi' => 'khas:'.$i])->all(),
+        [
+            ['judul' => $info['label_tahun'], 'isi' => 'tahun'],
+            ['judul' => $info['label_nilai'], 'isi' => 'nilai', 'kanan' => true],
+        ],
+    );
+
+    $isiKolom = function (array $baris, string $isi): string {
+        return match (true) {
+            $isi === 'kode' => $baris['kode'],
+            $isi === 'deskripsi' => $baris['nama'],
+            $isi === 'lokasi' => $baris['negara'],
+            $isi === 'tahun' => (string) $baris['tahun'],
+            $isi === 'nilai' => rupiah($baris['nilai']),
+            $isi === 'nilai_kini' => rupiah($baris['nilai_kini']),
+            str_starts_with($isi, 'khas:') => (string) ($baris['khas'][(int) substr($isi, 5)] ?? '—'),
+            default => '',
+        };
+    };
 @endphp
 
 @section('isi')
@@ -47,22 +71,25 @@
                 Tambahkan harta pada kategori ini agar ikut terlampir di draf tahunan.
             </x-empty>
         @else
-            {{-- Nilai Saat Ini sengaja tidak ditampilkan di tabel, hanya di halaman detail. --}}
             <x-table :kepala="array_merge(
-                ['No', 'Kode Harta', 'Deskripsi'],
-                $info['kolom'],
-                ['Tahun Perolehan', ['teks' => $info['label_nilai'], 'kanan' => true], 'Status', '']
+                ['No'],
+                collect($kolomTabel)->map(fn (array $k) => ['teks' => $k['judul'], 'kanan' => $k['kanan'] ?? false])->all(),
+                ['Status', '']
             )">
                 @foreach($harta as $h)
                     <tr>
                         <td class="text-ink-2">{{ $harta->firstItem() + $loop->index }}</td>
-                        <td class="tabular-nums text-ink-2">{{ $h['kode'] }}</td>
-                        <td class="w-full max-w-36 truncate" title="{{ $h['nama'] }}">{{ $h['nama'] }}</td>
-                        @foreach($h['khas'] as $nilai)
-                            <td class="max-w-38 truncate text-ink-2" title="{{ $nilai }}">{{ $nilai }}</td>
+                        @foreach($kolomTabel as $k)
+                            @php $isi = $isiKolom($h, $k['isi']); @endphp
+                            {{-- Kolom angka tidak pernah dipotong: nominal yang terpotong bisa salah dibaca.
+                                 Hanya kolom teks yang mengalah bila ruangnya kurang. --}}
+                            <td @class([
+                                'max-w-34 truncate' => ! ($k['kanan'] ?? false),
+                                'text-right tabular-nums whitespace-nowrap' => $k['kanan'] ?? false,
+                                'tabular-nums text-ink-2' => $k['isi'] === 'kode',
+                                'tabular-nums' => $k['isi'] === 'tahun',
+                            ]) title="{{ $isi }}">{{ $isi }}</td>
                         @endforeach
-                        <td class="tabular-nums">{{ $h['tahun'] }}</td>
-                        <td class="text-right tabular-nums whitespace-nowrap">{{ rupiah($h['nilai']) }}</td>
                         <td><x-badge :status="$h['terkunci'] ? 'terkunci' : 'aktif'" /></td>
                         <td>
                             @include('partials.aksi-baris', [

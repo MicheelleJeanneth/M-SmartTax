@@ -37,7 +37,8 @@
             </x-empty>
         @else
             {{-- Negara Kreditur tidak ditampilkan: aplikasi ini khusus WNI sehingga nilainya selalu Indonesia. --}}
-            <x-table :kepala="['No', 'Kode', 'Deskripsi', 'Tahun Peminjaman', 'NIK Kreditur', 'Nama Kreditur', ['teks' => 'Saldo Utang', 'kanan' => true], 'Status', '']">
+            {{-- NIK Kreditur tidak ditampilkan: sering kosong untuk kreditur lembaga, dan ada di halaman Detail. --}}
+            <x-table :kepala="['No', 'Kode', 'Deskripsi', 'Tahun Peminjaman', 'Nama Kreditur', ['teks' => 'Saldo Utang', 'kanan' => true], 'Status', '']">
                 @foreach($utang as $u)
                     @php $namaKode = \App\Support\MockData::kodeUtangSingkat()[$u['kode']]; @endphp
                     <tr>
@@ -45,7 +46,6 @@
                         <td class="tabular-nums text-ink-2" title="{{ $namaKode }}">{{ $u['kode'] }}</td>
                         <td class="w-full max-w-0 min-w-36 truncate" title="{{ $u['deskripsi'] }}">{{ $u['deskripsi'] }}</td>
                         <td class="tabular-nums">{{ $u['tahun'] }}</td>
-                        <td class="tabular-nums whitespace-nowrap">{{ $u['nik_kreditur'] ?? '—' }}</td>
                         <td class="max-w-38 truncate" title="{{ $u['kreditur'] }}">{{ $u['kreditur'] }}</td>
                         <td class="text-right tabular-nums whitespace-nowrap">{{ rupiah($u['saldo']) }}</td>
                         <td><x-badge :status="$u['terkunci'] ? 'terkunci' : 'aktif'" /></td>
