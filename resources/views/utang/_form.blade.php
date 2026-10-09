@@ -11,7 +11,7 @@
 
     <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
         :value="isset($u['cicilan']) ? angka($u['cicilan']) : ''"
-        bantuan="Kosongkan bila utang tidak diangsur secara berkala" />
+        bantuan="Kosongkan bila utang tidak diangsur secara berkala." />
 
     <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
         :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
@@ -24,7 +24,7 @@
             pattern="\d{4}" data-digit placeholder="Kosongkan bila belum lunas" :value="$u['tahun_pelunasan'] ?? ''" />
     </div>
     <p class="-mt-3 mb-6 text-sm text-ink-3">
-        Kosongkan Tahun Pelunasan bila utang masih berjalan. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal
+        Kosongkan Tahun Pelunasan bila utang masih berjalan. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal.
     </p>
 
     <div class="mb-6 border-t border-line-soft"></div>
