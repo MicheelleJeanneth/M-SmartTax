@@ -295,7 +295,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Saldo', 'isi' => 'nilai', 'kanan' => true],
                 ],
-                'catatan' => 'Untuk kas dan setara kas, saldo dicatat sebesar jumlah pada akhir tahun pajak.',
+                'catatan' => 'Kategori ini mencakup uang tunai, tabungan, giro, deposito, dan setara kas lainnya. Saldo dicatat sebesar jumlah pada akhir tahun pajak.',
             ],
             'piutang' => [
                 'nama' => 'Piutang',
@@ -326,7 +326,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Saldo Saat Ini', 'isi' => 'nilai_kini', 'kanan' => true],
                 ],
-                'catatan' => 'Nilai piutang adalah jumlah awal tagihan, sedangkan saldo saat ini adalah sisa yang belum dibayar pada akhir tahun pajak.',
+                'catatan' => 'Kategori ini mencakup tagihan kepada pihak lain, termasuk pihak afiliasi. Nilai piutang adalah jumlah awal tagihan, sedangkan saldo saat ini adalah sisa yang belum dibayar pada akhir tahun pajak.',
             ],
             'investasi' => [
                 'nama' => 'Investasi / Sekuritas',
@@ -356,7 +356,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
                 ],
-                'catatan' => 'Harga perolehan dicatat sebesar jumlah yang dibayarkan saat membeli, bukan nilai pasar saat ini.',
+                'catatan' => 'Kategori ini mencakup saham, obligasi, reksa dana, asuransi, dan penyertaan modal. Harga perolehan dicatat sebesar jumlah yang dibayarkan saat membeli, bukan nilai pasar saat ini.',
             ],
             'bergerak' => [
                 'nama' => 'Harta Bergerak',
@@ -389,7 +389,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
                 ],
-                'catatan' => 'Harta bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
+                'catatan' => 'Kategori ini mencakup kendaraan, mesin, dan alat angkut lain. Harga perolehan dicatat sebesar harga beli, bukan nilai jual saat ini.',
             ],
             'tidak-bergerak' => [
                 'nama' => 'Harta Tidak Bergerak',
@@ -423,7 +423,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
                 ],
-                'catatan' => 'Harta tidak bergerak dicatat sebesar harga perolehan, bukan nilai jual saat ini.',
+                'catatan' => 'Kategori ini mencakup tanah dan bangunan, baik untuk tempat tinggal maupun usaha. Harga perolehan dicatat sebesar harga beli, bukan nilai jual saat ini.',
             ],
             'lainnya' => [
                 'nama' => 'Harta Lainnya',
@@ -450,7 +450,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
                 ],
-                'catatan' => 'Harta lainnya dicatat sebesar harga perolehan.',
+                'catatan' => 'Kategori ini mencakup harta tidak berwujud seperti paten dan merek dagang, serta harta berwujud lain seperti emas, perhiasan, dan peralatan. Harga perolehan dicatat sebesar harga beli.',
             ],
         ];
     }
@@ -479,7 +479,8 @@ class MockData
                     ['id' => 7, 'kode' => '0402', 'nama' => 'Sepeda Motor', 'keterangan' => 'Honda Vario untuk operasional harian toko', 'tahun' => 2024, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'tahun_pelepasan' => null, 'khas' => ['L 5678 CD', 'Atas nama sendiri'], 'terkunci' => false],
                 ],
                 'tidak-bergerak' => [
-                    ['id' => 8, 'kode' => '0502', 'nama' => 'Tanah dan/atau Bangunan untuk Tempat Tinggal', 'keterangan' => 'Rumah tinggal keluarga, ditempati sendiri', 'tahun' => 2020, 'nilai' => 247_000_000, 'nilai_kini' => 310_000_000, 'tahun_pelepasan' => null, 'khas' => ['Jl. Rungkut Asri Timur 12, Surabaya', '120', '90', 'Hasil sendiri', 'SHM 04182'], 'terkunci' => true],
+                    ['id' => 8, 'kode' => '0502', 'nama' => 'Tanah dan/atau Bangunan untuk Tempat Tinggal', 'keterangan' => 'Rumah tinggal keluarga, ditempati sendiri', 'tahun' => 2020, 'nilai' => 147_000_000, 'nilai_kini' => 185_000_000, 'tahun_pelepasan' => null, 'khas' => ['Jl. Rungkut Asri Timur 12, Surabaya', '120', '90', 'Hasil sendiri', 'SHM 04182'], 'terkunci' => true],
+                    ['id' => 11, 'kode' => '0506', 'nama' => 'Tanah dan/atau Bangunan untuk Usaha (toko, pabrik, dsb)', 'keterangan' => 'Toko cabang kedua', 'tahun' => 2024, 'nilai' => 100_000_000, 'nilai_kini' => 115_000_000, 'tahun_pelepasan' => null, 'khas' => ['Jl. Raya Kalirungkut 88, Surabaya', '80', '64', 'Hasil sendiri', 'SHM 07734'], 'terkunci' => false],
                 ],
                 'lainnya' => [
                     ['id' => 9, 'kode' => '0701', 'nama' => 'Emas Batangan', 'keterangan' => 'Logam mulia 50 gram', 'tahun' => 2024, 'nilai' => 91_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['ANTM-LM-778120'], 'terkunci' => false],
