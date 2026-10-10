@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FilterTahun;
 use App\Support\MockData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -9,13 +10,16 @@ use Illuminate\View\View;
 
 class DrafBulananController extends Controller
 {
-    public function index(): View
+    public function __construct(private readonly FilterTahun $filterTahun) {}
+
+    public function index(Request $request): View
     {
         $draf = MockData::drafBulanan();
         $tersusun = collect($draf)->whereIn('status', ['tersusun', 'nihil']);
 
         return view('draf-bulanan.index', [
-            'tahun' => MockData::TAHUN,
+            'tahun' => $this->filterTahun->pilih($request->query('tahun')),
+            'daftarTahun' => $this->filterTahun->daftar(),
             'draf' => $draf,
             'jumlahTersusun' => $tersusun->count(),
             'akumulasi' => $tersusun->sum('bruto'),
