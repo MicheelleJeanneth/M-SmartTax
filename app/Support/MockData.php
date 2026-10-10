@@ -353,7 +353,7 @@ class MockData
                     ['judul' => 'Tahun', 'isi' => 'tahun'],
                     ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
                 ],
-                'catatan' => 'Investasi dicatat sebesar harga perolehan, bukan nilai pasar saat ini.',
+                'catatan' => 'Harga perolehan dicatat sebesar jumlah yang dibayarkan saat membeli, bukan nilai pasar saat ini.',
             ],
             'bergerak' => [
                 'nama' => 'Harta Bergerak',
