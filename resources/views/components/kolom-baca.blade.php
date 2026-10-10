@@ -5,5 +5,5 @@
         <p class="mb-2 text-[15px] text-label">{{ $label }}</p>
     @endif
     <div {{ $attributes->merge(['class' => 'kolom-isian flex items-center']) }}>{{ $slot }}</div>
-    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
+    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ titik($bantuan) }}</p>@endif
 </div>

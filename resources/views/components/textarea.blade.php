@@ -7,6 +7,6 @@
     @endif
     <textarea id="{{ $name }}" name="{{ $name }}" rows="{{ $baris }}"
         {{ $attributes->merge(['class' => 'kolom-isian !h-auto py-2.5', ...($wajib ? ['required' => true] : [])]) }}>{{ old($name, $value) }}</textarea>
-    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
+    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ titik($bantuan) }}</p>@endif
     @error($name)<p class="mt-1.5 text-sm text-danger">{{ $message }}</p>@enderror
 </div>

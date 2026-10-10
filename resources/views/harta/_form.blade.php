@@ -36,10 +36,11 @@
         <div class="grid grid-cols-2 gap-x-6">
             <x-input :label="$info['label_nilai']" name="nilai" wajib uang placeholder="0"
                 :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
-            <x-input :label="$info['label_nilai_kini']" name="nilai_kini" wajib uang placeholder="0"
+            <x-input :label="$info['label_nilai_kini']" name="nilai_kini" uang placeholder="0"
+                :wajib="$info['wajib_nilai_kini'] ?? false"
                 :value="isset($h['nilai_kini']) ? angka($h['nilai_kini']) : ''" />
         </div>
-        <p class="-mt-3 mb-6 text-sm text-ink-3">{{ $info['bantuan_nilai'] }}</p>
+        <p class="-mt-3 mb-6 text-sm text-ink-3">{{ titik($info['bantuan_nilai']) }}</p>
     @else
         <x-input :label="$info['label_nilai']" name="nilai" wajib uang placeholder="0"
             :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
@@ -52,7 +53,7 @@
         <x-input label="Tahun Pelepasan" name="tahun_pelepasan" inputmode="numeric" maxlength="4"
             pattern="\d{4}" data-digit placeholder="Contoh: 2029" :value="$h['tahun_pelepasan'] ?? ''" />
     </div>
-    <p class="-mt-3 mb-6 text-sm text-ink-3">{{ $info['bantuan_pelepasan'] }}</p>
+    <p class="-mt-3 mb-6 text-sm text-ink-3">{{ titik($info['bantuan_pelepasan']) }}</p>
 
     {{-- Garis pemisah memakai jarak yang sama dengan antar kotak. --}}
     <div class="mb-5 border-t border-line-soft"></div>

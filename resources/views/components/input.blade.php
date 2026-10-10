@@ -32,7 +32,7 @@
         <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}" value="{{ old($name, $value) }}"
             {{ $attributes->merge([...$batas, ...$gayaUang, ...$penanda, ...$kunci]) }}>
     </div>
-    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
+    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ titik($bantuan) }}</p>@endif
     @if($kunciSebelum)<p id="{{ $name }}-kunci" role="alert" class="mt-1.5 hidden text-sm text-danger"></p>@endif
     @error($name)<p class="mt-1.5 text-sm text-danger">{{ $message }}</p>@enderror
 </div>

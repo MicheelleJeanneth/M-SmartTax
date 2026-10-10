@@ -15,5 +15,5 @@
             <x-icon name="lock" :size="16" />
         </span>
     </div>
-    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ $bantuan }}</p>@endif
+    @if($bantuan)<p class="mt-1.5 text-sm text-ink-3">{{ titik($bantuan) }}</p>@endif
 </div>

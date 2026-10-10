@@ -102,3 +102,23 @@ if (! function_exists('terbilang')) {
         return ($hasil === '' ? 'nol' : $hasil).' rupiah';
     }
 }
+
+if (! function_exists('titik')) {
+    /**
+     * Menutup kalimat keterangan dengan titik bila belum ada.
+     *
+     * Dipakai semua teks bantuan di bawah kolom isian supaya tidak perlu
+     * diingat satu per satu saat menulis teks baru. Tanda baca penutup lain
+     * seperti tanda tanya dibiarkan apa adanya.
+     */
+    function titik(?string $teks): ?string
+    {
+        $bersih = trim((string) $teks);
+
+        if ($bersih === '') {
+            return $teks;
+        }
+
+        return str_contains('.!?:', mb_substr($bersih, -1)) ? $bersih : $bersih.'.';
+    }
+}
