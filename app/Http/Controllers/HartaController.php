@@ -15,19 +15,30 @@ class HartaController extends Controller
         $kode = trim((string) $request->query('kode', ''));
         $tahun = trim((string) $request->query('tahun', ''));
 
+        $data = $this->dataKategori($kategori);
         $semua = collect(MockData::harta($kategori));
 
+        // Pencarian hanya menjangkau kolom teks yang benar-benar tampil di tabel.
+        // Mencari kolom yang tersembunyi membuat pengguna tidak bisa melihat
+        // bagian mana dari barisnya yang cocok.
+        $kolomDicari = collect($data['info']['tabel'])
+            ->pluck('isi')
+            ->filter(fn (string $isi): bool => in_array($isi, ['deskripsi', 'keterangan'], true) || str_starts_with($isi, 'khas:'))
+            ->values();
+
         $terpilih = $semua
-            ->filter(function (array $h) use ($cari, $kode, $tahun): bool {
+            ->filter(function (array $h) use ($cari, $kode, $tahun, $kolomDicari): bool {
                 $kataKunci = mb_strtolower($cari);
 
-                $cocokCari = $cari === ''
-                    || str_contains(mb_strtolower($h['nama']), $kataKunci)
-                    || str_contains(mb_strtolower((string) $h['keterangan']), $kataKunci)
-                    // Kolom khas tiap kategori ikut dicari: nama bank, nomor polisi, dan seterusnya.
-                    || collect($h['khas'])->contains(
-                        fn (mixed $nilai): bool => str_contains(mb_strtolower((string) $nilai), $kataKunci)
-                    );
+                $cocokCari = $cari === '' || $kolomDicari->contains(function (string $isi) use ($h, $kataKunci): bool {
+                    $nilai = match (true) {
+                        $isi === 'deskripsi' => $h['nama'],
+                        $isi === 'keterangan' => $h['keterangan'],
+                        default => $h['khas'][(int) substr($isi, 5)] ?? '',
+                    };
+
+                    return str_contains(mb_strtolower((string) $nilai), $kataKunci);
+                });
 
                 return $cocokCari
                     && ($kode === '' || $h['kode'] === $kode)
@@ -37,8 +48,18 @@ class HartaController extends Controller
             ->sortByDesc(fn (array $h): array => [$h['tahun'], $h['id']])
             ->values();
 
+        // Petunjuk pencarian menyebut tepat kolom yang dijangkau, misalnya
+        // "Cari deskripsi, nama bank, atau nomor rekening".
+        $judul = collect($data['info']['tabel'])
+            ->filter(fn (array $k): bool => $kolomDicari->contains($k['isi']))
+            ->pluck('judul')
+            ->map(fn (string $j): string => mb_strtolower($j));
+
         return view('harta.index', [
-            ...$this->dataKategori($kategori),
+            ...$data,
+            'petunjukCari' => 'Cari '.($judul->count() > 1
+                ? $judul->slice(0, -1)->implode(', ').', atau '.$judul->last()
+                : $judul->first()),
             'harta' => $this->halaman($terpilih, $request),
             'total' => $terpilih->sum('nilai'),
             'jumlah' => $terpilih->count(),

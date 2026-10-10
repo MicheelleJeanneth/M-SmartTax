@@ -6,18 +6,31 @@
     'bawaan_kolom' mengisi nilai awal, keduanya boleh tidak didaftarkan.
 --}}
 @php
+    // 'digit_kolom' berisi angka untuk panjang pasti (NIK 16 digit) atau
+    // pasangan [minimal, maksimal] untuk panjang bebas (ukuran tanah).
     $batasDigit = function (int $i) use ($info): array {
         $digit = $info['digit_kolom'][$i] ?? null;
 
-        return $digit === null ? [] : [
+        if ($digit === null) {
+            return [];
+        }
+
+        [$min, $maks] = is_array($digit) ? $digit : [$digit, $digit];
+
+        return [
             'inputmode' => 'numeric',
-            'maxlength' => $digit,
-            'pattern' => '\d{'.$digit.'}',
+            'maxlength' => $maks,
+            'pattern' => '\d{'.$min.','.$maks.'}',
             'data-digit' => true,
         ];
     };
 
     $isiKhas = fn (int $i): string => $h['khas'][$i] ?? $info['bawaan_kolom'][$i] ?? '';
+@endphp
+
+@php
+    // Kolom yang punya daftar pilihan ditampilkan sebagai dropdown, bukan kotak ketik.
+    $pilihanKolom = fn (int $i): ?array => $info['pilihan_kolom'][$i] ?? null;
 @endphp
 
 @if($khasPenuh)
@@ -29,9 +42,14 @@
 <div class="grid grid-cols-2 gap-x-6">
     @foreach($info['kolom'] as $i => $kolom)
         @continue($khasPenuh && $i === 0)
-        <x-input :label="$kolom" :name="'khas_' . $i" :placeholder="$info['contoh'][$i]"
-            :wajib="$info['wajib_kolom'][$i]" :value="$isiKhas($i)" :bantuan="$info['bantuan_kolom'][$i]"
-            :attributes="new \Illuminate\View\ComponentAttributeBag($batasDigit($i))" />
+        @if($pilihanKolom($i))
+            <x-select :label="$kolom" :name="'khas_' . $i" :kosong="false" :pilihan="$pilihanKolom($i)"
+                :wajib="$info['wajib_kolom'][$i]" :terpilih="$isiKhas($i)" :bantuan="$info['bantuan_kolom'][$i]" />
+        @else
+            <x-input :label="$kolom" :name="'khas_' . $i" :placeholder="$info['contoh'][$i]"
+                :wajib="$info['wajib_kolom'][$i]" :value="$isiKhas($i)" :bantuan="$info['bantuan_kolom'][$i]"
+                :attributes="new \Illuminate\View\ComponentAttributeBag($batasDigit($i))" />
+        @endif
     @endforeach
 
     @if($info['label_lokasi'])

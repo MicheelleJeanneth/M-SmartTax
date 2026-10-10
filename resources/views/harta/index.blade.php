@@ -3,13 +3,6 @@
 @section('keterangan', 'Catat harta yang dimiliki sebagai lampiran draf tahunan')
 
 @php
-    // Placeholder pencarian disusun dari kolom khas kategori, misalnya
-    // "Cari nama bank, nomor rekening, atau atas nama".
-    $kolom = collect($info['kolom'])->map(fn (string $k): string => mb_strtolower($k));
-    $petunjukCari = 'Cari '.($kolom->count() > 1
-        ? $kolom->slice(0, -1)->implode(', ').', atau '.$kolom->last()
-        : $kolom->first());
-
     // Susunan kolom tabel. Kategori yang tidak menentukannya memakai pola umum:
     // kode, deskripsi, kolom khas, tahun, lalu nilai.
     $kolomTabel = $info['tabel'] ?? array_merge(
@@ -25,6 +18,7 @@
         return match (true) {
             $isi === 'kode' => $baris['kode'],
             $isi === 'deskripsi' => $baris['nama'],
+            $isi === 'keterangan' => $baris['keterangan'] ?? '—',
             $isi === 'lokasi' => $baris['negara'],
             $isi === 'tahun' => (string) $baris['tahun'],
             $isi === 'nilai' => rupiah($baris['nilai']),
@@ -71,7 +65,7 @@
                 Tambahkan harta pada kategori ini agar ikut terlampir di draf tahunan.
             </x-empty>
         @else
-            <x-table :kepala="array_merge(
+            <x-table rapat :kepala="array_merge(
                 ['No'],
                 collect($kolomTabel)->map(fn (array $k) => ['teks' => $k['judul'], 'kanan' => $k['kanan'] ?? false])->all(),
                 ['Status', '']
@@ -84,7 +78,7 @@
                             {{-- Kolom angka tidak pernah dipotong: nominal yang terpotong bisa salah dibaca.
                                  Hanya kolom teks yang mengalah bila ruangnya kurang. --}}
                             <td @class([
-                                'max-w-34 truncate' => ! ($k['kanan'] ?? false),
+                                'max-w-26 truncate' => ! ($k['kanan'] ?? false),
                                 'text-right tabular-nums whitespace-nowrap' => $k['kanan'] ?? false,
                                 'tabular-nums text-ink-2' => $k['isi'] === 'kode',
                                 'tabular-nums' => $k['isi'] === 'tahun',
