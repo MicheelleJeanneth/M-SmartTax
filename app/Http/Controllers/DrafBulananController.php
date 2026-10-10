@@ -14,12 +14,17 @@ class DrafBulananController extends Controller
 
     public function index(Request $request): View
     {
-        $draf = MockData::drafBulanan();
+        // Draf bulanan dihitung dari data penghasilan, jadi tahun yang ditawarkan
+        // sama dengan di Data Penghasilan: sejak catatan pertama sampai tahun berjalan.
+        $daftarTahun = $this->filterTahun->daftarPenghasilan();
+        $tahun = $this->filterTahun->pilih($request->query('tahun'), $daftarTahun);
+
+        $draf = MockData::drafBulanan($tahun);
         $tersusun = collect($draf)->whereIn('status', ['tersusun', 'nihil']);
 
         return view('draf-bulanan.index', [
-            'tahun' => $this->filterTahun->pilih($request->query('tahun')),
-            'daftarTahun' => $this->filterTahun->daftar(),
+            'tahun' => $tahun,
+            'daftarTahun' => $daftarTahun,
             'draf' => $draf,
             'jumlahTersusun' => $tersusun->count(),
             'akumulasi' => $tersusun->sum('bruto'),
@@ -32,10 +37,11 @@ class DrafBulananController extends Controller
      */
     public function create(Request $request): View
     {
-        $bulan = (int) $request->query('bulan', MockData::BULAN_TERSUSUN + 1);
+        $tahun = $this->filterTahun->pilih($request->query('tahun'), $this->filterTahun->daftarPenghasilan());
+        $bulan = (int) $request->query('bulan', MockData::bulanTersusun($tahun) + 1);
         abort_unless($bulan >= 1 && $bulan <= 12, 404);
 
-        return view('draf-bulanan.susun', MockData::perhitunganBulanan($bulan));
+        return view('draf-bulanan.susun', MockData::perhitunganBulanan($bulan, $tahun));
     }
 
     public function store(Request $request): RedirectResponse
@@ -43,11 +49,12 @@ class DrafBulananController extends Controller
         return redirect()->route('draf-bulanan.index')->with('sukses', 'Draf PPh Final tersimpan. Data penghasilan bulan tersebut kini terkunci.');
     }
 
-    public function show(int $bulan): View
+    public function show(Request $request, int $bulan): View
     {
-        abort_unless($bulan >= 1 && $bulan <= MockData::BULAN_TERSUSUN, 404);
+        $tahun = $this->filterTahun->pilih($request->query('tahun'), $this->filterTahun->daftarPenghasilan());
+        abort_unless($bulan >= 1 && $bulan <= MockData::bulanTersusun($tahun), 404);
 
-        return view('draf-bulanan.lihat', MockData::perhitunganBulanan($bulan));
+        return view('draf-bulanan.lihat', MockData::perhitunganBulanan($bulan, $tahun));
     }
 
     public function destroy(int $bulan): RedirectResponse

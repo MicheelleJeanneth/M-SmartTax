@@ -82,20 +82,45 @@ class MockData
         ];
     }
 
-    /** Peredaran bruto per bulan, dipakai grafik batang dan tabel draf. */
-    public static function bruto(): array
+    /** Peredaran bruto per bulan pada satu tahun, dipakai grafik batang dan tabel draf. */
+    public static function bruto(int $tahun = self::TAHUN): array
     {
-        return [
-            1 => 110_000_000, 2 => 125_000_000, 3 => 140_000_000,
-            4 => 132_000_000, 5 => 148_000_000, 6 => 125_000_000,
-            7 => 136_000_000, 8 => 0, 9 => 0, 10 => 0, 11 => 0, 12 => 0,
-        ];
+        return match ($tahun) {
+            self::TAHUN => [
+                1 => 110_000_000, 2 => 125_000_000, 3 => 140_000_000,
+                4 => 132_000_000, 5 => 148_000_000, 6 => 125_000_000,
+                7 => 136_000_000, 8 => 0, 9 => 0, 10 => 0, 11 => 0, 12 => 0,
+            ],
+            // Tahun lalu sudah lengkap dua belas bulan; jumlahnya Rp 742 juta,
+            // cocok dengan baris 2025 pada drafTahunan().
+            self::TAHUN - 1 => [
+                1 => 55_000_000, 2 => 58_000_000, 3 => 62_000_000,
+                4 => 60_000_000, 5 => 64_000_000, 6 => 59_000_000,
+                7 => 63_000_000, 8 => 61_000_000, 9 => 66_000_000,
+                10 => 64_000_000, 11 => 65_000_000, 12 => 65_000_000,
+            ],
+            default => array_fill(1, 12, 0),
+        };
+    }
+
+    /**
+     * Banyaknya bulan yang drafnya sudah tersusun pada satu tahun.
+     * Tahun yang sudah lewat dianggap lengkap dua belas bulan.
+     */
+    public static function bulanTersusun(int $tahun = self::TAHUN): int
+    {
+        return match (true) {
+            $tahun === self::TAHUN => self::BULAN_TERSUSUN,
+            $tahun === self::TAHUN - 1 => 12,
+            default => 0,
+        };
     }
 
     /** Baris tabel draf bulanan — selalu 12 baris tetap. */
-    public static function drafBulanan(): array
+    public static function drafBulanan(int $tahun = self::TAHUN): array
     {
-        $bruto = self::bruto();
+        $bruto = self::bruto($tahun);
+        $tersusunSampai = self::bulanTersusun($tahun);
         $akumulasi = 0;
         $baris = [];
 
@@ -107,7 +132,7 @@ class MockData
             $kena = max(0, min($akumulasi, PHP_INT_MAX) - $bebas);
             $kenaBulanIni = max(0, min($akumulasi - $bebas, $bruto[$i]));
 
-            $tersusun = $i <= self::BULAN_TERSUSUN;
+            $tersusun = $i <= $tersusunSampai;
 
             $baris[] = [
                 'bulan' => $i,
@@ -120,8 +145,8 @@ class MockData
                     ? ($bruto[$i] > 0 ? 'tersusun' : 'nihil')
                     : 'belum',
                 'terkunci_tahunan' => false,
-                'boleh_susun' => $i === self::BULAN_TERSUSUN + 1,
-                'boleh_batal' => $i === self::BULAN_TERSUSUN,
+                'boleh_susun' => $i === $tersusunSampai + 1,
+                'boleh_batal' => $i === $tersusunSampai,
             ];
         }
 
@@ -144,27 +169,32 @@ class MockData
         ];
 
         $baris = [];
-        $id = 1;
 
-        foreach (self::bruto() as $bulan => $nilai) {
-            if ($nilai === 0) {
-                continue;
-            }
+        // Tiap tahun memakai rentang id sendiri supaya id lama tidak bergeser
+        // ketika tahun baru ditambahkan.
+        foreach ([self::TAHUN => 1, self::TAHUN - 1 => 101] as $tahun => $id) {
+            $tersusunSampai = self::bulanTersusun($tahun);
 
-            // Dibagi empat transaksi; sisa pembagian ditaruh di transaksi terakhir.
-            $porsi = intdiv($nilai, 4_000_000) * 1_000_000;
+            foreach (self::bruto($tahun) as $bulan => $nilai) {
+                if ($nilai === 0) {
+                    continue;
+                }
 
-            foreach ([5, 12, 19, 26] as $urutan => $hari) {
-                $nominal = $urutan === 3 ? $nilai - ($porsi * 3) : $porsi;
+                // Dibagi empat transaksi; sisa pembagian ditaruh di transaksi terakhir.
+                $porsi = intdiv($nilai, 4_000_000) * 1_000_000;
 
-                $baris[] = [
-                    'id' => $id++,
-                    'tanggal' => sprintf('%d-%02d-%02d', self::TAHUN, $bulan, $hari),
-                    'nominal' => $nominal,
-                    'keterangan' => $contoh[$urutan],
-                    // Penghasilan bulan yang drafnya sudah tersusun ikut terkunci.
-                    'terkunci' => $bulan <= self::BULAN_TERSUSUN,
-                ];
+                foreach ([5, 12, 19, 26] as $urutan => $hari) {
+                    $nominal = $urutan === 3 ? $nilai - ($porsi * 3) : $porsi;
+
+                    $baris[] = [
+                        'id' => $id++,
+                        'tanggal' => sprintf('%d-%02d-%02d', $tahun, $bulan, $hari),
+                        'nominal' => $nominal,
+                        'keterangan' => $contoh[$urutan],
+                        // Penghasilan bulan yang drafnya sudah tersusun ikut terkunci.
+                        'terkunci' => $bulan <= $tersusunSampai,
+                    ];
+                }
             }
         }
 
@@ -577,9 +607,9 @@ class MockData
      *
      * @return array<string, mixed>
      */
-    public static function perhitunganBulanan(int $bulan): array
+    public static function perhitunganBulanan(int $bulan, int $tahun = self::TAHUN): array
     {
-        $bruto = self::bruto();
+        $bruto = self::bruto($tahun);
         $namaBulan = self::bulan()[$bulan];
         $akumulasiSebelum = array_sum(array_slice($bruto, 0, $bulan - 1, true));
         $brutoBulanIni = $bruto[$bulan];
@@ -589,12 +619,13 @@ class MockData
         $omzetKenaPajak = max(0, min($akumulasi - $batasBebas, $brutoBulanIni));
 
         $transaksi = collect(self::penghasilan())
-            ->filter(fn (array $baris): bool => (int) date('n', strtotime($baris['tanggal'])) === $bulan)
+            ->filter(fn (array $baris): bool => (int) date('n', strtotime($baris['tanggal'])) === $bulan
+                && (int) date('Y', strtotime($baris['tanggal'])) === $tahun)
             ->values()
             ->all();
 
         return [
-            'tahun' => self::TAHUN,
+            'tahun' => $tahun,
             'bulan' => $bulan,
             'namaBulan' => $namaBulan,
             'transaksi' => $transaksi,

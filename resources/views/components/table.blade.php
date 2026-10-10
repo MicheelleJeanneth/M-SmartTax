@@ -15,7 +15,7 @@
                 @endforeach
             </tr>
         </thead>
-        <tbody class="divide-y divide-line-soft text-sm text-ink {{ $rapat ? '[&_td]:px-3' : '[&_td]:px-4' }} [&_td]:py-3">
+        <tbody class="divide-y divide-line-soft text-sm text-ink [&_tr]:transition [&_tr:hover]:bg-page {{ $rapat ? '[&_td]:px-3' : '[&_td]:px-4' }} [&_td]:py-3">
             {{ $slot }}
         </tbody>
         @isset($kaki)

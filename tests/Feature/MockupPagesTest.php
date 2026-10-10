@@ -20,6 +20,7 @@ class MockupPagesTest extends TestCase
             '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1', '/harta/kas/1/ubah',
             '/utang', '/utang/create', '/utang/2', '/utang/2/edit',
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
+            '/draf-bulanan?tahun=2025', '/draf-bulanan/12?tahun=2025', '/draf-bulanan/susun?bulan=3&tahun=2025',
             '/draf-tahunan', '/draf-tahunan/susun?tahun=2025', '/draf-tahunan/2025',
             '/simulasi', '/simulasi?harga_aset=450000000&uang_muka=90000000&jangka_waktu=60&suku_bunga=8.5',
             '/laporan/draf-bulanan', '/laporan/draf-bulanan?bulan=9', '/laporan/draf-tahunan', '/laporan/draf-tahunan?tahun=2026',
@@ -89,6 +90,23 @@ class MockupPagesTest extends TestCase
         $this->get('/penghasilan?tahun='.($terlama - 1))
             ->assertOk()
             ->assertDontSee('<option value="'.($terlama - 1).'"', false);
+    }
+
+    public function test_ganti_tahun_mengubah_isi_draf_bulanan(): void
+    {
+        // Tahun berjalan baru sebagian tersusun; tahun lalu sudah lengkap dua belas bulan.
+        $this->get('/draf-bulanan?tahun=2026')
+            ->assertSee('6 dari 12')
+            ->assertSee('Rp 110.000.000');
+
+        $this->get('/draf-bulanan?tahun=2025')
+            ->assertSee('12 dari 12')
+            ->assertSee('Rp 55.000.000')
+            ->assertDontSee('Rp 110.000.000');
+
+        // Desember 2026 belum disusun, Desember 2025 sudah.
+        $this->get('/draf-bulanan/12?tahun=2026')->assertNotFound();
+        $this->get('/draf-bulanan/12?tahun=2025')->assertOk()->assertSee('Desember 2025');
     }
 
     public function test_hanya_bulan_berikutnya_yang_bisa_disusun(): void

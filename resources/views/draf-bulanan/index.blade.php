@@ -20,19 +20,15 @@
         <x-stat varian="putih" label="Draf Tersusun" :nilai="$jumlahTersusun . ' dari 12'" />
     </div>
 
-    <x-info varian="biru-muda" class="mt-4">
-        Draf hanya dapat dibatalkan mulai dari bulan terakhir. Untuk membatalkan bulan sebelumnya, batalkan dulu draf bulan setelahnya.
+    <x-info varian="kuning" class="mt-4">
+        Penyetoran PPh Final dilakukan paling lambat tanggal 15 bulan berikutnya melalui saluran resmi Direktorat Jenderal Pajak.
     </x-info>
 
     <x-card class="mt-4" padat>
         <x-table :kepala="['Bulan', ['teks' => 'Peredaran Bruto', 'kanan' => true], ['teks' => 'Akumulasi', 'kanan' => true], ['teks' => 'Omzet Kena Pajak', 'kanan' => true], ['teks' => 'PPh Final', 'kanan' => true], 'Status', ['teks' => 'Aksi', 'kanan' => true]]">
             @foreach($draf as $d)
                 @php $sudah = in_array($d['status'], ['tersusun', 'nihil']); @endphp
-                {{-- Baris menguning saat disorot, tidak ada yang tersorot terus-menerus. --}}
-                <tr @class([
-                    'transition hover:bg-warn-bg/60',
-                    'text-ink-3' => ! $sudah && ! $d['boleh_susun'],
-                ])>
+                <tr @class(['text-ink-3' => ! $sudah && ! $d['boleh_susun']])>
                     <td class="font-medium">{{ $d['nama'] }}</td>
                     <td class="text-right tabular-nums">{{ $sudah || $d['boleh_susun'] ? rupiah($d['bruto']) : rupiah(0) }}</td>
                     <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['akumulasi']) : '-' }}</td>
@@ -42,7 +38,7 @@
                     <td>
                         <div class="flex items-center justify-end gap-1">
                             @if($sudah)
-                                <a href="{{ route('draf-bulanan.show', $d['bulan']) }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Lihat draf {{ $d['nama'] }}">
+                                <a href="{{ route('draf-bulanan.show', ['bulan' => $d['bulan'], 'tahun' => $tahun]) }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Lihat draf {{ $d['nama'] }}">
                                     <x-icon name="eye" :size="18" />
                                 </a>
                                 @if($d['terkunci_tahunan'])
@@ -56,7 +52,7 @@
                                     <span class="p-2 text-muted" title="Batalkan draf bulan setelahnya terlebih dahulu" aria-hidden="true"><x-icon name="circle-x" :size="18" /></span>
                                 @endif
                             @elseif($d['boleh_susun'])
-                                <x-button :href="route('draf-bulanan.create', ['bulan' => $d['bulan']])" class="!h-9 !px-5 !text-sm">Susun</x-button>
+                                <x-button :href="route('draf-bulanan.create', ['bulan' => $d['bulan'], 'tahun' => $tahun])" class="!h-9 !px-5 !text-sm">Susun</x-button>
                             @else
                                 {{-- Bulan yang belum tiba gilirannya: tulisan biasa, bukan tombol mati. --}}
                                 <span class="px-5 py-2 text-sm text-ink-3" title="Susun draf bulan sebelumnya terlebih dahulu">Susun</span>
@@ -78,8 +74,8 @@
         </x-table>
     </x-card>
 
-    <x-info varian="kuning" class="mt-4">
-        Penyetoran PPh Final dilakukan paling lambat tanggal 15 bulan berikutnya melalui saluran resmi Direktorat Jenderal Pajak.
+    <x-info varian="biru-muda" class="mt-4">
+        Draf hanya dapat dibatalkan mulai dari bulan terakhir. Untuk membatalkan bulan sebelumnya, batalkan dulu draf bulan setelahnya.
     </x-info>
 
     @foreach(collect($draf)->where('boleh_batal', true) as $d)
