@@ -62,10 +62,14 @@
                 </tr>
             @endforeach
             <x-slot:kaki>
+                {{-- Seluruh baris Total memakai satu ukuran: bulan yang drafnya sudah
+                     tersusun. Angkanya karena itu sama dengan kartu ringkasan di atas.
+                     Kolom Akumulasi memakai nilai akhir, bukan jumlah tiap baris —
+                     menjumlahkannya akan menghitung Januari berulang kali. --}}
                 <tr>
                     <td>Total</td>
-                    <td class="text-right tabular-nums">{{ rupiah(collect($draf)->sum('bruto')) }}</td>
-                    <td class="text-right">-</td>
+                    <td class="text-right tabular-nums">{{ rupiah($akumulasi) }}</td>
+                    <td class="text-right tabular-nums">{{ rupiah($akumulasi) }}</td>
                     <td class="text-right tabular-nums">{{ rupiah(collect($draf)->sum('omzet_kena_pajak')) }}</td>
                     <td class="text-right tabular-nums">{{ rupiah($totalPph) }}</td>
                     <td colspan="2"></td>

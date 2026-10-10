@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Carbon;
+
 /**
  * Data contoh untuk mockup.
  *
@@ -624,6 +626,24 @@ class MockData
             ->values()
             ->all();
 
+        // Bulan pertama saat akumulasi melewati ambang bebas, untuk menjelaskan
+        // kenapa omzet bulan ini sudah kena pajak.
+        $terlampauiSejak = null;
+        $berjalan = 0;
+
+        foreach ($bruto as $i => $nilai) {
+            if ($i > $bulan) {
+                break;
+            }
+
+            $berjalan += $nilai;
+
+            if ($berjalan > $batasBebas) {
+                $terlampauiSejak = self::bulan()[$i].' '.$tahun;
+                break;
+            }
+        }
+
         return [
             'tahun' => $tahun,
             'bulan' => $bulan,
@@ -633,6 +653,9 @@ class MockData
             'akumulasiSebelum' => $akumulasiSebelum,
             'akumulasi' => $akumulasi,
             'batasBebas' => $batasBebas,
+            'terlampauiSejak' => $terlampauiSejak,
+            'bulanLalu' => $bulan === 1 ? 'Desember '.($tahun - 1) : self::bulan()[$bulan - 1].' '.$tahun,
+            'batasSetor' => Carbon::create($tahun, $bulan, 1)->addMonthNoOverflow()->day(15),
             'sisaBebas' => max(0, $batasBebas - $akumulasiSebelum),
             'omzetKenaPajak' => $omzetKenaPajak,
             'tarif' => $konfigurasi['tarif_final'],

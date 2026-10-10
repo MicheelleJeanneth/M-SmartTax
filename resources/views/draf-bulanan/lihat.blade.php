@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('judul', 'Draf ' . $namaBulan . ' ' . $tahun)
-@section('keterangan', 'Draf tersusun. Data penghasilan bulan ini terkunci.')
+@section('judul', 'Rincian Draf - ' . $namaBulan . ' ' . $tahun)
+@section('keterangan', 'Rincian perhitungan draf yang sudah tersimpan')
 
 @section('kembali')
-    <x-back :href="route('draf-bulanan.index')">Kembali ke Draf Bulanan</x-back>
+    <x-back :href="route('draf-bulanan.index', ['tahun' => $tahun])">Kembali ke Draf Pajak Penghasilan Bulanan</x-back>
 @endsection
 
 @section('isi')
@@ -15,7 +15,7 @@
 
     @include('draf-bulanan._perhitungan')
 
-    <x-info varian="abu" class="mt-6">
+    <x-info varian="biru-muda" class="mt-4">
         Draf ini terkunci. Data penghasilan {{ $namaBulan }} hanya dapat diubah setelah draf dibatalkan.
     </x-info>
 @endsection
