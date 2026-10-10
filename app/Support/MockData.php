@@ -464,7 +464,7 @@ class MockData
                 ],
                 'bergerak' => [
                     ['id' => 6, 'kode' => '0403', 'nama' => 'Mobil Penumpang', 'keterangan' => 'Toyota Avanza 2022, dipakai untuk pengiriman pesanan', 'tahun' => 2022, 'nilai' => 112_000_000, 'nilai_kini' => 98_000_000, 'tahun_pelepasan' => null, 'khas' => ['L 1234 BS', 'Atas nama sendiri'], 'terkunci' => true],
-                    ['id' => 7, 'kode' => '0402', 'nama' => 'Sepeda Motor', 'keterangan' => 'Honda Vario', 'tahun' => 2023, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'tahun_pelepasan' => null, 'khas' => ['L 5678 BS', 'Atas nama sendiri'], 'terkunci' => false],
+                    ['id' => 7, 'kode' => '0402', 'nama' => 'Sepeda Motor', 'keterangan' => 'Honda Vario untuk operasional harian toko', 'tahun' => 2024, 'nilai' => 18_000_000, 'nilai_kini' => 15_500_000, 'tahun_pelepasan' => null, 'khas' => ['L 5678 CD', 'Atas nama sendiri'], 'terkunci' => false],
                 ],
                 'tidak-bergerak' => [
                     ['id' => 8, 'kode' => '0502', 'nama' => 'Tanah dan/atau Bangunan untuk Tempat Tinggal', 'keterangan' => 'Rumah tinggal keluarga, ditempati sendiri', 'tahun' => 2020, 'nilai' => 247_000_000, 'nilai_kini' => 310_000_000, 'tahun_pelepasan' => null, 'khas' => ['Mulyorejo, Surabaya', '120/90', 'SHM 02.11.884'], 'terkunci' => true],
