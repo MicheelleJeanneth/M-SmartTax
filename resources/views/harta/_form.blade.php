@@ -2,12 +2,18 @@
     $h = $item ?? [];
     $kodeHarta = \App\Support\MockData::kodeHarta($kategori);
 
+    // Sebagian kategori tidak memakai judul seksi; kolom khasnya duduk langsung
+    // di tengah formulir, sebelum kolom nilai.
+    $seksi = $info['seksi'] ?? true;
+
     // Kolom khas ditambah Lokasi harus genap agar grid dua kolom terisi penuh.
     // Bila ganjil, kolom khas pertama dibuat selebar penuh lebih dulu.
-    $khasPenuh = (count($info['kolom']) + 1) % 2 === 1;
+    $khasPenuh = (count($info['kolom']) + ($info['label_lokasi'] ? 1 : 0)) % 2 === 1;
 @endphp
 <x-card>
-    <h2 class="mb-4 text-base font-medium text-subjudul">Data Harta</h2>
+    @if($seksi)
+        <h2 class="mb-4 text-base font-medium text-subjudul">Data Harta</h2>
+    @endif
 
     @if($kodeHarta)
         {{-- Kode dan uraiannya tampil sebagai satu pilihan. Deskripsi tidak ditampilkan
@@ -31,8 +37,12 @@
     <x-input label="Keterangan" name="keterangan" :placeholder="'Contoh: ' . $info['contoh_keterangan']"
         :value="$h['keterangan'] ?? ''" />
 
+    @unless($seksi)
+        @include('harta._khas')
+    @endunless
+
     @if($info['label_nilai_kini'])
-        {{-- Kategori yang membedakan nilai awal dan sisa, misalnya piutang. --}}
+        {{-- Kategori yang membedakan nilai awal dan nilai sekarang, misalnya piutang. --}}
         <div class="grid grid-cols-2 gap-x-6">
             <x-input :label="$info['label_nilai']" name="nilai" wajib uang placeholder="0"
                 :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
@@ -55,42 +65,14 @@
     </div>
     <p class="-mt-3 mb-6 text-sm text-ink-3">{{ titik($info['bantuan_pelepasan']) }}</p>
 
-    {{-- Garis pemisah memakai jarak yang sama dengan antar kotak. --}}
-    <div class="mb-5 border-t border-line-soft"></div>
+    @if($seksi)
+        {{-- Garis pemisah memakai jarak yang sama dengan antar kotak. --}}
+        <div class="mb-5 border-t border-line-soft"></div>
 
-    <h2 class="mb-4 text-base font-medium text-subjudul">{{ $info['judul_rincian'] }}</h2>
+        <h2 class="mb-4 text-base font-medium text-subjudul">{{ $info['judul_rincian'] }}</h2>
 
-    @php
-        // Kolom khas yang terdaftar di 'digit_kolom' hanya menerima angka sebanyak
-        // digit yang ditentukan, misalnya NIK Penerima pada kategori Piutang.
-        $batasDigit = function (int $i) use ($info): array {
-            $digit = $info['digit_kolom'][$i] ?? null;
-
-            return $digit === null ? [] : [
-                'inputmode' => 'numeric',
-                'maxlength' => $digit,
-                'pattern' => '\d{'.$digit.'}',
-                'data-digit' => true,
-            ];
-        };
-    @endphp
-
-    @if($khasPenuh)
-        <x-input :label="$info['kolom'][0]" name="khas_0" :placeholder="$info['contoh'][0]"
-            :wajib="$info['wajib_kolom'][0]" :value="$h['khas'][0] ?? ''" :bantuan="$info['bantuan_kolom'][0]"
-            :attributes="new \Illuminate\View\ComponentAttributeBag($batasDigit(0))" />
+        @include('harta._khas')
     @endif
-
-    <div class="grid grid-cols-2 gap-x-6">
-        @foreach($info['kolom'] as $i => $kolom)
-            @continue($khasPenuh && $i === 0)
-            <x-input :label="$kolom" :name="'khas_' . $i" :placeholder="$info['contoh'][$i]"
-                :wajib="$info['wajib_kolom'][$i]" :value="$h['khas'][$i] ?? ''" :bantuan="$info['bantuan_kolom'][$i]"
-                :attributes="new \Illuminate\View\ComponentAttributeBag($batasDigit($i))" />
-        @endforeach
-        {{-- Harta selalu dalam negeri: terlihat tetapi tidak dapat diubah, sama seperti Negara Kreditur. --}}
-        <x-input-locked :label="$info['label_lokasi']" name="negara" value="Indonesia" :bantuan="false" />
-    </div>
 
     {{-- Tombol berada di dalam kartu dan rata kiri, sama seperti formulir Penghasilan dan Utang. --}}
     <div class="flex flex-wrap gap-3">
