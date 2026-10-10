@@ -23,16 +23,18 @@
         {{-- Kode dan uraiannya tampil menyatu, sama seperti pilihan di formulir. --}}
         <x-kolom-baca label="Kode Harta">{{ $item['kode'] }} - {{ $item['nama'] }}</x-kolom-baca>
 
-        {{-- Kolom khas yang selebar kartu, misalnya Lokasi Harta, naik ke atas
-             Keterangan karena ia penanda utama barangnya. --}}
-        @unless($seksi)
+        {{-- Sebagian kategori menaikkan kolom khas selebar kartu ke atas Keterangan,
+             misalnya Lokasi Harta yang jadi penanda utama propertinya. --}}
+        @php $khasDiAtas = $info['khas_sebelum_keterangan'] ?? false; @endphp
+
+        @if(! $seksi && $khasDiAtas)
             @include('harta._khas-baca', ['bagian' => 'penuh'])
-        @endunless
+        @endif
 
         <x-kolom-baca label="Keterangan">{{ $item['keterangan'] ?? '—' }}</x-kolom-baca>
 
         @unless($seksi)
-            @include('harta._khas-baca', ['bagian' => 'sisa'])
+            @include('harta._khas-baca', ['bagian' => $khasDiAtas ? 'sisa' : 'semua'])
         @endunless
 
         @if($info['label_nilai_kini'])

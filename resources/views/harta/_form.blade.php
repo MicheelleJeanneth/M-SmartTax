@@ -50,7 +50,9 @@
                 :wajib="$info['wajib_nilai_kini'] ?? false"
                 :value="isset($h['nilai_kini']) ? angka($h['nilai_kini']) : ''" />
         </div>
-        <p class="-mt-3 mb-6 text-sm text-ink-3">{{ titik($info['bantuan_nilai']) }}</p>
+        @if($info['bantuan_nilai'])
+            <p class="-mt-3 mb-6 text-sm text-ink-3">{{ titik($info['bantuan_nilai']) }}</p>
+        @endif
     @else
         <x-input :label="$info['label_nilai']" name="nilai" wajib uang placeholder="0"
             :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
