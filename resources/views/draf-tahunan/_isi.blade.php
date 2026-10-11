@@ -1,69 +1,84 @@
-{{-- Isi lengkap draf tahunan. $ringkas = true untuk halaman Lihat. --}}
-@php $ringkas = $ringkas ?? false; @endphp
+{{-- Isi draf tahunan. Dipakai halaman Susun dan Rincian dengan susunan yang sama. --}}
+@php
+    $omzetKenaPajak = array_sum(array_column($rekap, 'omzet_kena_pajak'));
+    $tarif = \App\Support\MockData::konfigurasiPajak($tahun)['tarif_final'];
+@endphp
 
-<div class="grid grid-cols-3 gap-4">
-    <x-stat label="Peredaran Bruto {{ $tahun }}" :nilai="rupiah($bruto)" />
-    <x-stat label="Total PPh Final" :nilai="rupiah($pph)" />
-    <x-stat label="Kekayaan Bersih" :nilai="rupiah($kekayaanBersih)" />
-</div>
-
-@unless($ringkas)
-    <x-card judul="A. Rekap Dua Belas Bulan" class="mt-6">
-        <x-table :kepala="['Bulan', ['teks' => 'Peredaran Bruto', 'kanan' => true], ['teks' => 'Akumulasi', 'kanan' => true], ['teks' => 'Omzet Kena Pajak', 'kanan' => true], ['teks' => 'PPh Final', 'kanan' => true]]">
-            @foreach($rekap as $r)
-                <tr>
-                    <td>{{ $r['nama'] }}</td>
-                    <td class="text-right tabular-nums">{{ rupiah($r['bruto']) }}</td>
-                    <td class="text-right tabular-nums">{{ rupiah($r['akumulasi']) }}</td>
-                    <td class="text-right tabular-nums">{{ rupiah($r['omzet_kena_pajak']) }}</td>
-                    <td class="text-right tabular-nums">{{ rupiah($r['pph_final']) }}</td>
-                </tr>
-            @endforeach
-            <x-slot:kaki>
-                <tr><td>Total</td><td class="text-right tabular-nums">{{ rupiah($bruto) }}</td><td></td>
-                    <td class="text-right tabular-nums">{{ rupiah(array_sum(array_column($rekap, 'omzet_kena_pajak'))) }}</td>
-                    <td class="text-right tabular-nums">{{ rupiah($pph) }}</td></tr>
-            </x-slot:kaki>
-        </x-table>
-    </x-card>
-@endunless
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-    <x-card judul="{{ $ringkas ? 'Harta' : 'B. Lampiran Harta' }}">
-        <div class="divide-y divide-line-soft">
-            @foreach($harta as $h)
-                <x-row :label="$h['nama'] . ' (' . $h['jumlah'] . ')'">{{ rupiah($h['nilai']) }}</x-row>
-            @endforeach
-            <x-row label="Total Harta" tebal>{{ rupiah($totalHarta) }}</x-row>
-        </div>
-    </x-card>
-    <x-card judul="{{ $ringkas ? 'Utang' : 'C. Lampiran Utang' }}">
-        <div class="divide-y divide-line-soft">
-            @foreach($utang as $u)
-                <x-row :label="$u['deskripsi'] . ' · ' . $u['kreditur']">{{ rupiah($u['saldo']) }}</x-row>
-            @endforeach
-            <x-row label="Total Utang" tebal>{{ rupiah($totalUtang) }}</x-row>
-        </div>
-    </x-card>
-</div>
-
-@unless($ringkas)
-    <div class="mt-6 grid gap-6 lg:grid-cols-2">
-        <x-card judul="Pertumbuhan Kekayaan">
-            <div class="divide-y divide-line-soft">
-                <x-row label="Kekayaan bersih {{ $tahun - 1 }}">{{ rupiah($kekayaanTahunLalu) }}</x-row>
-                <x-row label="Kekayaan bersih {{ $tahun }}">{{ rupiah($kekayaanBersih) }}</x-row>
-                <x-row label="Pertumbuhan" tebal>+ {{ rupiah($pertumbuhan) }} ({{ persen($pertumbuhanPersen) }})</x-row>
-            </div>
-        </x-card>
-        <x-card judul="Konsistensi Harta">
-            <x-slot:aksi><x-badge :status="$statusKonsistensi" /></x-slot:aksi>
-            <div class="divide-y divide-line-soft">
-                <x-row label="Penghasilan neto (bruto − PPh)">{{ rupiah($bruto - $pph) }}</x-row>
-                <x-row label="Kenaikan kekayaan bersih">{{ rupiah($pertumbuhan) }}</x-row>
-                <x-row label="Rasio kenaikan terhadap penghasilan" tebal>{{ persen($rasioKonsistensi) }}</x-row>
-            </div>
-            <p class="mt-3 text-[13px] text-ink-3">Normal di bawah 60% · Perlu Ditinjau 60–100% · Perlu Diperiksa di atas 100%</p>
-        </x-card>
+<x-card judul="Ringkasan Perpajakan">
+    <div class="text-[15px]">
+        <x-row label="Total peredaran bruto">{{ rupiah($bruto) }}</x-row>
+        <x-row label="Total omzet kena pajak">{{ rupiah($omzetKenaPajak) }}</x-row>
+        <x-row label="Tarif PPh Final">{{ persen($tarif) }}</x-row>
     </div>
-@endunless
+
+    <div class="mt-3 flex items-center justify-between gap-6 rounded-field bg-primary-soft px-5 py-4">
+        <p class="text-[15px] text-primary-ink">Total PPh Final Terutang {{ $tahun }}</p>
+        <p class="text-[28px] leading-tight font-medium tracking-tight tabular-nums text-primary-ink">{{ rupiah($pph) }}</p>
+    </div>
+
+    <p class="mt-3 text-sm text-ink-3">Terbilang: {{ ucfirst(terbilang($pph)) }}</p>
+</x-card>
+
+<x-card judul="Lampiran Harta per 31 Desember {{ $tahun }}" class="mt-4" padat>
+    <x-table :kepala="['Kategori', ['teks' => 'Jumlah', 'kanan' => true], ['teks' => 'Nilai', 'kanan' => true]]">
+        @foreach($harta as $h)
+            <tr>
+                <td>{{ $h['nama'] }}</td>
+                <td class="text-right tabular-nums">{{ $h['jumlah'] }}</td>
+                <td class="text-right tabular-nums">{{ rupiah($h['nilai']) }}</td>
+            </tr>
+        @endforeach
+        <x-slot:kaki>
+            <tr>
+                <td>Total Harta</td>
+                <td class="text-right tabular-nums">{{ collect($harta)->sum('jumlah') }}</td>
+                <td class="text-right tabular-nums">{{ rupiah($totalHarta) }}</td>
+            </tr>
+        </x-slot:kaki>
+    </x-table>
+</x-card>
+
+<x-card judul="Lampiran Utang per 31 Desember {{ $tahun }}" class="mt-4" padat>
+    <x-table :kepala="['Kode', 'Deskripsi', 'Kreditur', ['teks' => 'Saldo', 'kanan' => true]]">
+        @foreach($utang as $u)
+            <tr>
+                <td class="tabular-nums text-ink-2">{{ $u['kode'] }}</td>
+                <td>{{ $u['deskripsi'] }}</td>
+                <td class="text-ink-2">{{ $u['kreditur'] }}</td>
+                <td class="text-right tabular-nums">{{ rupiah($u['saldo']) }}</td>
+            </tr>
+        @endforeach
+        <x-slot:kaki>
+            <tr>
+                <td colspan="3">Total Utang</td>
+                <td class="text-right tabular-nums">{{ rupiah($totalUtang) }}</td>
+            </tr>
+        </x-slot:kaki>
+    </x-table>
+</x-card>
+
+<div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <x-card judul="Pertumbuhan Kekayaan">
+        <div class="text-[15px]">
+            <x-row label="Akhir {{ $tahun - 1 }}">{{ rupiah($kekayaanTahunLalu) }}</x-row>
+            <x-row label="Akhir {{ $tahun }}">{{ rupiah($kekayaanBersih) }}</x-row>
+        </div>
+        <div class="mt-3 flex items-center gap-4 border-t border-line-soft pt-3">
+            <span class="inline-flex min-w-28 justify-center rounded-field bg-ok-bg px-4 py-2 text-sm font-medium text-ok-ink">
+                + {{ persen($pertumbuhanPersen) }}
+            </span>
+            <span class="text-[15px] tabular-nums text-ok-ink">{{ rupiah($pertumbuhan) }}</span>
+        </div>
+    </x-card>
+
+    <x-card judul="Konsistensi Harta">
+        <div class="text-[15px]">
+            <x-row label="Penghasilan neto (bruto − PPh)">{{ rupiah($bruto - $pph) }}</x-row>
+            <x-row label="Kenaikan kekayaan bersih">{{ rupiah($pertumbuhan) }}</x-row>
+        </div>
+        <div class="mt-3 flex items-center gap-4 border-t border-line-soft pt-3">
+            <x-badge :status="$statusKonsistensi" />
+            <span class="text-[15px] text-ink-3">Rasio {{ persen($rasioKonsistensi) }}</span>
+        </div>
+    </x-card>
+</div>
