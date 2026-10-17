@@ -84,6 +84,8 @@ Route::middleware('profil.lengkap')->group(function () {
     Route::get('/profil', [ProfilController::class, 'show'])->name('profil.show');
     Route::get('/profil/ubah', [ProfilController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
+    Route::get('/profil/kata-sandi', [ProfilController::class, 'kataSandi'])->name('profil.kata-sandi');
+    Route::put('/profil/kata-sandi', [ProfilController::class, 'simpanKataSandi'])->name('profil.kata-sandi.update');
 
     Route::post('/pengingat/{jenis}/buka', [PengingatController::class, 'buka'])
         ->name('pengingat.buka')

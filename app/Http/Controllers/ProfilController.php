@@ -45,6 +45,31 @@ class ProfilController extends Controller
         return redirect()->route('profil.show')->with('sukses', 'Perubahan profil tersimpan.');
     }
 
+    public function kataSandi(): View
+    {
+        return view('profil.kata-sandi');
+    }
+
+    /**
+     * Mockup: kata sandi belum benar-benar disimpan, tetapi aturannya sudah
+     * ditegakkan agar sama dengan yang berlaku nanti.
+     */
+    public function simpanKataSandi(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'kata_sandi_lama' => ['required'],
+            'kata_sandi' => ['required', 'min:8', 'confirmed', 'different:kata_sandi_lama'],
+        ], [
+            'kata_sandi_lama.required' => 'Kata sandi saat ini wajib diisi.',
+            'kata_sandi.required' => 'Kata sandi baru wajib diisi.',
+            'kata_sandi.min' => 'Kata sandi baru minimal 8 karakter.',
+            'kata_sandi.confirmed' => 'Ulangi kata sandi tidak sama dengan kata sandi baru.',
+            'kata_sandi.different' => 'Kata sandi baru harus berbeda dari kata sandi saat ini.',
+        ]);
+
+        return redirect()->route('profil.show')->with('sukses', 'Kata sandi berhasil diubah.');
+    }
+
     /**
      * NIK tercetak pada setiap dokumen laporan, karena itu diperiksa silang
      * dengan tanggal lahir dan jenis kelamin sebelum tersimpan. Pemeriksaan

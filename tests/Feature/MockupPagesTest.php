@@ -27,7 +27,7 @@ class MockupPagesTest extends TestCase
             '/laporan/draf-bulanan', '/laporan/draf-bulanan?bulan=9', '/laporan/draf-tahunan', '/laporan/draf-tahunan?tahun=2026',
             '/laporan/harta', '/laporan/utang',
             '/laporan/draf-bulanan/pratinjau', '/laporan/draf-tahunan/pratinjau?tahun=2025', '/laporan/harta/pratinjau', '/laporan/utang/pratinjau',
-            '/profil', '/profil/ubah', '/panduan', '/panduan/mencatat-harta', '/panduan/pertanyaan-umum',
+            '/profil', '/profil/ubah', '/profil/kata-sandi', '/panduan', '/panduan/mencatat-harta', '/panduan/pertanyaan-umum',
         ];
 
         return array_combine($uri, array_map(fn (string $u): array => [$u], $uri));
@@ -237,6 +237,29 @@ class MockupPagesTest extends TestCase
         $this->put('/profil', $this->profilSah(['nik' => '3578016509800001', 'jenis_kelamin' => 'Wanita']))
             ->assertRedirect('/profil')
             ->assertSessionHasNoErrors();
+    }
+
+    public function test_ubah_kata_sandi_menegakkan_aturannya(): void
+    {
+        $this->get('/profil/kata-sandi')->assertOk()->assertSee('Kata Sandi Saat Ini');
+
+        $sah = ['kata_sandi_lama' => 'rahasia-lama', 'kata_sandi' => 'rahasia-baru-8', 'kata_sandi_confirmation' => 'rahasia-baru-8'];
+
+        $this->from('/profil/kata-sandi')->put('/profil/kata-sandi', $sah)
+            ->assertRedirect('/profil')
+            ->assertSessionHasNoErrors();
+
+        // Terlalu pendek, ulangan tidak sama, dan sama dengan kata sandi lama.
+        foreach ([
+            ['kata_sandi' => 'pendek', 'kata_sandi_confirmation' => 'pendek'],
+            ['kata_sandi_confirmation' => 'beda-sendiri'],
+            ['kata_sandi' => 'rahasia-lama', 'kata_sandi_confirmation' => 'rahasia-lama'],
+        ] as $salah) {
+            $this->from('/profil/kata-sandi')
+                ->put('/profil/kata-sandi', array_merge($sah, $salah))
+                ->assertRedirect('/profil/kata-sandi')
+                ->assertSessionHasErrors('kata_sandi');
+        }
     }
 
     public function test_nik_tidak_lagi_terkunci_pada_ubah_profil(): void

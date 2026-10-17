@@ -62,7 +62,7 @@
                 <p class="text-[15px] text-ink">Kata Sandi</p>
                 <p class="mt-0.5 text-sm text-ink-3">Perbarui kata sandi secara berkala untuk menjaga keamanan akun.</p>
             </div>
-            <x-button varian="secondary" class="shrink-0">Ubah Kata Sandi</x-button>
+            <x-button varian="secondary" :href="route('profil.kata-sandi')" class="shrink-0">Ubah Kata Sandi</x-button>
         </div>
     </x-card>
 

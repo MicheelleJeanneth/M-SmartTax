@@ -32,13 +32,16 @@
 
     $tautan = 'block border-l-[3px] py-2 pr-6 pl-[21px] text-[15px] leading-snug transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent';
 @endphp
-<aside class="sticky top-0 flex h-screen w-sidebar shrink-0 flex-col border-r border-line bg-white">
+{{-- Seluruh sidebar yang menggulir, bukan hanya daftar menunya. Bila hanya
+     nav yang menggulir, pada layar pendek menu Keluar tersembunyi di balik
+     blok profil dan pengguna tidak punya petunjuk bahwa menu itu masih ada. --}}
+<aside class="sticky top-0 flex h-screen w-sidebar shrink-0 flex-col overflow-y-auto border-r border-line bg-white">
     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 pt-7 pb-5">
         <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 object-contain">
         <span class="text-lg font-medium text-merek">M-SmartTax</span>
     </a>
 
-    <nav class="flex-1 overflow-y-auto pb-4" aria-label="Menu utama">
+    <nav class="flex-1 pb-4" aria-label="Menu utama">
         @foreach($menu as $grup => $item)
             @unless($loop->first)
                 <div class="mx-6 my-3 border-t border-line-soft" aria-hidden="true"></div>
