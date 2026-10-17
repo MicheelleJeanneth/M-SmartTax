@@ -37,19 +37,19 @@
     @endif
 
     <p class="mb-3 text-xs font-medium tracking-wider text-ink-3">TAHUN PAJAK {{ $tahun }}</p>
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-stat label="Akumulasi Penghasilan" :nilai="rupiah($bruto)" />
         <x-stat label="PPh Final Terutang" :nilai="rupiah($pphFinal)" />
     </div>
 
     <p class="mt-7 mb-3 text-xs font-medium tracking-wider text-ink-3">POSISI PER AKHIR TAHUN PAJAK</p>
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <x-stat varian="putih" label="Total Harta" :nilai="rupiah($harta)" />
         <x-stat varian="putih" label="Total Utang" :nilai="rupiah($utang)" />
         <x-stat varian="putih" label="Kekayaan Bersih" :nilai="rupiah($kekayaanBersih)" />
     </div>
 
-    <div class="mt-4 grid grid-cols-2 gap-4">
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-card judul="Grafik Penghasilan Bulanan" judul-warna="ink" padat>
             @if($adaPenghasilan)
                 {{-- Judul sumbu Y ditulis mendatar di atas sumbu, bukan diputar tegak. --}}
@@ -88,7 +88,7 @@
         </x-card>
     </div>
 
-    <div class="mt-4 grid grid-cols-2 gap-4">
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-card judul="Analisis Pertumbuhan Kekayaan" judul-warna="ink" padat>
             @php
                 // Tahun berjalan memakai nama bulan sekarang, tahun yang sudah lewat memakai "Akhir".

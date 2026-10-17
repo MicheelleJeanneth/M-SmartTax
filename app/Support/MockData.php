@@ -600,6 +600,21 @@ class MockData
     }
 
     /**
+     * Tahun terbaru yang drafnya tersusun, satu-satunya yang boleh dibatalkan.
+     *
+     * Draf tahunan memakai draf tahun sebelumnya sebagai pembanding pada kartu
+     * Pertumbuhan Kekayaan dan Konsistensi Harta. Membatalkan tahun lama
+     * sementara tahun setelahnya masih berdiri akan membuat analisis tahun itu
+     * kehilangan dasar pembandingnya.
+     */
+    public static function tahunBolehDibatalkan(): ?int
+    {
+        return collect(self::drafTahunan())
+            ->where('status', 'tersusun')
+            ->max('tahun');
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private static function drafTahunanLengkap(): array

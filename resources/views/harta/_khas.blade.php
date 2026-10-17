@@ -39,7 +39,7 @@
         :attributes="new \Illuminate\View\ComponentAttributeBag($batasDigit(0))" />
 @endif
 
-<div class="grid grid-cols-2 gap-x-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
     @foreach($info['kolom'] as $i => $kolom)
         @continue($khasPenuh && $i === 0)
         @if($pilihanKolom($i))

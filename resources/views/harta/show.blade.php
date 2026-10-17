@@ -38,7 +38,7 @@
         @endunless
 
         @if($info['label_nilai_kini'])
-            <div class="grid grid-cols-2 gap-x-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                 <x-kolom-baca :label="$info['label_nilai']">{{ rupiah($item['nilai']) }}</x-kolom-baca>
                 <x-kolom-baca :label="$info['label_nilai_kini']">{{ rupiah($item['nilai_kini']) }}</x-kolom-baca>
             </div>
@@ -46,7 +46,7 @@
             <x-kolom-baca :label="$info['label_nilai']">{{ rupiah($item['nilai']) }}</x-kolom-baca>
         @endif
 
-        <div class="grid grid-cols-2 gap-x-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
             <x-kolom-baca :label="$info['label_tahun']">{{ $item['tahun'] }}</x-kolom-baca>
             <x-kolom-baca label="Tahun Pelepasan">{{ $item['tahun_pelepasan'] }}</x-kolom-baca>
         </div>

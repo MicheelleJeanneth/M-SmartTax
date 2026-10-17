@@ -23,7 +23,7 @@
                                 <a href="{{ route('draf-tahunan.show', $d['tahun']) }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Lihat draf {{ $d['tahun'] }}">
                                     <x-icon name="eye" :size="18" />
                                 </a>
-                                @if($loop->index === 1)
+                                @if($d['tahun'] === $bolehDibatalkan)
                                     <button type="button" x-data @click="$dispatch('buka-dialog', 'batal-tahunan-{{ $d['tahun'] }}')"
                                         class="rounded-field p-2 text-danger hover:bg-danger/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Batalkan draf {{ $d['tahun'] }}">
                                         <x-icon name="circle-x" :size="18" />
@@ -49,7 +49,8 @@
         Pembatalan hanya dapat dimulai dari tahun terakhir; untuk membatalkan tahun sebelumnya, batalkan dulu draf tahun setelahnya.
     </x-info>
 
-    @php $batal = $draf[1]; @endphp
+    @php $batal = collect($draf)->firstWhere('tahun', $bolehDibatalkan); @endphp
+    @if($batal)
     {{-- Dialog 520 × 520 dengan kotak kuning daftar data yang akan terbuka kembali --}}
     <x-dialog :id="'batal-tahunan-' . $batal['tahun']" :judul="'Batalkan draf tahunan ' . $batal['tahun'] . '?'">
         <p>Draf SPT Tahunan {{ $batal['tahun'] }} akan dihapus dan Anda perlu menyusunnya ulang.</p>
@@ -70,4 +71,5 @@
             </form>
         </x-slot:aksi>
     </x-dialog>
+    @endif
 @endsection

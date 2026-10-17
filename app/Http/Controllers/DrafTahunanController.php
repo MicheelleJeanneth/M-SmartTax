@@ -11,7 +11,10 @@ class DrafTahunanController extends Controller
 {
     public function index(): View
     {
-        return view('draf-tahunan.index', ['draf' => MockData::drafTahunan()]);
+        return view('draf-tahunan.index', [
+            'draf' => MockData::drafTahunan(),
+            'bolehDibatalkan' => MockData::tahunBolehDibatalkan(),
+        ]);
     }
 
     public function create(Request $request): View

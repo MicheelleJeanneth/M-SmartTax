@@ -32,11 +32,25 @@
 
     $tautan = 'block border-l-[3px] py-2 pr-6 pl-[21px] text-[15px] leading-snug transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent';
 @endphp
-<aside class="sticky top-0 flex h-screen w-sidebar shrink-0 flex-col border-r border-line bg-white">
-    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 pt-7 pb-5">
-        <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 object-contain">
-        <span class="text-lg font-medium text-merek">M-SmartTax</span>
-    </a>
+{{-- Tirai gelap hanya pada layar sempit, saat laci sidebar terbuka. --}}
+<div x-show="menu" x-cloak x-transition.opacity @click="menu = false"
+     class="fixed inset-0 z-40 bg-ink/40 lg:hidden" aria-hidden="true"></div>
+
+{{-- Layar lebar: sidebar menetap di sisi kiri. Layar sempit: laci yang
+     digeser masuk dari kiri dan menutup sendiri setelah menu dipilih. --}}
+<aside class="fixed inset-y-0 left-0 z-50 flex h-screen w-sidebar max-w-[85vw] shrink-0 flex-col border-r border-line bg-white transition-transform duration-200
+              lg:sticky lg:top-0 lg:z-auto lg:max-w-none lg:translate-x-0"
+       :class="menu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+    <div class="flex shrink-0 items-center justify-between gap-3 px-6 pt-7 pb-5">
+        <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3">
+            <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 shrink-0 object-contain">
+            <span class="truncate text-lg font-medium text-merek">M-SmartTax</span>
+        </a>
+        <button type="button" @click="menu = false" aria-label="Tutup menu"
+            class="rounded-field p-2 text-ink-3 hover:bg-page focus:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:hidden">
+            <x-icon name="x" :size="20" />
+        </button>
+    </div>
 
     {{-- Hanya daftar menu yang menggulir; logo dan blok profil tetap di tempat. --}}
     <nav class="flex-1 overflow-y-auto pb-4" aria-label="Menu utama">
@@ -49,7 +63,7 @@
                 @foreach($item as [$teks, $rute, $pola])
                     @php $aktif = request()->routeIs(...explode('|', $pola)); @endphp
                     <li>
-                        <a href="{{ route($rute) }}" @if($aktif) aria-current="page" @endif
+                        <a href="{{ route($rute) }}" @click="menu = false" @if($aktif) aria-current="page" @endif
                            class="{{ $tautan }} {{ $aktif ? 'border-primary bg-primary-soft/50 text-primary-ink' : 'border-transparent text-ink hover:bg-page' }}">
                             {{ $teks }}
                         </a>

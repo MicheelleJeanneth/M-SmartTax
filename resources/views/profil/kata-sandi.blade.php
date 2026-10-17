@@ -15,7 +15,7 @@
             <x-input-password label="Kata Sandi Saat Ini" name="kata_sandi_lama" autocomplete="current-password"
                 placeholder="Kata sandi yang Anda pakai sekarang" />
 
-            <div class="grid grid-cols-2 gap-x-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
                 <x-input-password label="Kata Sandi Baru" name="kata_sandi" autocomplete="new-password"
                     placeholder="Minimal 8 karakter" bantuan="Gunakan kombinasi huruf dan angka." />
                 <x-input-password label="Ulangi Kata Sandi Baru" name="kata_sandi_confirmation" autocomplete="new-password"

@@ -239,6 +239,21 @@ class MockupPagesTest extends TestCase
             ->assertSessionHasNoErrors();
     }
 
+    public function test_hanya_draf_tahunan_terbaru_yang_dapat_dibatalkan(): void
+    {
+        $tersusun = collect(MockData::drafTahunan())->where('status', 'tersusun');
+
+        // Penanda diturunkan dari data, bukan dari urutan baris pada tabel.
+        $this->assertSame($tersusun->max('tahun'), MockData::tahunBolehDibatalkan());
+
+        $halaman = $this->get('/draf-tahunan')->assertOk()->getContent();
+
+        // Hanya tahun terbaru yang punya dialog pembatalan; tahun lama ditandai tidak dapat dibatalkan.
+        $this->assertStringContainsString('batal-tahunan-'.$tersusun->max('tahun'), $halaman);
+        $this->assertStringNotContainsString('batal-tahunan-'.$tersusun->min('tahun'), $halaman);
+        $this->assertStringContainsString('Batalkan draf tahun setelahnya terlebih dahulu', $halaman);
+    }
+
     public function test_ubah_kata_sandi_menegakkan_aturannya(): void
     {
         $this->get('/profil/kata-sandi')->assertOk()->assertSee('Kata Sandi Saat Ini');

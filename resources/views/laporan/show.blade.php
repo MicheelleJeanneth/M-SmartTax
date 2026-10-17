@@ -18,7 +18,7 @@
     <x-card class="mb-6">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div class="min-w-50 flex-1">
-                <x-select label="Tahun Pajak" name="tahun" :pilihan="[2026 => '2026', 2025 => '2025', 2024 => '2024']" :terpilih="$tahun" :kosong="false" rapat onchange="this.form.submit()" />
+                <x-select label="Tahun Pajak" name="tahun" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])" :terpilih="$tahun" :kosong="false" rapat onchange="this.form.submit()" />
             </div>
             @if($jenis === 'draf-bulanan')
                 <div class="min-w-50 flex-1">
@@ -36,11 +36,11 @@
 
     @if($tersedia)
         {{-- Pratinjau: dua lembar kertas bertumpuk di dalam bingkai frame --}}
-        <div class="rounded-card bg-frame px-6 py-10">
+        <div class="rounded-card bg-frame px-3 py-5 sm:px-6 sm:py-10">
             <div class="relative mx-auto w-full max-w-[794px]">
                 <div class="absolute inset-0 translate-x-3 translate-y-3 rounded-sm bg-white shadow-sm" aria-hidden="true"></div>
                 <iframe src="{{ route('laporan.pratinjau', ['jenis' => $jenis, ...$query]) }}" title="Pratinjau {{ $judul }}"
-                    class="relative block h-[1123px] w-full rounded-sm bg-white shadow-md"></iframe>
+                    class="relative block h-[60vh] w-full rounded-sm bg-white shadow-md sm:h-[1123px]"></iframe>
             </div>
         </div>
     @else

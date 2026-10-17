@@ -3,10 +3,10 @@
 @section('keterangan', 'Cara menggunakan M-SmartTax dari awal sampai mencetak dokumen')
 
 @section('isi')
-    <div class="flex items-start gap-10">
+    <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:gap-10">
         {{-- Daftar isi berpindah halaman, bukan menggulir. Bagian yang sedang
              dibuka disorot seperti menu aktif di sidebar. --}}
-        <nav class="sticky top-10 w-[330px] shrink-0 overflow-hidden rounded-card border border-line bg-white py-4" aria-label="Daftar isi panduan">
+        <nav class="w-full shrink-0 overflow-hidden rounded-card border border-line bg-white py-4 xl:sticky xl:top-10 xl:w-[330px]" aria-label="Daftar isi panduan">
             <p class="mb-2 px-5 text-[11px] font-medium tracking-wider text-ink-3">DAFTAR ISI</p>
             <ul class="text-[15px]">
                 @foreach($daftar as $slug => $b)

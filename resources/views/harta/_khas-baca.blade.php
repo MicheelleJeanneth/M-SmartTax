@@ -11,7 +11,7 @@
 @endif
 
 @if(in_array($bagian, ['semua', 'sisa'], true))
-    <div class="grid grid-cols-2 gap-x-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         @foreach($info['kolom'] as $i => $kolom)
             @continue($khasPenuh && $i === 0)
             <x-kolom-baca :label="$kolom">{{ $item['khas'][$i] ?? '—' }}</x-kolom-baca>

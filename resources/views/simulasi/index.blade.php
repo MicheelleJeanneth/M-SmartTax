@@ -6,7 +6,7 @@
     <x-card judul="Kondisi Keuangan {{ $tahun }}">
         {{-- Cicilan berjalan wajib tampil di sini: nilainya ikut membentuk rasio
              angsuran, sehingga pengguna dapat menelusuri asal persentasenya. --}}
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @foreach([
                 'Rata-rata Penghasilan per Bulan' => $kondisi['penghasilan_bulanan'],
                 'Cicilan Berjalan per Bulan' => $kondisi['cicilan_berjalan'],
@@ -33,7 +33,7 @@
             @csrf
             {{-- Kumpulan data peraga ikut terbawa agar keadaan khusus tetap tampil setelah Hitung. --}}
             @if($peraga)<input type="hidden" name="peraga" value="{{ $peraga }}">@endif
-            <div class="grid grid-cols-2 gap-x-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                 <x-select label="Jenis Aset" name="jenis_aset" wajib :kosong="false"
                     :pilihan="collect(\App\Support\MockData::kategoriHarta())->map(fn ($k) => $k['nama'])"
                     :terpilih="$rencana['jenis_aset']" />
@@ -44,7 +44,7 @@
             <x-input label="Nama Aset" name="nama_aset" wajib maxlength="100"
                 placeholder="Contoh: Ruko cabang ketiga" :value="$rencana['nama_aset']" />
 
-            <div class="grid grid-cols-2 gap-x-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                 <x-select label="Cara Pembayaran" name="cara_pembayaran" wajib :kosong="false"
                     :pilihan="['Tunai', 'Kredit']" :terpilih="$rencana['cara_pembayaran']" x-model="bayar" />
                 <div x-show="bayar !== 'Tunai'" x-cloak>
@@ -57,7 +57,7 @@
             {{-- Tunai menyembunyikan ketiga kolom kredit; uang muka lalu diisi
                  sama dengan harga aset di sisi server, sehingga rumusnya satu. --}}
             <div x-show="bayar !== 'Tunai'" x-cloak>
-                <div class="grid grid-cols-2 gap-x-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                     <x-input label="Jangka Waktu (bulan)" name="jangka_waktu" inputmode="numeric" maxlength="3"
                         pattern="\d{1,3}" data-digit placeholder="Contoh: 60"
                         :value="$kredit ? $rencana['jangka_waktu'] : ''"
@@ -127,7 +127,7 @@
             @if($dampak['dapat_dihitung'])
                 {{-- Keduanya memakai perhitungan konsistensi draf tahunan,
                      dipanggil dua kali, sehingga angkanya benar-benar sebanding. --}}
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @foreach(['Status Sekarang' => $dampak['sekarang'], 'Perkiraan Setelah Pembelian' => $dampak['perkiraan']] as $label => $k)
                         <div class="rounded-field bg-page px-5 py-4">
                             <p class="text-sm text-ink-2">{{ $label }}</p>

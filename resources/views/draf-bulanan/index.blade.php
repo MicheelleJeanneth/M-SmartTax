@@ -14,7 +14,7 @@
 @endsection
 
 @section('isi')
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <x-stat label="Akumulasi Penghasilan" :nilai="rupiah($akumulasi)" />
         <x-stat label="Total PPh Final" :nilai="rupiah($totalPph)" />
         <x-stat varian="putih" label="Draf Tersusun" :nilai="$jumlahTersusun . ' dari 12'" />

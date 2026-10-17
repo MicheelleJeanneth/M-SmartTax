@@ -19,7 +19,7 @@
             @foreach($rincian as $label => $nilai)
                 {{-- Lebar label dan nilai tetap, jadi nilai yang panjang tidak melebar ke kiri
                      melainkan dipotong dengan elipsis; teks utuhnya jadi tooltip. --}}
-                <div class="grid grid-cols-[2fr_3fr] items-baseline gap-6 py-1">
+                <div class="grid grid-cols-1 sm:grid-cols-[2fr_3fr] items-baseline gap-6 py-1">
                     <dt class="truncate text-ink-2">{{ $label }}</dt>
                     <dd class="truncate text-right text-ink" title="{{ $nilai }}">{{ $nilai }}</dd>
                 </div>

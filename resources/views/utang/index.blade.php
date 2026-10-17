@@ -8,21 +8,21 @@
         <x-button :href="route('utang.create')" class="min-w-[150px]">+ Tambah</x-button>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-stat label="Total Utang" :nilai="rupiah($total)" />
         <x-stat varian="putih" label="Jumlah Utang" :nilai="$jumlah" />
     </div>
 
     {{-- Pencarian dan filter dikirim lewat query string agar tautan halaman tetap membawanya. --}}
-    <form method="GET" class="mt-4 flex items-center gap-3">
-        <div class="min-w-0 flex-1">
+    <form method="GET" class="mt-4 flex flex-wrap items-center gap-3">
+        <div class="w-full min-w-0 sm:flex-1">
             <x-input name="cari" rapat :value="$cari" placeholder="Cari deskripsi atau nama kreditur" />
         </div>
-        <div class="w-52 shrink-0">
+        <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
             <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Support\MockData::kodeUtangSingkat()"
                 :terpilih="$kode ?: null" onchange="this.form.submit()" />
         </div>
-        <div class="w-52 shrink-0">
+        <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
             <x-select name="tahun" rapat kosong="Semua tahun" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])"
                 :terpilih="$tahun ?: null" onchange="this.form.submit()" />
         </div>

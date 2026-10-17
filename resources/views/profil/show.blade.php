@@ -47,7 +47,7 @@
         <x-card :judul="$judul" class="mt-4">
             <dl class="text-[15px]">
                 @foreach($isi as $label => $nilai)
-                    <div class="grid grid-cols-[220px_1fr] gap-4 py-1">
+                    <div class="grid grid-cols-1 gap-x-4 gap-y-0.5 py-1 sm:grid-cols-[220px_1fr]">
                         <dt class="text-ink-2">{{ $label }}</dt>
                         <dd class="min-w-0 text-ink">{{ $nilai }}</dd>
                     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FilterTahun;
 use App\Support\MockData;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -20,6 +21,8 @@ class LaporanController extends Controller
         'utang' => 'Laporan Data Utang',
     ];
 
+    public function __construct(private FilterTahun $filterTahun) {}
+
     public function show(Request $request, string $jenis): View
     {
         $filter = $this->filter($request, $jenis);
@@ -28,6 +31,7 @@ class LaporanController extends Controller
             'jenis' => $jenis,
             'judul' => self::JUDUL[$jenis],
             ...$filter,
+            'daftarTahun' => $this->filterTahun->daftar(),
             'tersedia' => $this->tersedia($jenis, $filter),
         ]);
     }
@@ -60,8 +64,16 @@ class LaporanController extends Controller
      */
     private function filter(Request $request, string $jenis): array
     {
+        // Laporan tahunan membuka tahun terbaru yang drafnya sudah tersusun,
+        // karena tahun berjalan belum punya laporan untuk ditampilkan.
+        $bawaan = $jenis === 'draf-tahunan'
+            ? MockData::tahunBolehDibatalkan() ?? MockData::TAHUN
+            : MockData::TAHUN;
+
         return [
-            'tahun' => (int) $request->query('tahun', $jenis === 'draf-tahunan' ? 2025 : MockData::TAHUN),
+            'tahun' => $request->filled('tahun')
+                ? $this->filterTahun->pilih($request->query('tahun'))
+                : $bawaan,
             'bulan' => (int) $request->query('bulan', MockData::BULAN_TERSUSUN),
         ];
     }

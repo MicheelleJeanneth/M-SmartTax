@@ -8,22 +8,22 @@
         <x-button :href="route('penghasilan.create')" class="min-w-[150px]">+ Tambah</x-button>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-stat label="Total Penghasilan" :nilai="rupiah($total)" />
         <x-stat varian="putih" label="Jumlah Transaksi" :nilai="$jumlahTransaksi" />
     </div>
 
     {{-- Pencarian dan filter dikirim lewat query string agar tautan halaman tetap membawanya. --}}
     {{-- Lebar mengikuti Figma: kolom cari mengisi sisa baris, kedua dropdown sama lebar. --}}
-    <form method="GET" class="mt-4 flex items-center gap-3">
-        <div class="min-w-0 flex-1">
+    <form method="GET" class="mt-4 flex flex-wrap items-center gap-3">
+        <div class="w-full min-w-0 sm:flex-1">
             <x-input name="cari" rapat :value="$cari" placeholder="Cari keterangan" />
         </div>
-        <div class="w-52 shrink-0">
+        <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
             <x-select name="bulan" rapat kosong="Semua bulan" :pilihan="\App\Support\MockData::bulan()"
                 :terpilih="$bulan ?: null" onchange="this.form.submit()" />
         </div>
-        <div class="w-52 shrink-0">
+        <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
             <x-select name="tahun" rapat :kosong="false" :pilihan="collect($daftarTahun)->mapWithKeys(fn ($t) => [$t => $t])"
                 :terpilih="$tahun" onchange="this.form.submit()" />
         </div>

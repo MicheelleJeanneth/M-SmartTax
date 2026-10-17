@@ -26,7 +26,7 @@
         <input type="hidden" id="nama" name="nama" value="{{ $h['nama'] ?? reset($kodeHarta) }}">
     @else
         {{-- Kategori yang daftar kodenya belum tersedia: kode dan deskripsi masih diketik. --}}
-        <div class="grid grid-cols-2 gap-x-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
             <x-input label="Kode Harta" name="kode" wajib inputmode="numeric" maxlength="4" pattern="\d{3,4}"
                 data-digit placeholder="Contoh: 0101" :value="$h['kode'] ?? ''" />
             <x-input label="Deskripsi" name="nama" placeholder="Contoh: Tabungan (Bank/Lembaga Keuangan)"
@@ -43,7 +43,7 @@
 
     @if($info['label_nilai_kini'])
         {{-- Kategori yang membedakan nilai awal dan nilai sekarang, misalnya piutang. --}}
-        <div class="grid grid-cols-2 gap-x-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
             <x-input :label="$info['label_nilai']" name="nilai" wajib uang placeholder="0"
                 :value="isset($h['nilai']) ? angka($h['nilai']) : ''" />
             <x-input :label="$info['label_nilai_kini']" name="nilai_kini" uang placeholder="0"
@@ -59,7 +59,7 @@
     @endif
 
     {{-- Tahun diketik langsung, bukan dipilih, supaya pengguna bebas mengisi tahun berapa pun. --}}
-    <div class="grid grid-cols-2 gap-x-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-input :label="$info['label_tahun']" name="tahun" wajib inputmode="numeric" maxlength="4"
             pattern="\d{4}" data-digit placeholder="Contoh: 2026" :value="$h['tahun'] ?? ''" />
         <x-input label="Tahun Pelepasan" name="tahun_pelepasan" inputmode="numeric" maxlength="4"
