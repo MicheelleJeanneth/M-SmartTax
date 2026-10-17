@@ -67,7 +67,7 @@
         @endif
     </x-card>
 
-    <x-info varian="biru-muda" class="mt-4">
+    <x-info varian="catatan" class="mt-4">
         Data bertanda terkunci sudah masuk draf pajak bulanan sehingga tidak dapat diubah. Batalkan draf bulan tersebut bila perlu memperbaikinya.
     </x-info>
 

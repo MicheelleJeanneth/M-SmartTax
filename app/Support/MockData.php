@@ -18,6 +18,21 @@ class MockData
     /** Bulan terakhir yang drafnya sudah tersusun (1–12). */
     public const BULAN_TERSUSUN = 6;
 
+    /** Kumpulan data tiruan pengganti, dipilih lewat MockData::pakaiPeraga(). */
+    private static ?string $peraga = null;
+
+    /**
+     * Mengganti sebagian data tiruan agar keadaan yang tidak muncul pada data
+     * biasa tetap dapat diperiksa dengan mata, bukan hanya lewat tes.
+     *
+     * - penghasilan-nol: tahun berjalan tanpa satu pun transaksi penghasilan.
+     * - tanpa-draf-tahunan: belum ada draf tahunan yang tersusun.
+     */
+    public static function pakaiPeraga(?string $nama): ?string
+    {
+        return self::$peraga = in_array($nama, ['penghasilan-nol', 'tanpa-draf-tahunan'], true) ? $nama : null;
+    }
+
     public static function bulan(): array
     {
         return [
@@ -48,19 +63,20 @@ class MockData
         return [
             'nama' => 'Budi Santoso',
             'inisial' => 'BS',
-            'peran' => 'Wajib Pajak UMKM',
-            'email' => 'budi.santoso@example.com',
-            'nik' => '3578010509900002',
+            'peran' => 'Wajib Pajak Orang Pribadi UMKM',
+            'email' => 'budi.santoso@gmail.com',
+            // NIK menyandikan tanggal lahir 25-09-80, cocok dengan kolom di bawah.
+            'nik' => '3578012509800001',
             'tempat_lahir' => 'Surabaya',
-            'tanggal_lahir' => '1990-09-05',
+            'tanggal_lahir' => '1980-09-25',
             'jenis_kelamin' => 'Pria',
             'kewarganegaraan' => 'WNI',
-            'telepon' => '0812-3456-7890',
-            'alamat' => 'Jl. Raya Kertajaya Indah No. 42',
+            'telepon' => '0812 3456 7890',
+            'alamat' => 'Jl. Rungkut Asri Timur 12',
             'rt' => '004',
             'rw' => '007',
-            'kelurahan' => 'Manyar Sabrangan',
-            'kecamatan' => 'Mulyorejo',
+            'kelurahan' => 'Kalirungkut',
+            'kecamatan' => 'Rungkut',
             'kota' => 'Surabaya',
             'provinsi' => 'Jawa Timur',
             'negara' => 'Indonesia',
@@ -87,6 +103,10 @@ class MockData
     /** Peredaran bruto per bulan pada satu tahun, dipakai grafik batang dan tabel draf. */
     public static function bruto(int $tahun = self::TAHUN): array
     {
+        if (self::$peraga === 'penghasilan-nol' && $tahun === self::TAHUN) {
+            return array_fill(1, 12, 0);
+        }
+
         return match ($tahun) {
             self::TAHUN => [
                 1 => 110_000_000, 2 => 125_000_000, 3 => 140_000_000,
@@ -569,6 +589,21 @@ class MockData
 
     public static function drafTahunan(): array
     {
+        if (self::$peraga === 'tanpa-draf-tahunan') {
+            return array_map(
+                fn (array $d): array => [...$d, 'status' => 'belum'],
+                self::drafTahunanLengkap()
+            );
+        }
+
+        return self::drafTahunanLengkap();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function drafTahunanLengkap(): array
+    {
         return [
             ['tahun' => 2026, 'draf_bulanan' => 6, 'bruto' => 780_000_000, 'pph_final' => 1_400_000, 'total_harta' => 650_000_000, 'total_utang' => 238_000_000, 'kekayaan_bersih' => 412_000_000, 'status' => 'belum'],
             ['tahun' => 2025, 'draf_bulanan' => 12, 'bruto' => 742_000_000, 'pph_final' => 1_210_000, 'total_harta' => 500_000_000, 'total_utang' => 183_000_000, 'kekayaan_bersih' => 317_000_000, 'status' => 'tersusun'],
@@ -711,14 +746,12 @@ class MockData
     public static function simulasi(): array
     {
         return [
-            'kondisi' => [
-                'penghasilan_bulanan' => 130_000_000,
-                'total_harta' => 650_000_000,
-                'total_utang' => 238_000_000,
-                'kekayaan_bersih' => 412_000_000,
-                'cicilan_berjalan' => collect(self::utang())->sum('cicilan'),
-            ],
+            // Kondisi keuangan tidak ditiru di sini: SimulasiAset mengambilnya
+            // dari AnalisisKeuangan agar tidak pernah berbeda dengan Dashboard.
             'rencana' => [
+                'jenis_aset' => 'tidak-bergerak',
+                'nama_aset' => '',
+                'cara_pembayaran' => 'Kredit',
                 'harga_aset' => 450_000_000,
                 'uang_muka' => 90_000_000,
                 'jangka_waktu' => 60,

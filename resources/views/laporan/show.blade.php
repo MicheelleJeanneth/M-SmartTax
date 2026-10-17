@@ -13,22 +13,26 @@
 @endphp
 
 @section('isi')
-    <form method="GET" class="mb-6 flex flex-wrap items-end gap-4">
-        <div class="w-40">
-            <x-select label="Tahun" name="tahun" :pilihan="[2026 => '2026', 2025 => '2025', 2024 => '2024']" :terpilih="$tahun" :kosong="false" rapat onchange="this.form.submit()" />
-        </div>
-        @if($jenis === 'draf-bulanan')
-            <div class="w-48">
-                <x-select label="Bulan" name="bulan" :pilihan="\App\Support\MockData::bulan()" :terpilih="$bulan" :kosong="false" rapat onchange="this.form.submit()" />
+    {{-- Penyaring dan tombol unduh berdiri di dalam satu kartu; kolom tahun
+         melebar mengisi sisa baris, tombol tetap di ujung kanan. --}}
+    <x-card class="mb-6">
+        <form method="GET" class="flex flex-wrap items-end gap-4">
+            <div class="min-w-50 flex-1">
+                <x-select label="Tahun Pajak" name="tahun" :pilihan="[2026 => '2026', 2025 => '2025', 2024 => '2024']" :terpilih="$tahun" :kosong="false" rapat onchange="this.form.submit()" />
             </div>
-        @endif
-        <noscript><x-button type="submit" varian="secondary">Tampilkan</x-button></noscript>
-        @if($tersedia)
-            <x-button :href="route('laporan.unduh', ['jenis' => $jenis, ...$query])" class="ml-auto">
-                <x-icon name="download" :size="18" /> Unduh PDF
-            </x-button>
-        @endif
-    </form>
+            @if($jenis === 'draf-bulanan')
+                <div class="min-w-50 flex-1">
+                    <x-select label="Bulan" name="bulan" :pilihan="\App\Support\MockData::bulan()" :terpilih="$bulan" :kosong="false" rapat onchange="this.form.submit()" />
+                </div>
+            @endif
+            <noscript><x-button type="submit" varian="secondary">Tampilkan</x-button></noscript>
+            @if($tersedia)
+                <x-button :href="route('laporan.unduh', ['jenis' => $jenis, ...$query])" class="min-w-55">
+                    <x-icon name="download" :size="18" /> Unduh PDF
+                </x-button>
+            @endif
+        </form>
+    </x-card>
 
     @if($tersedia)
         {{-- Pratinjau: dua lembar kertas bertumpuk di dalam bingkai frame --}}

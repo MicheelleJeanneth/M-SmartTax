@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
+use App\Support\MockData;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -22,11 +23,11 @@ class MockupPagesTest extends TestCase
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
             '/draf-bulanan?tahun=2025', '/draf-bulanan/12?tahun=2025', '/draf-bulanan/susun?bulan=3&tahun=2025',
             '/draf-tahunan', '/draf-tahunan/susun?tahun=2025', '/draf-tahunan/2025',
-            '/simulasi', '/simulasi?harga_aset=450000000&uang_muka=90000000&jangka_waktu=60&suku_bunga=8.5',
+            '/simulasi',
             '/laporan/draf-bulanan', '/laporan/draf-bulanan?bulan=9', '/laporan/draf-tahunan', '/laporan/draf-tahunan?tahun=2026',
             '/laporan/harta', '/laporan/utang',
             '/laporan/draf-bulanan/pratinjau', '/laporan/draf-tahunan/pratinjau?tahun=2025', '/laporan/harta/pratinjau', '/laporan/utang/pratinjau',
-            '/profil', '/profil/ubah', '/panduan',
+            '/profil', '/profil/ubah', '/panduan', '/panduan/mencatat-harta', '/panduan/pertanyaan-umum',
         ];
 
         return array_combine($uri, array_map(fn (string $u): array => [$u], $uri));
@@ -36,6 +37,68 @@ class MockupPagesTest extends TestCase
     public function test_halaman_mockup_dapat_dibuka(string $uri): void
     {
         $this->get($uri)->assertOk();
+    }
+
+    public function test_panduan_menyorot_bagian_yang_sedang_dibuka(): void
+    {
+        $this->get('/panduan')->assertOk()->assertSee('Urutan yang perlu diperhatikan');
+
+        // Bagian lain menggantikan isinya, bukan menambah di bawahnya.
+        $this->get('/panduan/mencatat-utang')
+            ->assertOk()
+            ->assertSee('Mencatat Utang')
+            ->assertDontSee('Urutan yang perlu diperhatikan');
+
+        $this->get('/panduan/tidak-ada')->assertNotFound();
+    }
+
+    public function test_panduan_menampilkan_blok_tanya_jawab(): void
+    {
+        $this->get('/panduan/mencatat-penghasilan')
+            ->assertOk()
+            ->assertSee('Yang perlu dicatat dan tidak')
+            ->assertSee('Pertanyaan yang sering muncul')
+            ->assertSee('PPh Final dihitung dari peredaran bruto, bukan dari laba.');
+
+        // Bagian yang belum punya blok tanya jawab tidak ikut memunculkannya.
+        $this->get('/panduan/memulai')->assertOk()->assertDontSee('Pertanyaan yang sering muncul');
+    }
+
+    public function test_panduan_menampilkan_kartu_teks_dan_lambang(): void
+    {
+        $this->get('/panduan/draf-bulanan')
+            ->assertOk()
+            ->assertSee('Cara PPh Final dihitung')
+            ->assertSee('Membatalkan draf')
+            ->assertSee('Arti lambang pada kolom Aksi')
+            // Lambang pada tabel memakai warna yang sama dengan halaman draf bulanan.
+            ->assertSee('text-danger', false)
+            ->assertSee('text-locked', false);
+    }
+
+    public function test_panduan_membaca_ambang_dari_konfigurasi_pajak(): void
+    {
+        $pajak = MockData::konfigurasiPajak();
+
+        // Angka pada Pertanyaan Umum tidak ditulis ulang, melainkan dibaca
+        // dari konfigurasi yang sama dengan perhitungan draf.
+        $this->get('/panduan/pertanyaan-umum')
+            ->assertOk()
+            ->assertSee('Rp'.angka($pajak['ambang_maksimal']))
+            ->assertSee('Rp'.angka($pajak['ambang_bebas']))
+            ->assertSee('tarif '.persen($pajak['tarif_final']))
+            ->assertSee($pajak['dasar_hukum']);
+    }
+
+    public function test_panduan_memakai_lencana_yang_sama_dengan_draf_tahunan(): void
+    {
+        $this->get('/panduan/draf-tahunan')
+            ->assertOk()
+            ->assertSee('Dua analisis keuangan')
+            // Teks lencana datang dari komponen, bukan ditulis ulang di panduan.
+            ->assertSee('Normal')
+            ->assertSee('Perlu Ditinjau')
+            ->assertSee('Perlu Diperiksa');
     }
 
     public function test_data_terkunci_tidak_bisa_diubah_lewat_url(): void
@@ -134,11 +197,55 @@ class MockupPagesTest extends TestCase
         $this->get('/profil/lengkapi')->assertOk();
 
         // Setelah profil tersimpan, seluruh halaman terbuka.
-        $this->post('/profil/lengkapi')->assertRedirect('/dashboard');
+        $this->post('/profil/lengkapi', $this->profilSah())->assertRedirect('/dashboard');
         $this->get('/dashboard')->assertOk();
 
         // Keluar mengembalikan keadaan awal.
         $this->post('/logout')->assertRedirect('/login');
+    }
+
+    /**
+     * NIK yang tanggal lahirnya cocok dengan kolom di bawahnya.
+     *
+     * @param  array<string, string>  $ubah
+     * @return array<string, string>
+     */
+    private function profilSah(array $ubah = []): array
+    {
+        return array_merge([
+            'nik' => '3578012509800001',
+            'tanggal_lahir' => '1980-09-25',
+            'jenis_kelamin' => 'Pria',
+        ], $ubah);
+    }
+
+    public function test_nik_diperiksa_terhadap_tanggal_lahir(): void
+    {
+        // Tanggal pada NIK berbeda satu hari dari kolom Tanggal Lahir.
+        $this->from('/profil/ubah')
+            ->put('/profil', $this->profilSah(['nik' => '3578012609800001']))
+            ->assertRedirect('/profil/ubah')
+            ->assertSessionHasErrors('nik');
+
+        // NIK menunjukkan wanita (tanggal 25 + 40 = 65), pilihannya Pria.
+        $this->from('/profil/ubah')
+            ->put('/profil', $this->profilSah(['nik' => '3578016509800001']))
+            ->assertRedirect('/profil/ubah')
+            ->assertSessionHasErrors('nik');
+
+        // Pasangan yang cocok diterima, dan NIK memang masih dapat diubah.
+        $this->put('/profil', $this->profilSah(['nik' => '3578016509800001', 'jenis_kelamin' => 'Wanita']))
+            ->assertRedirect('/profil')
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_nik_tidak_lagi_terkunci_pada_ubah_profil(): void
+    {
+        $this->get('/profil/ubah')
+            ->assertOk()
+            ->assertSee('Ya, Ubah NIK')
+            // Hanya email yang tersisa terkunci pada formulir ini.
+            ->assertSee('Email tidak dapat diubah karena digunakan untuk masuk ke sistem.', false);
     }
 
     public function test_filter_tahun_dashboard(): void

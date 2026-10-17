@@ -40,6 +40,18 @@ class AnalisisKeuangan
         return $this->totalHarta($tahun) - $this->totalUtang($tahun);
     }
 
+    /**
+     * Jumlah cicilan bulanan utang yang masih berjalan. Utang yang dibayar
+     * sekaligus saat jatuh tempo tidak punya cicilan dan dihitung nol.
+     */
+    public function cicilanBerjalan(int $tahun): int
+    {
+        return collect(MockData::utang())
+            ->filter(fn (array $u): bool => $u['tahun'] <= $tahun
+                && ($u['tahun_pelunasan'] === null || $u['tahun_pelunasan'] > $tahun))
+            ->sum(fn (array $u): int => $u['cicilan'] ?? 0);
+    }
+
     /** Peredaran bruto tahun terpilih, dijumlahkan dari transaksi penghasilan. */
     public function peredaranBruto(int $tahun): int
     {
@@ -116,9 +128,13 @@ class AnalisisKeuangan
     /**
      * Pertambahan kekayaan bersih dibanding peredaran bruto tahun terpilih.
      *
+     * Simulasi Aset memanggil method ini dua kali: sekali apa adanya, sekali
+     * dengan tambahan harta dan utang dari rencana pembelian. Dengan begitu
+     * pembagi, ambang, dan nama statusnya selalu sama dengan draf tahunan.
+     *
      * @return array{ada_pembanding: bool, pertambahan_harta: int|null, pertambahan_utang: int|null, pertambahan_bersih: int|null, bruto: int, rasio: float|null, status: string|null}
      */
-    public function rasioKonsistensi(int $tahun): array
+    public function rasioKonsistensi(int $tahun, int $tambahanHarta = 0, int $tambahanUtang = 0): array
     {
         $lalu = $this->drafTahunLalu($tahun);
         $bruto = $this->peredaranBruto($tahun);
@@ -128,8 +144,8 @@ class AnalisisKeuangan
                 'pertambahan_bersih' => null, 'bruto' => $bruto, 'rasio' => null, 'status' => null];
         }
 
-        $pertambahanHarta = $this->totalHarta($tahun) - $lalu['total_harta'];
-        $pertambahanUtang = $this->totalUtang($tahun) - $lalu['total_utang'];
+        $pertambahanHarta = $this->totalHarta($tahun) + $tambahanHarta - $lalu['total_harta'];
+        $pertambahanUtang = $this->totalUtang($tahun) + $tambahanUtang - $lalu['total_utang'];
         $pertambahanBersih = $pertambahanHarta - $pertambahanUtang;
         $rasio = $bruto > 0 ? $pertambahanBersih / $bruto : null;
 

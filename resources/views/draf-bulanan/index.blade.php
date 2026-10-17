@@ -78,7 +78,7 @@
         </x-table>
     </x-card>
 
-    <x-info varian="biru-muda" class="mt-4">
+    <x-info varian="catatan" class="mt-4">
         Draf hanya dapat dibatalkan mulai dari bulan terakhir. Untuk membatalkan bulan sebelumnya, batalkan dulu draf bulan setelahnya.
     </x-info>
 

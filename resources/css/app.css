@@ -78,6 +78,10 @@
         @apply border-danger focus:border-danger focus:ring-danger;
     }
 
+    .kolom-isian:disabled {
+        @apply cursor-not-allowed border-line-soft bg-page text-ink-3;
+    }
+
     .kolom-isian {
         @apply h-11 w-full rounded-field border border-line bg-white px-3.5 text-[15px] text-ink;
         @apply placeholder:text-ink-3/70;

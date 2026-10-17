@@ -70,6 +70,7 @@ Route::middleware('profil.lengkap')->group(function () {
     });
 
     Route::get('/simulasi', [SimulasiController::class, 'index'])->name('simulasi.index');
+    Route::post('/simulasi', [SimulasiController::class, 'hitung'])->name('simulasi.hitung');
 
     Route::prefix('laporan')->name('laporan.')->controller(LaporanController::class)->group(function () {
         foreach (['draf-bulanan', 'draf-tahunan', 'harta', 'utang'] as $jenis) {
@@ -88,5 +89,5 @@ Route::middleware('profil.lengkap')->group(function () {
         ->name('pengingat.buka')
         ->where('jenis', '[a-z0-9_]+');
 
-    Route::get('/panduan', PanduanController::class)->name('panduan');
+    Route::get('/panduan/{bagian?}', PanduanController::class)->name('panduan');
 });

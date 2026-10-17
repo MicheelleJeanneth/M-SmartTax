@@ -44,7 +44,7 @@
         </x-table>
     </x-card>
 
-    <x-info varian="biru-muda" class="mt-4">
+    <x-info varian="catatan" class="mt-4">
         Draf tahunan hanya dapat disusun setelah seluruh dua belas draf bulanan selesai, dan akan mengunci draf bulanan, data harta, serta data utang pada tahun tersebut.
         Pembatalan hanya dapat dimulai dari tahun terakhir; untuk membatalkan tahun sebelumnya, batalkan dulu draf tahun setelahnya.
     </x-info>

@@ -1,61 +1,72 @@
 @extends('layouts.app')
 @section('judul', 'Profil')
-@section('keterangan', 'Data diri yang dicetak pada kop laporan.')
+@section('keterangan', 'Data wajib pajak yang digunakan pada seluruh dokumen laporan')
+
+@section('aksi-header')
+    <x-button :href="route('profil.edit')"><x-icon name="pencil" :size="16" /> Ubah Profil</x-button>
+@endsection
 
 @section('isi')
-    <div class="max-w-[960px] space-y-6">
-        <x-card>
-            <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-lg font-semibold text-primary-ink">{{ $profil['inisial'] }}</span>
-                    <div>
-                        <div class="flex items-center gap-3">
-                            <p class="text-lg font-medium text-ink">{{ $profil['nama'] }}</p>
-                            <x-badge status="lengkap" />
-                        </div>
-                        <p class="text-sm text-ink-2">{{ $profil['email'] }} · {{ $profil['peran'] }}</p>
-                    </div>
+    <x-card padat>
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[15px] font-medium text-primary-ink">{{ $profil['inisial'] }}</span>
+                <div class="min-w-0">
+                    <p class="text-base font-medium text-ink">{{ $profil['nama'] }}</p>
+                    <p class="mt-0.5 text-sm text-ink-2">{{ $profil['peran'] }} &middot; {{ $profil['nik'] }}</p>
                 </div>
-                <x-button :href="route('profil.edit')"><x-icon name="pencil" :size="16" /> Ubah Profil</x-button>
             </div>
-        </x-card>
-
-        <x-info varian="biru">NIK dan alamat tercetak di setiap laporan. Pastikan keduanya sesuai KTP sebelum mengunduh laporan.</x-info>
-
-        <div class="grid gap-6 lg:grid-cols-2">
-            <x-card judul="Data Diri">
-                <div class="divide-y divide-line-soft">
-                    <x-row label="NIK">{{ $profil['nik'] }}</x-row>
-                    <x-row label="Tempat, tanggal lahir">{{ $profil['tempat_lahir'] }}, {{ tanggal_id($profil['tanggal_lahir']) }}</x-row>
-                    <x-row label="Jenis kelamin">{{ $profil['jenis_kelamin'] }}</x-row>
-                    <x-row label="Kewarganegaraan">{{ $profil['kewarganegaraan'] }}</x-row>
-                    <x-row label="Nomor handphone">{{ $profil['telepon'] }}</x-row>
-                </div>
-            </x-card>
-            <x-card judul="Alamat">
-                <div class="divide-y divide-line-soft">
-                    <x-row label="Alamat">{{ $profil['alamat'] }}</x-row>
-                    <x-row label="RT / RW">{{ $profil['rt'] }} / {{ $profil['rw'] }}</x-row>
-                    <x-row label="Kelurahan">{{ $profil['kelurahan'] }}</x-row>
-                    <x-row label="Kecamatan">{{ $profil['kecamatan'] }}</x-row>
-                    <x-row label="Kota / Kabupaten">{{ $profil['kota'] }}</x-row>
-                    <x-row label="Provinsi">{{ $profil['provinsi'] }}</x-row>
-                    <x-row label="Negara">{{ $profil['negara'] }}</x-row>
-                </div>
-            </x-card>
+            <x-badge status="lengkap" />
         </div>
+    </x-card>
 
-        <x-card judul="Keamanan">
-            <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <x-icon name="shield-check" :size="20" class="text-primary" />
-                    <div>
-                        <p class="text-[15px] text-ink">Kata sandi</p>
-                        <p class="text-sm text-ink-3">Perbarui kata sandi secara berkala untuk menjaga keamanan akun.</p>
+    {{-- Label berdiri pada kolom tetap agar nilainya rata satu garis. --}}
+    @php
+        $dataDiri = [
+            'NIK' => $profil['nik'],
+            'Nama Lengkap' => $profil['nama'],
+            'Tempat, Tanggal Lahir' => $profil['tempat_lahir'].', '.tanggal_id($profil['tanggal_lahir']),
+            'Jenis Kelamin' => $profil['jenis_kelamin'],
+            'Kewarganegaraan' => $profil['kewarganegaraan'],
+            'Nomor Handphone' => $profil['telepon'],
+            'Email' => $profil['email'],
+        ];
+
+        $alamat = [
+            'Alamat' => $profil['alamat'],
+            'RT / RW' => $profil['rt'].' / '.$profil['rw'],
+            'Kelurahan' => $profil['kelurahan'],
+            'Kecamatan' => $profil['kecamatan'],
+            'Kota' => $profil['kota'],
+            'Provinsi' => $profil['provinsi'],
+            'Negara' => $profil['negara'],
+        ];
+    @endphp
+
+    @foreach(['Data Diri' => $dataDiri, 'Alamat' => $alamat] as $judul => $isi)
+        <x-card :judul="$judul" class="mt-4">
+            <dl class="text-[15px]">
+                @foreach($isi as $label => $nilai)
+                    <div class="grid grid-cols-[220px_1fr] gap-4 py-1">
+                        <dt class="text-ink-2">{{ $label }}</dt>
+                        <dd class="min-w-0 text-ink">{{ $nilai }}</dd>
                     </div>
-                </div>
-                <x-button varian="secondary">Ubah Kata Sandi</x-button>
-            </div>
+                @endforeach
+            </dl>
         </x-card>
-    </div>
+    @endforeach
+
+    <x-card judul="Keamanan" class="mt-4">
+        <div class="flex items-center justify-between gap-4">
+            <div class="min-w-0">
+                <p class="text-[15px] text-ink">Kata Sandi</p>
+                <p class="mt-0.5 text-sm text-ink-3">Perbarui kata sandi secara berkala untuk menjaga keamanan akun.</p>
+            </div>
+            <x-button varian="secondary" class="shrink-0">Ubah Kata Sandi</x-button>
+        </div>
+    </x-card>
+
+    <x-info varian="biru-muda" class="mt-4">
+        NIK dan alamat tercetak pada seluruh dokumen laporan. Pastikan keduanya sesuai dengan data yang terdaftar di Direktorat Jenderal Pajak.
+    </x-info>
 @endsection
