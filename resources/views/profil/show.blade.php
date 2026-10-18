@@ -27,7 +27,7 @@
             'Nama Lengkap' => $profil['nama'],
             'Tempat, Tanggal Lahir' => $profil['tempat_lahir'].', '.tanggal_id($profil['tanggal_lahir']),
             'Jenis Kelamin' => $profil['jenis_kelamin'],
-            'Kewarganegaraan' => $profil['kewarganegaraan'],
+            'Kewarganegaraan' => \App\Support\MockData::kewarganegaraanTampil(),
             'Nomor Handphone' => $profil['telepon'],
             'Email' => $profil['email'],
         ];

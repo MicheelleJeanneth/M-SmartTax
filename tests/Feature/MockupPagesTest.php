@@ -254,6 +254,21 @@ class MockupPagesTest extends TestCase
         $this->assertStringContainsString('Batalkan draf tahun setelahnya terlebih dahulu', $halaman);
     }
 
+    public function test_kewarganegaraan_tampil_panjang_tetapi_tersimpan_wni(): void
+    {
+        $this->assertSame('WNI', MockData::KEWARGANEGARAAN);
+        $this->assertSame('WNI — Warga Negara Indonesia', MockData::kewarganegaraanTampil());
+
+        foreach (['/profil', '/profil/ubah', '/profil/lengkapi'] as $uri) {
+            $this->get($uri)->assertOk()->assertSee(MockData::kewarganegaraanTampil(), false);
+        }
+
+        // Pada formulir, yang terkirim tetap nilai pendeknya lewat kolom tersembunyi.
+        $this->get('/profil/ubah')
+            ->assertOk()
+            ->assertSee('<input type="hidden" name="kewarganegaraan" value="WNI">', false);
+    }
+
     public function test_ubah_kata_sandi_menegakkan_aturannya(): void
     {
         $this->get('/profil/kata-sandi')->assertOk()->assertSee('Kata Sandi Saat Ini');

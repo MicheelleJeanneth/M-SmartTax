@@ -18,6 +18,18 @@ class MockData
     /** Bulan terakhir yang drafnya sudah tersusun (1–12). */
     public const BULAN_TERSUSUN = 6;
 
+    /** Satu-satunya kewarganegaraan yang dilayani; nilai inilah yang tersimpan. */
+    public const KEWARGANEGARAAN = 'WNI';
+
+    /**
+     * Tulisan kewarganegaraan di layar. Dipanjangkan supaya tidak terbaca
+     * sama dengan kolom Negara pada kartu Alamat, yang artinya berbeda.
+     */
+    public static function kewarganegaraanTampil(): string
+    {
+        return self::KEWARGANEGARAAN.' — Warga Negara Indonesia';
+    }
+
     /** Kumpulan data tiruan pengganti, dipilih lewat MockData::pakaiPeraga(). */
     private static ?string $peraga = null;
 
@@ -70,7 +82,7 @@ class MockData
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1980-09-25',
             'jenis_kelamin' => 'Pria',
-            'kewarganegaraan' => 'WNI',
+            'kewarganegaraan' => self::KEWARGANEGARAAN,
             'telepon' => '0812 3456 7890',
             'alamat' => 'Jl. Rungkut Asri Timur 12',
             'rt' => '004',
