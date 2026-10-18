@@ -259,14 +259,18 @@ class MockupPagesTest extends TestCase
         $this->assertSame('WNI', MockData::KEWARGANEGARAAN);
         $this->assertSame('WNI — Warga Negara Indonesia', MockData::kewarganegaraanTampil());
 
-        foreach (['/profil', '/profil/ubah', '/profil/lengkapi'] as $uri) {
-            $this->get($uri)->assertOk()->assertSee(MockData::kewarganegaraanTampil(), false);
-        }
+        // Halaman baca memuat tulisan panjangnya dalam satu baris.
+        $this->get('/profil')->assertOk()->assertSee(MockData::kewarganegaraanTampil(), false);
 
-        // Pada formulir, yang terkirim tetap nilai pendeknya lewat kolom tersembunyi.
-        $this->get('/profil/ubah')
-            ->assertOk()
-            ->assertSee('<input type="hidden" name="kewarganegaraan" value="WNI">', false);
+        // Pada formulir, kotaknya hanya berisi nilai yang tersimpan; kepanjangannya
+        // turun menjadi keterangan agar tidak terpotong pada layar sempit.
+        foreach (['/profil/ubah', '/profil/lengkapi'] as $uri) {
+            $this->get($uri)
+                ->assertOk()
+                ->assertSee('value="WNI"', false)
+                ->assertSee('Warga Negara Indonesia. M-SmartTax hanya melayani wajib pajak WNI.')
+                ->assertDontSee(MockData::kewarganegaraanTampil(), false);
+        }
     }
 
     public function test_ubah_kata_sandi_menegakkan_aturannya(): void

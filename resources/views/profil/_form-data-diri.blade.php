@@ -27,8 +27,8 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
         {{-- M-SmartTax hanya untuk wajib pajak WNI, jadi kolom ini tetap tampil tetapi terkunci. --}}
         <x-input-locked label="Kewarganegaraan" name="kewarganegaraan"
-            :value="\App\Support\MockData::kewarganegaraanTampil()" :tersimpan="\App\Support\MockData::KEWARGANEGARAAN"
-            :bantuan="$terkunci ? false : 'M-SmartTax hanya untuk wajib pajak berkewarganegaraan Indonesia.'" />
+            :value="\App\Support\MockData::KEWARGANEGARAAN"
+            bantuan="Warga Negara Indonesia. M-SmartTax hanya melayani wajib pajak WNI." />
         <x-input label="Nomor Handphone" name="nomor_handphone" type="tel" wajib
             placeholder="08xx xxxx xxxx" :value="$p['telepon'] ?? ''" />
     </div>

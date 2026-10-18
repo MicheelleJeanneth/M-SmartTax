@@ -70,9 +70,9 @@
             </div>
 
             {{-- Tombol rata kiri, sama seperti formulir lain. --}}
-            <div class="flex flex-wrap gap-3">
-                <x-button type="submit" class="min-w-39">Hitung Kelayakan</x-button>
-                <x-button varian="secondary" :href="route('simulasi.index', $peraga ? ['peraga' => $peraga] : [])" class="min-w-39">Atur Ulang</x-button>
+            <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">Hitung Kelayakan</x-button>
+                <x-button varian="secondary" :href="route('simulasi.index', $peraga ? ['peraga' => $peraga] : [])" class="w-full sm:w-auto sm:min-w-39">Atur Ulang</x-button>
             </div>
         </form>
     </x-card>

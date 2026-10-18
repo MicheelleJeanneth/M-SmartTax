@@ -11,7 +11,7 @@
         <x-row label="Tarif PPh Final">{{ persen($tarif) }}</x-row>
     </div>
 
-    <div class="mt-3 flex items-center justify-between gap-6 rounded-field bg-primary-soft px-5 py-4">
+    <div class="mt-3 flex flex-col gap-1 rounded-field bg-primary-soft px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <p class="text-[15px] text-primary-ink">Total PPh Final Terutang {{ $tahun }}</p>
         <p class="text-[28px] leading-tight font-medium tracking-tight tabular-nums text-primary-ink">{{ rupiah($pph) }}</p>
     </div>

@@ -24,9 +24,9 @@
         </x-info>
 
         {{-- Tombol rata kiri, sama seperti formulir lain. --}}
-        <div class="mt-4 flex flex-wrap gap-3">
-            <x-button type="submit" class="min-w-48">Simpan Perubahan</x-button>
-            <x-button varian="secondary" :href="route('profil.show')" class="min-w-48">Batal</x-button>
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <x-button type="submit" class="w-full sm:w-auto sm:min-w-48">Simpan Perubahan</x-button>
+            <x-button varian="secondary" :href="route('profil.show')" class="w-full sm:w-auto sm:min-w-48">Batal</x-button>
         </div>
     </form>
 

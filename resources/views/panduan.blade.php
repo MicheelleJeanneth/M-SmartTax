@@ -79,7 +79,8 @@
                             // Kolom awal yang berperan sebagai penanda ditulis lebih gelap.
                             $tegas = $tabel['tegas'] ?? 1;
                         @endphp
-                        <table class="w-full text-left {{ isset($kartu['isi']) ? 'mt-4' : '' }}">
+                        <div class="daftar-gulir -mx-1 overflow-x-auto px-1 {{ isset($kartu['isi']) ? 'mt-4' : '' }}">
+                            <table class="w-full min-w-[40rem] text-left">
                             <thead>
                                 <tr class="border-b border-line-soft">
                                     @foreach($tabel['kepala'] as $i => $kolom)
@@ -105,7 +106,8 @@
                                     </tr>
                                 @endforeach
                             </tbody>
-                        </table>
+                            </table>
+                        </div>
                     @endisset
 
                     @isset($kartu['tanya'])

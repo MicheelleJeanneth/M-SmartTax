@@ -121,7 +121,7 @@ class Panduan
                         'tabel' => [
                             'kepala' => ['Kode', 'Kategori', 'Contoh', 'Dinilai dengan'],
                             // Kolom kode dilebarkan sedikit supaya "06 · 07" tetap satu baris.
-                            'lebar' => ['w-[10%]', 'w-[29%]', 'w-[33%]', 'w-[28%]'],
+                            'lebar' => ['w-[12%]', 'w-[27%]', 'w-[33%]', 'w-[28%]'],
                             'tegas' => 2,
                             'baris' => [
                                 ['01', 'Kas dan Setara Kas', 'Uang tunai, tabungan, deposito', 'Saldo akhir tahun'],

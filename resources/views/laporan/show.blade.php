@@ -36,8 +36,8 @@
 
     @if($tersedia)
         {{-- Pratinjau: dua lembar kertas bertumpuk di dalam bingkai frame --}}
-        <div class="rounded-card bg-frame px-3 py-5 sm:px-6 sm:py-10">
-            <div class="relative mx-auto w-full max-w-[794px]">
+        <div class="daftar-gulir overflow-x-auto rounded-card bg-frame px-3 py-5 sm:px-6 sm:py-10">
+            <div class="relative mx-auto w-[794px] max-w-full">
                 <div class="absolute inset-0 translate-x-3 translate-y-3 rounded-sm bg-white shadow-sm" aria-hidden="true"></div>
                 <iframe src="{{ route('laporan.pratinjau', ['jenis' => $jenis, ...$query]) }}" title="Pratinjau {{ $judul }}"
                     class="relative block h-[60vh] w-full rounded-sm bg-white shadow-md sm:h-[1123px]"></iframe>

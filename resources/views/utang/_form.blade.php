@@ -46,8 +46,8 @@
     <x-input label="Keterangan" name="keterangan" placeholder="Opsional" :value="$u['keterangan'] ?? ''" />
 
     {{-- Tombol berada di dalam kartu dan rata kiri, sama seperti formulir Penghasilan. --}}
-    <div class="flex flex-wrap gap-3">
-        <x-button type="submit" class="min-w-39">{{ $tombol }}</x-button>
-        <x-button varian="secondary" :href="route('utang.index')" class="min-w-39">Batal</x-button>
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">{{ $tombol }}</x-button>
+        <x-button varian="secondary" :href="route('utang.index')" class="w-full sm:w-auto sm:min-w-39">Batal</x-button>
     </div>
 </x-card>

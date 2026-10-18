@@ -14,11 +14,11 @@
     </x-info>
 
     {{-- Tombol rata kiri, sama seperti formulir lain. --}}
-    <form method="POST" action="{{ route('draf-bulanan.store') }}" class="mt-4 flex flex-wrap gap-3">
+    <form method="POST" action="{{ route('draf-bulanan.store') }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         @csrf
         <input type="hidden" name="bulan" value="{{ $bulan }}">
         <input type="hidden" name="tahun" value="{{ $tahun }}">
-        <x-button type="submit" class="min-w-39">{{ $nihil ? 'Simpan Draf Nihil' : 'Simpan Draf' }}</x-button>
-        <x-button varian="secondary" :href="route('draf-bulanan.index', ['tahun' => $tahun])" class="min-w-39">Batal</x-button>
+        <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">{{ $nihil ? 'Simpan Draf Nihil' : 'Simpan Draf' }}</x-button>
+        <x-button varian="secondary" :href="route('draf-bulanan.index', ['tahun' => $tahun])" class="w-full sm:w-auto sm:min-w-39">Batal</x-button>
     </form>
 @endsection
