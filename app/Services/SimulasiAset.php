@@ -16,6 +16,12 @@ class SimulasiAset
 
     public function __construct(private AnalisisKeuangan $analisis) {}
 
+    /** Meneruskan pilihan data peraga ke perhitungan di baliknya. */
+    public function pakaiPeraga(?string $nama): ?string
+    {
+        return $this->analisis->pakaiPeraga($nama);
+    }
+
     /**
      * Ketiga tingkat kelayakan beserta ambangnya, urut dari yang teringan.
      *

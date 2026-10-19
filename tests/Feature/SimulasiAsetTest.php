@@ -139,11 +139,20 @@ class SimulasiAsetTest extends TestCase
     public function test_dampak_konsistensi_memakai_perhitungan_draf_tahunan(): void
     {
         // Pembelian kredit menambah kekayaan bersih sebesar uang mukanya saja,
-        // sehingga rasio naik dari 95 juta menjadi 185 juta dibagi bruto.
-        $dampak = app(SimulasiAset::class)->dampakKonsistensi(MockData::TAHUN, 450_000_000, 360_000_000);
+        // karena harta bertambah seharga aset sementara utang bertambah sebesar
+        // pokok pinjaman. Selisih keduanya harus tepat sebesar uang muka, berapa
+        // pun keadaan awalnya.
+        $harga = 450_000_000;
+        $pokok = 360_000_000;
+        $uangMuka = $harga - $pokok;
 
-        $this->assertSame(95_000_000, $dampak['sekarang']['pertambahan_bersih']);
-        $this->assertSame(185_000_000, $dampak['perkiraan']['pertambahan_bersih']);
+        $dampak = app(SimulasiAset::class)->dampakKonsistensi(MockData::TAHUN, $harga, $pokok);
+
+        $this->assertSame(
+            $uangMuka,
+            $dampak['perkiraan']['pertambahan_bersih'] - $dampak['sekarang']['pertambahan_bersih'],
+        );
+        // Pembaginya sama, sehingga kedua rasio benar-benar dapat dibandingkan.
         $this->assertSame($dampak['sekarang']['bruto'], $dampak['perkiraan']['bruto']);
     }
 

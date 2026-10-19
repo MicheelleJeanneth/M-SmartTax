@@ -17,7 +17,7 @@ class SimulasiController extends Controller
      */
     public function index(Request $request): View
     {
-        $peraga = MockData::pakaiPeraga($request->query('peraga'));
+        $peraga = $this->simulasi->pakaiPeraga($request->query('peraga'));
 
         return view('simulasi.index', [
             'tahun' => MockData::TAHUN,
@@ -35,7 +35,7 @@ class SimulasiController extends Controller
     public function hitung(Request $request): View
     {
         $tahun = MockData::TAHUN;
-        $peraga = MockData::pakaiPeraga($request->input('peraga'));
+        $peraga = $this->simulasi->pakaiPeraga($request->input('peraga'));
         $rencana = $this->sahkan($request);
         $kondisi = $this->simulasi->kondisi($tahun);
 

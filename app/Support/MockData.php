@@ -30,21 +30,6 @@ class MockData
         return self::KEWARGANEGARAAN.' — Warga Negara Indonesia';
     }
 
-    /** Kumpulan data tiruan pengganti, dipilih lewat MockData::pakaiPeraga(). */
-    private static ?string $peraga = null;
-
-    /**
-     * Mengganti sebagian data tiruan agar keadaan yang tidak muncul pada data
-     * biasa tetap dapat diperiksa dengan mata, bukan hanya lewat tes.
-     *
-     * - penghasilan-nol: tahun berjalan tanpa satu pun transaksi penghasilan.
-     * - tanpa-draf-tahunan: belum ada draf tahunan yang tersusun.
-     */
-    public static function pakaiPeraga(?string $nama): ?string
-    {
-        return self::$peraga = in_array($nama, ['penghasilan-nol', 'tanpa-draf-tahunan'], true) ? $nama : null;
-    }
-
     public static function bulan(): array
     {
         return [
@@ -115,10 +100,6 @@ class MockData
     /** Peredaran bruto per bulan pada satu tahun, dipakai grafik batang dan tabel draf. */
     public static function bruto(int $tahun = self::TAHUN): array
     {
-        if (self::$peraga === 'penghasilan-nol' && $tahun === self::TAHUN) {
-            return array_fill(1, 12, 0);
-        }
-
         return match ($tahun) {
             self::TAHUN => [
                 1 => 110_000_000, 2 => 125_000_000, 3 => 140_000_000,
@@ -601,13 +582,6 @@ class MockData
 
     public static function drafTahunan(): array
     {
-        if (self::$peraga === 'tanpa-draf-tahunan') {
-            return array_map(
-                fn (array $d): array => [...$d, 'status' => 'belum'],
-                self::drafTahunanLengkap()
-            );
-        }
-
         return self::drafTahunanLengkap();
     }
 

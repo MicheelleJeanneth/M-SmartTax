@@ -2,8 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\DrafTahunan;
+use App\Models\Harta;
+use App\Models\Penghasilan;
+use App\Models\Profil;
+use App\Models\Utang;
 use App\Support\MockData;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Perhitungan harta, utang, dan analisis keuangan untuk Dashboard,
@@ -17,11 +22,22 @@ class AnalisisKeuangan
     private const BATAS_TINJAU = 0.90;
 
     /**
+     * Kumpulan keadaan yang tidak muncul pada data contoh, dipaksa tampil agar
+     * tata letaknya dapat diperiksa dengan mata dan diuji sebagai kasus batas.
+     */
+    private ?string $peraga = null;
+
+    public function pakaiPeraga(?string $nama): ?string
+    {
+        return $this->peraga = in_array($nama, ['penghasilan-nol', 'tanpa-draf-tahunan'], true) ? $nama : null;
+    }
+
+    /**
      * Harta dihitung bila diperoleh sampai tahun itu dan belum dilepas.
      */
     public function totalHarta(int $tahun): int
     {
-        return collect($this->harta($tahun))->sum('nilai');
+        return (int) $this->harta($tahun)->sum('nilai');
     }
 
     /**
@@ -29,10 +45,7 @@ class AnalisisKeuangan
      */
     public function totalUtang(int $tahun): int
     {
-        return collect(MockData::utang())
-            ->filter(fn (array $u): bool => $u['tahun'] <= $tahun
-                && ($u['tahun_pelunasan'] === null || $u['tahun_pelunasan'] > $tahun))
-            ->sum('saldo');
+        return (int) $this->utang($tahun)->sum('saldo');
     }
 
     public function kekayaanBersih(int $tahun): int
@@ -46,18 +59,13 @@ class AnalisisKeuangan
      */
     public function cicilanBerjalan(int $tahun): int
     {
-        return collect(MockData::utang())
-            ->filter(fn (array $u): bool => $u['tahun'] <= $tahun
-                && ($u['tahun_pelunasan'] === null || $u['tahun_pelunasan'] > $tahun))
-            ->sum(fn (array $u): int => $u['cicilan'] ?? 0);
+        return (int) $this->utang($tahun)->sum('cicilan_bulanan');
     }
 
     /** Peredaran bruto tahun terpilih, dijumlahkan dari transaksi penghasilan. */
     public function peredaranBruto(int $tahun): int
     {
-        return collect(MockData::penghasilan())
-            ->filter(fn (array $p): bool => (int) Carbon::parse($p['tanggal'])->year === $tahun)
-            ->sum('nominal');
+        return (int) $this->penghasilan($tahun)->sum('nominal');
     }
 
     /**
@@ -69,12 +77,8 @@ class AnalisisKeuangan
     {
         $bulan = array_fill(1, 12, 0);
 
-        foreach (MockData::penghasilan() as $p) {
-            $tanggal = Carbon::parse($p['tanggal']);
-
-            if ((int) $tanggal->year === $tahun) {
-                $bulan[(int) $tanggal->month] += $p['nominal'];
-            }
+        foreach ($this->penghasilan($tahun)->get(['tanggal', 'nominal']) as $baris) {
+            $bulan[(int) $baris->tanggal->month] += (int) $baris->nominal;
         }
 
         return $bulan;
@@ -90,10 +94,16 @@ class AnalisisKeuangan
      */
     public function hartaPerKategori(int $tahun): array
     {
+        $terisi = $this->harta($tahun)
+            ->join('kode_harta', 'harta.id_kode_harta', '=', 'kode_harta.id_kode_harta')
+            ->groupBy('kode_harta.kategori')
+            ->selectRaw('kode_harta.kategori as kategori, SUM(harta.nilai) as jumlah')
+            ->pluck('jumlah', 'kategori');
+
         $kategori = [];
 
-        foreach (MockData::kategoriHarta() as $kunci => $info) {
-            $kategori[$kunci] = collect($this->harta($tahun, $kunci))->sum('nilai');
+        foreach (array_keys(MockData::kategoriHarta()) as $kunci) {
+            $kategori[$kunci] = (int) ($terisi[$kunci] ?? 0);
         }
 
         return $kategori;
@@ -113,15 +123,15 @@ class AnalisisKeuangan
             return ['ada_pembanding' => false, 'kekayaan_lalu' => null, 'kekayaan_kini' => $kini, 'selisih' => null, 'persen' => null];
         }
 
-        $selisih = $kini - $lalu['kekayaan_bersih'];
+        $selisih = $kini - (int) $lalu->kekayaan_bersih;
 
         return [
             'ada_pembanding' => true,
-            'kekayaan_lalu' => $lalu['kekayaan_bersih'],
+            'kekayaan_lalu' => (int) $lalu->kekayaan_bersih,
             'kekayaan_kini' => $kini,
             'selisih' => $selisih,
             // Persentase hanya dihitung bila penyebutnya positif.
-            'persen' => $lalu['kekayaan_bersih'] > 0 ? $selisih / $lalu['kekayaan_bersih'] * 100 : null,
+            'persen' => $lalu->kekayaan_bersih > 0 ? $selisih / $lalu->kekayaan_bersih * 100 : null,
         ];
     }
 
@@ -144,8 +154,8 @@ class AnalisisKeuangan
                 'pertambahan_bersih' => null, 'bruto' => $bruto, 'rasio' => null, 'status' => null];
         }
 
-        $pertambahanHarta = $this->totalHarta($tahun) + $tambahanHarta - $lalu['total_harta'];
-        $pertambahanUtang = $this->totalUtang($tahun) + $tambahanUtang - $lalu['total_utang'];
+        $pertambahanHarta = $this->totalHarta($tahun) + $tambahanHarta - (int) $lalu->total_harta;
+        $pertambahanUtang = $this->totalUtang($tahun) + $tambahanUtang - (int) $lalu->total_utang;
         $pertambahanBersih = $pertambahanHarta - $pertambahanUtang;
         $rasio = $bruto > 0 ? $pertambahanBersih / $bruto : null;
 
@@ -170,32 +180,46 @@ class AnalisisKeuangan
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Wajib pajak yang sedang masuk. Selama autentikasi belum dipasang,
+     * dipakai satu-satunya profil yang ada di basis data.
      */
-    private function harta(int $tahun, ?string $kategori = null): array
+    private function profilId(): ?int
     {
-        $kunci = $kategori !== null ? [$kategori] : array_keys(MockData::kategoriHarta());
-        $baris = collect();
+        return auth()->id() ?? Profil::query()->value('id_profil');
+    }
 
-        foreach ($kunci as $k) {
-            $baris = $baris->merge(MockData::harta($k));
-        }
+    /** @return Builder<Harta> */
+    private function harta(int $tahun)
+    {
+        return Harta::query()->where('id_profil', $this->profilId())->dimilikiPadaTahun($tahun);
+    }
 
-        return $baris
-            ->filter(fn (array $h): bool => $h['tahun'] <= $tahun
-                && ($h['tahun_pelepasan'] === null || $h['tahun_pelepasan'] > $tahun))
-            ->values()
-            ->all();
+    /** @return Builder<Utang> */
+    private function utang(int $tahun)
+    {
+        return Utang::query()->where('id_profil', $this->profilId())->berlakuPadaTahun($tahun);
+    }
+
+    /** @return Builder<Penghasilan> */
+    private function penghasilan(int $tahun)
+    {
+        $kueri = Penghasilan::query()->where('id_profil', $this->profilId())->tahun($tahun);
+
+        return $this->peraga === 'penghasilan-nol' ? $kueri->whereRaw('1 = 0') : $kueri;
     }
 
     /**
      * Draf tahunan tahun sebelumnya, dipakai sebagai pembanding.
-     *
-     * @return array<string, mixed>|null
      */
-    private function drafTahunLalu(int $tahun): ?array
+    private function drafTahunLalu(int $tahun): ?DrafTahunan
     {
-        return collect(MockData::drafTahunan())
-            ->firstWhere(fn (array $d): bool => $d['tahun'] === $tahun - 1 && $d['status'] === 'tersusun');
+        if ($this->peraga === 'tanpa-draf-tahunan') {
+            return null;
+        }
+
+        return DrafTahunan::query()
+            ->where('id_profil', $this->profilId())
+            ->where('tahun_pajak', $tahun - 1)
+            ->first();
     }
 }
