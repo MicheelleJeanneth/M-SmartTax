@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BerstatusAktif;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -37,9 +38,108 @@ class Harta extends Model
         'lainnya' => HartaLainnya::class,
     ];
 
+    /**
+     * Urutan kolom khas tiap kategori. Urutan inilah yang dipakai formulir dan
+     * tabel, jadi satu-satunya tempat yang menentukannya ada di sini.
+     *
+     * @var array<string, array<int, string>>
+     */
+    public const KOLOM_KHAS = [
+        'kas' => ['nama_bank', 'nomor_rekening', 'atas_nama'],
+        'piutang' => ['nama_penerima', 'nik_penerima'],
+        'investasi' => ['nama_penerbit', 'nomor_akun', 'nik_penerbit'],
+        'bergerak' => ['nomor_polisi', 'kepemilikan'],
+        'tidak-bergerak' => ['lokasi_harta', 'ukuran_tanah', 'ukuran_bangunan', 'sumber_kepemilikan', 'nomor_sertifikat'],
+        'lainnya' => ['nomor_kepemilikan'],
+    ];
+
+    /**
+     * Kategori yang punya kolom negara terkunci, beserta nama kolomnya.
+     *
+     * @var array<string, string>
+     */
+    public const KOLOM_NEGARA = [
+        'kas' => 'lokasi_negara',
+        'piutang' => 'lokasi_penerima',
+        'investasi' => 'lokasi_penerbit',
+    ];
+
     protected function casts(): array
     {
         return ['status' => 'boolean'];
+    }
+
+    /**
+     * Nama-nama turunan di bawah ini menjaga agar tampilan yang sudah jadi
+     * tetap bekerja tanpa perlu tahu nama kolom di basis data.
+     */
+    protected function id(): Attribute
+    {
+        return Attribute::get(fn (): int => $this->id_harta);
+    }
+
+    protected function nama(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->deskripsi);
+    }
+
+    protected function tahun(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) $this->tahun_perolehan);
+    }
+
+    protected function nilaiKini(): Attribute
+    {
+        return Attribute::get(fn (): ?int => $this->nilai_saat_ini);
+    }
+
+    protected function kode(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->kodeHarta?->kode);
+    }
+
+    /** Sudah masuk draf tahunan, sehingga tidak dapat diubah maupun dihapus. */
+    protected function terkunci(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->id_draf_tahunan !== null);
+    }
+
+    /**
+     * Rincian khas sebagai daftar berurutan, sesuai KOLOM_KHAS kategorinya.
+     * Angka desimal dirapikan supaya "120.00" tampil sebagai "120".
+     *
+     * @return Attribute<array<int, string|null>, never>
+     */
+    protected function khas(): Attribute
+    {
+        return Attribute::get(function (): array {
+            $kategori = $this->kodeHarta?->kategori;
+            $rincian = $this->rincian();
+
+            return collect(self::KOLOM_KHAS[$kategori] ?? [])
+                ->map(function (string $kolom) use ($rincian): ?string {
+                    $nilai = $rincian?->{$kolom};
+
+                    if ($nilai === null || $nilai === '') {
+                        return null;
+                    }
+
+                    return is_numeric($nilai) && str_contains((string) $nilai, '.')
+                        ? rtrim(rtrim((string) $nilai, '0'), '.')
+                        : (string) $nilai;
+                })
+                ->all();
+        });
+    }
+
+    /** Negara harta, hanya untuk kategori yang memang punya kolomnya. */
+    protected function negara(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $kolom = self::KOLOM_NEGARA[$this->kodeHarta?->kategori] ?? null;
+
+            return $kolom === null ? null : $this->rincian()?->{$kolom};
+        });
     }
 
     /** @return BelongsTo<Profil, $this> */

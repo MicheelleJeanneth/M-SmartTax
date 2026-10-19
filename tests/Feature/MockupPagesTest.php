@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Harta;
 use App\Models\Penghasilan;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
@@ -19,7 +20,7 @@ class MockupPagesTest extends TestCase
         $uri = [
             '/login', '/register', '/profil/lengkapi', '/dashboard',
             '/penghasilan', '/penghasilan/create',
-            '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1', '/harta/kas/1/ubah',
+            '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1',
             '/utang', '/utang/create', '/utang/2', '/utang/2/edit',
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
             '/draf-bulanan?tahun=2025', '/draf-bulanan/12?tahun=2025', '/draf-bulanan/susun?bulan=3&tahun=2025',
@@ -114,9 +115,22 @@ class MockupPagesTest extends TestCase
         return (int) Penghasilan::whereNotNull('id_draf_bulanan')->value('id_penghasilan');
     }
 
+    /** Harta yang belum terekap draf tahunan, jadi masih boleh diubah. */
+    private function hartaTerbuka(): Harta
+    {
+        return Harta::whereNull('id_draf_tahunan')->with('kodeHarta')->firstOrFail();
+    }
+
     public function test_halaman_ubah_penghasilan_terbuka(): void
     {
         $this->get('/penghasilan/'.$this->penghasilanTerbuka().'/edit')->assertOk();
+    }
+
+    public function test_halaman_ubah_harta_terbuka(): void
+    {
+        $harta = $this->hartaTerbuka();
+
+        $this->get("/harta/{$harta->kodeHarta->kategori}/{$harta->id}/ubah")->assertOk();
     }
 
     public function test_data_terkunci_tidak_bisa_diubah_lewat_url(): void
@@ -157,7 +171,13 @@ class MockupPagesTest extends TestCase
     public function test_simpan_perubahan_kembali_ke_daftar_bukan_ke_detail(): void
     {
         // Halaman detail sudah tidak punya tombol Ubah, jadi daftar adalah tempat asal pengguna.
-        $this->put('/harta/kas/1', ['nama' => 'Deposito'])->assertRedirect('/harta/kas');
+        $harta = $this->hartaTerbuka();
+        $kategori = $harta->kodeHarta->kategori;
+        $this->put("/harta/{$kategori}/{$harta->id}", [
+            'kode' => $harta->kodeHarta->kode,
+            'nilai' => '91.000.000',
+            'tahun' => $harta->tahun,
+        ])->assertRedirect("/harta/{$kategori}");
         $this->put('/utang/2', ['deskripsi' => 'Kredit kendaraan bermotor'])->assertRedirect('/utang');
         $this->put('/penghasilan/'.$this->penghasilanTerbuka(), ['tanggal' => '2026-07-05', 'nominal' => '1.000.000'])
             ->assertRedirect('/penghasilan');

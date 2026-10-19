@@ -14,11 +14,11 @@
         ],
     );
 
-    $isiKolom = function (array $baris, string $isi): string {
+    $isiKolom = function (\App\Models\Harta $baris, string $isi): string {
         return match (true) {
             $isi === 'kode' => $baris['kode'],
             $isi === 'deskripsi' => $baris['nama'],
-            $isi === 'keterangan' => $baris['keterangan'] ?? '—',
+            $isi === 'keterangan' => $baris['keterangan'] ?: '—',
             $isi === 'lokasi' => $baris['negara'],
             $isi === 'tahun' => (string) $baris['tahun'],
             $isi === 'nilai' => rupiah($baris['nilai']),

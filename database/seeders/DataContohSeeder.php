@@ -34,6 +34,17 @@ class DataContohSeeder extends Seeder
     private const TAHUNAN_TERSUSUN = [2024, 2025];
 
     /**
+     * Harta yang diperoleh pada tahun berjalan, disebut lewat kodenya.
+     *
+     * Tanpa satu pun harta tahun berjalan, seluruh harta akan terekap draf
+     * tahunan terakhir dan ikut terkunci, sehingga halaman Data Harta tidak
+     * punya satu baris pun yang masih dapat diubah.
+     *
+     * @var array<int, string>
+     */
+    private const HARTA_TAHUN_BERJALAN = ['0701'];
+
+    /**
      * Peredaran bruto tiap bulan, dalam juta rupiah.
      *
      * @var array<int, array<int, int>>
@@ -129,7 +140,9 @@ class DataContohSeeder extends Seeder
                     'keterangan' => $baris['keterangan'],
                     'nilai' => $baris['nilai'],
                     'nilai_saat_ini' => $baris['nilai_kini'],
-                    'tahun_perolehan' => $baris['tahun'],
+                    'tahun_perolehan' => in_array($baris['kode'], self::HARTA_TAHUN_BERJALAN, true)
+                        ? MockData::TAHUN
+                        : $baris['tahun'],
                     'tahun_pelepasan' => $baris['tahun_pelepasan'],
                 ]);
 
