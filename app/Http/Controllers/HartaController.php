@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -34,7 +33,7 @@ class HartaController extends Controller
 
         $kueri = $this->milik()
             ->kategori($kategori)
-            ->with(['kodeHarta', $this->relasi($kategori)])
+            ->with(['kodeHarta', Harta::relasiRincian($kategori)])
             ->when($kode !== '', fn (Builder $k) => $k->whereHas('kodeHarta', fn (Builder $q) => $q->where('kode', $kode)))
             ->when($tahun !== '', fn (Builder $k) => $k->where('tahun_perolehan', (int) $tahun))
             ->when($cari !== '', fn (Builder $k) => $k->where(
@@ -214,15 +213,9 @@ class HartaController extends Controller
             $kolom = Harta::KOLOM_KHAS[$kategori][(int) substr($isi, 5)] ?? null;
 
             if ($kolom !== null) {
-                $kueri->orWhereHas($this->relasi($kategori), fn (Builder $q) => $q->where($kolom, 'like', '%'.$cari.'%'));
+                $kueri->orWhereHas(Harta::relasiRincian($kategori), fn (Builder $q) => $q->where($kolom, 'like', '%'.$cari.'%'));
             }
         }
-    }
-
-    /** Nama relasi rincian untuk satu kategori, misalnya tidak-bergerak jadi tidakBergerak. */
-    private function relasi(string $kategori): string
-    {
-        return Str::camel(str_replace('-', '_', $kategori));
     }
 
     /**
@@ -247,6 +240,6 @@ class HartaController extends Controller
 
     private function cari(string $kategori, int $id): Harta
     {
-        return $this->milik()->kategori($kategori)->with(['kodeHarta', $this->relasi($kategori)])->findOrFail($id);
+        return $this->milik()->kategori($kategori)->with(['kodeHarta', Harta::relasiRincian($kategori)])->findOrFail($id);
     }
 }

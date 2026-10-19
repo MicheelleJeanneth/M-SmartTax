@@ -2,47 +2,65 @@
 
 namespace App\Services;
 
+use App\Models\DrafBulanan;
+use App\Models\DrafTahunan;
+use App\Models\Harta;
+use App\Models\KonfigurasiPajak;
+use App\Models\Penghasilan;
+use App\Models\Pengingat as BarisPengingat;
 use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Pengingat dihitung ulang setiap Dashboard dibuka, bukan lewat penjadwal.
  *
- * Mockup: hasil pemeriksaan langsung dikembalikan sebagai array dan penanda
- * "dibaca" disimpan di session. Setelah tabel `pengingat` ada, method segarkan()
- * menyimpan kondisi yang terpenuhi sebagai baris baru dan menonaktifkan
- * pengingat yang kondisinya tidak berlaku lagi, dengan `jenis` sebagai penjaga
- * agar tidak ada baris ganda.
+ * Kondisi yang terpenuhi disimpan sebagai baris pada tabel pengingat, dengan
+ * 'jenis' sebagai penjaga agar tidak ada baris ganda. Kondisi yang sudah tidak
+ * berlaku ditandai tidak aktif, sehingga penanda "dibaca" tetap bertahan antar
+ * kunjungan tanpa perlu menyimpan apa pun di session.
  */
 class Pengingat
 {
-    public function __construct(private readonly AnalisisKeuangan $analisis) {}
+    public function __construct(
+        private readonly AnalisisKeuangan $analisis,
+        private readonly FilterTahun $filterTahun,
+    ) {}
 
     /**
      * Seluruh pengingat aktif, diurutkan dari jatuh tempo terdekat.
      * Pengingat tanpa jatuh tempo diletakkan setelahnya.
      *
-     * @return array<int, array{jenis: string, judul: string, pesan: string, jatuh_tempo: string|null, dibaca: bool, rute: string, ikon: string}>
+     * @return array<int, array<string, mixed>>
      */
     public function segarkan(): array
     {
-        $dibaca = session('pengingat_dibaca', []);
-
-        return collect([
+        $kondisi = collect([
             ...$this->drafBulananBelumDisusun(),
             ...$this->batasSetorMendekat(),
             ...$this->drafTahunanBelumDisusun(),
             ...$this->hartaBelumDicatat(),
             ...$this->ambangBebasTerlampaui(),
             ...$this->batasBrutoMendekat(),
-        ])
-            ->map(fn (array $p): array => [
-                ...$p,
-                'dibaca' => in_array($p['jenis'], $dibaca, true),
-                'rute' => $this->rute($p['jenis']),
-                'aksi' => $this->aksi($p['jenis']),
+        ]);
+
+        $this->simpan($kondisi);
+
+        return BarisPengingat::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->get()
+            ->sortBy(fn (BarisPengingat $p): string => $p->tanggal_jatuh_tempo?->toDateString() ?? '9999-12-31')
+            ->map(fn (BarisPengingat $p): array => [
+                'jenis' => $p->jenis,
+                'judul' => $p->judul,
+                'pesan' => $p->pesan,
+                'jatuh_tempo' => $p->tanggal_jatuh_tempo?->toDateString(),
+                'dibaca' => (bool) $p->dibaca,
+                'ikon' => $this->ikon($p->jenis),
+                'rute' => $this->rute($p->jenis),
+                'aksi' => $this->aksi($p->jenis),
             ])
-            ->sortBy(fn (array $p): string => $p['jatuh_tempo'] ?? '9999-12-31')
             ->values()
             ->all();
     }
@@ -63,13 +81,54 @@ class Pengingat
         return str_starts_with($jenis, 'harta_kosong') ? 'Lengkapi' : 'Buka';
     }
 
+    /** Lambang pada baris pengingat, ditentukan oleh jenisnya. */
+    public function ikon(string $jenis): string
+    {
+        return match (true) {
+            str_starts_with($jenis, 'draf_tahunan') => 'file-text',
+            str_starts_with($jenis, 'harta_kosong') => 'list',
+            str_starts_with($jenis, 'ambang_bebas') => 'info',
+            str_starts_with($jenis, 'batas_maksimal') => 'triangle-alert',
+            default => 'calendar',
+        };
+    }
+
     /** Menandai satu pengingat sudah dibaca. */
     public function tandaiDibaca(string $jenis): void
     {
-        $dibaca = session('pengingat_dibaca', []);
-        $dibaca[] = $jenis;
+        BarisPengingat::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->where('jenis', $jenis)
+            ->update(['dibaca' => true]);
+    }
 
-        session(['pengingat_dibaca' => array_values(array_unique($dibaca))]);
+    /**
+     * Menyimpan kondisi yang terpenuhi dan menonaktifkan yang tidak berlaku lagi.
+     *
+     * @param  Collection<int, array<string, mixed>>  $kondisi
+     */
+    private function simpan(Collection $kondisi): void
+    {
+        $profil = PenggunaSaatIni::id();
+
+        foreach ($kondisi as $p) {
+            BarisPengingat::withoutGlobalScope('aktif')->updateOrCreate(
+                ['id_profil' => $profil, 'jenis' => $p['jenis']],
+                [
+                    'judul' => $p['judul'],
+                    'pesan' => $p['pesan'],
+                    'tanggal_jatuh_tempo' => $p['jatuh_tempo'],
+                    'status' => true,
+                ],
+            );
+        }
+
+        // Kondisi yang sudah tidak terpenuhi tidak dihapus, hanya dinonaktifkan,
+        // supaya penanda "dibaca" tetap tersimpan bila kondisinya muncul lagi.
+        BarisPengingat::query()
+            ->where('id_profil', $profil)
+            ->whereNotIn('jenis', $kondisi->pluck('jenis'))
+            ->update(['status' => false]);
     }
 
     /**
@@ -82,7 +141,7 @@ class Pengingat
         $hariIni = now();
         $pengingat = [];
 
-        foreach ([MockData::TAHUN - 1, MockData::TAHUN] as $tahun) {
+        foreach ($this->filterTahun->daftarPenghasilan() as $tahun) {
             foreach (range(1, 12) as $bulan) {
                 $akhirMasa = Carbon::create($tahun, $bulan)->endOfMonth();
 
@@ -98,7 +157,6 @@ class Pengingat
                     'judul' => "Draf pajak $namaBulan $tahun belum disusun",
                     'pesan' => "Susun draf pajak penghasilan $namaBulan $tahun sebelum batas penyetoran pada {$batas->translatedFormat('j F Y')}.",
                     'jatuh_tempo' => $batas->toDateString(),
-                    'ikon' => 'calendar',
                 ];
             }
         }
@@ -132,7 +190,6 @@ class Pengingat
             'judul' => "Batas penyetoran $namaMasa mendekat",
             'pesan' => "Penyetoran Pajak Penghasilan Final masa pajak $namaMasa {$masa->year} paling lambat 15 {$hariIni->translatedFormat('F')} melalui saluran resmi Direktorat Jenderal Pajak.",
             'jatuh_tempo' => $hariIni->copy()->day(15)->toDateString(),
-            'ikon' => 'calendar',
         ]];
     }
 
@@ -143,19 +200,24 @@ class Pengingat
      */
     private function drafTahunanBelumDisusun(): array
     {
+        $profil = PenggunaSaatIni::id();
         $pengingat = [];
 
-        foreach (MockData::drafTahunan() as $draf) {
-            if ($draf['draf_bulanan'] < 12 || $draf['status'] === 'tersusun') {
-                continue;
-            }
+        $lengkap = DrafBulanan::query()
+            ->where('id_profil', $profil)
+            ->selectRaw('tahun_pajak, COUNT(*) as jumlah')
+            ->groupBy('tahun_pajak')
+            ->having('jumlah', '>=', 12)
+            ->pluck('tahun_pajak');
 
+        $sudahTersusun = DrafTahunan::query()->where('id_profil', $profil)->pluck('tahun_pajak');
+
+        foreach ($lengkap->diff($sudahTersusun) as $tahun) {
             $pengingat[] = [
-                'jenis' => "draf_tahunan_{$draf['tahun']}",
-                'judul' => "Draf pajak tahunan {$draf['tahun']} belum disusun",
-                'pesan' => "Seluruh draf bulanan tahun {$draf['tahun']} telah lengkap. Susun draf pajak penghasilan tahunan sebelum batas pelaporan pada 31 Maret ".($draf['tahun'] + 1).'.',
-                'jatuh_tempo' => ($draf['tahun'] + 1).'-03-31',
-                'ikon' => 'file-text',
+                'jenis' => "draf_tahunan_{$tahun}",
+                'judul' => "Draf pajak tahunan {$tahun} belum disusun",
+                'pesan' => "Seluruh draf bulanan tahun {$tahun} telah lengkap. Susun draf pajak penghasilan tahunan sebelum batas pelaporan pada 31 Maret ".($tahun + 1).'.',
+                'jatuh_tempo' => ($tahun + 1).'-03-31',
             ];
         }
 
@@ -169,9 +231,10 @@ class Pengingat
      */
     private function hartaBelumDicatat(): array
     {
-        $adaPenghasilan = MockData::penghasilan() !== [];
-        $adaHarta = collect(array_keys(MockData::kategoriHarta()))
-            ->contains(fn (string $kategori): bool => MockData::harta($kategori) !== []);
+        $profil = PenggunaSaatIni::id();
+
+        $adaPenghasilan = Penghasilan::query()->where('id_profil', $profil)->exists();
+        $adaHarta = Harta::query()->where('id_profil', $profil)->exists();
 
         if (! $adaPenghasilan || $adaHarta) {
             return [];
@@ -182,7 +245,6 @@ class Pengingat
             'judul' => 'Data harta belum dicatat',
             'pesan' => 'Catat data harta yang dimiliki karena diperlukan dalam penyusunan draf pajak penghasilan tahunan.',
             'jatuh_tempo' => null,
-            'ikon' => 'list',
         ]];
     }
 
@@ -193,20 +255,19 @@ class Pengingat
      */
     private function ambangBebasTerlampaui(): array
     {
-        $tahun = MockData::TAHUN;
-        $konfigurasi = MockData::konfigurasiPajak($tahun);
+        $tahun = $this->filterTahun->tahunBerjalan();
+        $konfigurasi = $this->konfigurasi($tahun);
         $bruto = $this->analisis->peredaranBruto($tahun);
 
-        if ($bruto <= $konfigurasi['ambang_bebas']) {
+        if ($konfigurasi === null || $bruto <= $konfigurasi->ambang_bebas) {
             return [];
         }
 
         return [[
             'jenis' => "ambang_bebas_$tahun",
             'judul' => 'Ambang bebas pajak telah terlampaui',
-            'pesan' => "Peredaran bruto tahun $tahun telah melampaui ".rupiah($konfigurasi['ambang_bebas']).', sehingga Pajak Penghasilan Final mulai dikenakan atas kelebihan tersebut.',
+            'pesan' => "Peredaran bruto tahun $tahun telah melampaui ".rupiah($konfigurasi->ambang_bebas).', sehingga Pajak Penghasilan Final mulai dikenakan atas kelebihan tersebut.',
             'jatuh_tempo' => null,
-            'ikon' => 'info',
         ]];
     }
 
@@ -217,31 +278,33 @@ class Pengingat
      */
     private function batasBrutoMendekat(): array
     {
-        $tahun = MockData::TAHUN;
-        $konfigurasi = MockData::konfigurasiPajak($tahun);
+        $tahun = $this->filterTahun->tahunBerjalan();
+        $konfigurasi = $this->konfigurasi($tahun);
         $bruto = $this->analisis->peredaranBruto($tahun);
 
-        if ($bruto < $konfigurasi['ambang_maksimal'] * 0.8) {
+        if ($konfigurasi === null || $bruto < $konfigurasi->ambang_maksimal * 0.8) {
             return [];
         }
 
         return [[
             'jenis' => "batas_maksimal_$tahun",
             'judul' => 'Peredaran bruto mendekati batas',
-            'pesan' => "Peredaran bruto tahun $tahun telah mencapai ".rupiah($bruto).'. Apabila melampaui '.rupiah($konfigurasi['ambang_maksimal']).', skema Pajak Penghasilan Final tidak dapat digunakan pada tahun pajak berikutnya.',
+            'pesan' => "Peredaran bruto tahun $tahun telah mencapai ".rupiah($bruto).'. Apabila melampaui '.rupiah($konfigurasi->ambang_maksimal).', skema Pajak Penghasilan Final tidak dapat digunakan pada tahun pajak berikutnya.',
             'jatuh_tempo' => null,
-            'ikon' => 'triangle-alert',
         ]];
+    }
+
+    private function konfigurasi(int $tahun): ?KonfigurasiPajak
+    {
+        return KonfigurasiPajak::berlakuUntukTahun($tahun);
     }
 
     private function drafTersusun(int $tahun, int $bulan): bool
     {
-        if ($tahun === MockData::TAHUN) {
-            return $bulan <= MockData::BULAN_TERSUSUN;
-        }
-
-        $draf = collect(MockData::drafTahunan())->firstWhere('tahun', $tahun);
-
-        return $bulan <= ($draf['draf_bulanan'] ?? 0);
+        return DrafBulanan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->where('tahun_pajak', $tahun)
+            ->where('bulan', $bulan)
+            ->exists();
     }
 }

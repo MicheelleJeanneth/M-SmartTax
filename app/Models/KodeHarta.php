@@ -14,6 +14,28 @@ class KodeHarta extends Model
 
     protected $guarded = ['id_kode_harta'];
 
+    /**
+     * Daftar per kategori, disimpan sekali per permintaan karena formulir
+     * membacanya berulang kali.
+     *
+     * @var array<string, array<string, string>>
+     */
+    private static array $ingatan = [];
+
+    /**
+     * Pilihan kode satu kategori: kode => uraian.
+     *
+     * @return array<string, string>
+     */
+    public static function daftar(string $kategori): array
+    {
+        return self::$ingatan[$kategori] ??= static::query()
+            ->where('kategori', $kategori)
+            ->orderBy('kode')
+            ->pluck('nama_kode', 'kode')
+            ->all();
+    }
+
     /** @return HasMany<Harta, $this> */
     public function hartas(): HasMany
     {

@@ -12,7 +12,7 @@
         <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-            <x-kolom-baca label="Kode Utang">{{ \App\Support\MockData::kodeUtangSingkat()[$utang['kode']] }}</x-kolom-baca>
+            <x-kolom-baca label="Kode Utang">{{ \App\Models\KodeUtang::daftarSingkat()[$utang['kode']] }}</x-kolom-baca>
             <x-kolom-baca label="Deskripsi Utang">{{ $utang['deskripsi'] }}</x-kolom-baca>
         </div>
 

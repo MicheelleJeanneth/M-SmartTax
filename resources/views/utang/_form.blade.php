@@ -3,7 +3,7 @@
     <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-        <x-select label="Kode Utang" name="kode" wajib :pilihan="\App\Support\MockData::kodeUtang()"
+        <x-select label="Kode Utang" name="kode" wajib :pilihan="\App\Models\KodeUtang::daftarLengkap()"
             :terpilih="$u['kode'] ?? '101'" :kosong="false" />
         <x-input label="Deskripsi Utang" name="deskripsi" wajib placeholder="Contoh: KPR rumah tinggal"
             :value="$u['deskripsi'] ?? ''" />

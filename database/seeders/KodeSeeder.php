@@ -8,8 +8,8 @@ use App\Support\MockData;
 use Illuminate\Database\Seeder;
 
 /**
- * Kode harta dan utang resmi. Daftarnya dibaca dari MockData, yang sampai
- * sekarang menjadi satu-satunya sumber kode yang dipakai formulir.
+ * Kode harta dan utang resmi. Daftarnya dibaca dari MockData sebagai sumber
+ * isi tabel; formulir dan laporan selanjutnya membaca dari tabel ini.
  */
 class KodeSeeder extends Seeder
 {
@@ -27,8 +27,7 @@ class KodeSeeder extends Seeder
         foreach (MockData::kodeUtang() as $kode => $nama) {
             KodeUtang::updateOrCreate(
                 ['kode' => (string) $kode],
-                // Daftar aslinya memuat kodenya di depan; yang disimpan hanya namanya.
-                ['nama_kode' => trim(preg_replace('/^\d+\s*–\s*/u', '', $nama))],
+                ['nama_kode' => $nama],
             );
         }
     }

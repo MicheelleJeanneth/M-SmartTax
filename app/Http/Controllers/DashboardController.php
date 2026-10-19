@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\AnalisisKeuangan;
 use App\Services\FilterTahun;
 use App\Services\Pengingat;
-use App\Support\MockData;
+use App\Services\PerhitunganPajak;
+use App\Support\PenggunaSaatIni;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,6 +16,7 @@ class DashboardController extends Controller
         private readonly FilterTahun $filterTahun,
         private readonly AnalisisKeuangan $analisis,
         private readonly Pengingat $pengingat,
+        private readonly PerhitunganPajak $pajak,
     ) {}
 
     public function __invoke(Request $request): View
@@ -24,15 +26,16 @@ class DashboardController extends Controller
         $bruto = $this->analisis->peredaranBruto($tahun);
         $harta = $this->analisis->totalHarta($tahun);
         $utang = $this->analisis->totalUtang($tahun);
-        $pphFinal = collect(MockData::drafBulanan())->sum('pph_final');
+        // PPh yang sudah terkunci di draf bulanan tahun itu, bukan perkiraan.
+        $pphFinal = (int) $this->pajak->drafTahun($tahun)->sum('pph_final');
 
         return view('dashboard', [
-            'profil' => MockData::profil(),
+            'profil' => PenggunaSaatIni::profil(),
             'tahun' => $tahun,
             'daftarTahun' => $this->filterTahun->daftar(),
             'tahunBerjalan' => $this->filterTahun->tahunBerjalan(),
             'bruto' => $bruto,
-            'pphFinal' => $tahun === MockData::TAHUN ? $pphFinal : 0,
+            'pphFinal' => $pphFinal,
             'harta' => $harta,
             'utang' => $utang,
             'kekayaanBersih' => $harta - $utang,

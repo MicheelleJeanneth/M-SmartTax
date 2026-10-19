@@ -23,7 +23,7 @@ class SimulasiController extends Controller
             'tahun' => MockData::TAHUN,
             'peraga' => $peraga,
             'kondisi' => $this->simulasi->kondisi(MockData::TAHUN),
-            'rencana' => MockData::simulasi()['rencana'],
+            'rencana' => SimulasiAset::RENCANA_BAWAAN,
             'hasil' => null,
             'dampak' => null,
         ]);

@@ -1,7 +1,7 @@
 {{-- Isi draf tahunan. Dipakai halaman Susun dan Rincian dengan susunan yang sama. --}}
 @php
     $omzetKenaPajak = array_sum(array_column($rekap, 'omzet_kena_pajak'));
-    $tarif = \App\Support\MockData::konfigurasiPajak($tahun)['tarif_final'];
+    $tarif = (float) \App\Models\KonfigurasiPajak::berlakuUntukTahun($tahun)?->tarif_final;
 @endphp
 
 <x-card judul="Ringkasan Perpajakan">

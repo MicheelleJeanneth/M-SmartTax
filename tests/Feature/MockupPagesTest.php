@@ -306,7 +306,7 @@ class MockupPagesTest extends TestCase
     public function test_laporan_bulanan_tersedia_untuk_tahun_lalu_yang_sudah_tersusun(): void
     {
         $lalu = MockData::TAHUN - 1;
-        $this->assertSame(12, MockData::bulanTersusun($lalu));
+        $this->assertSame(12, DrafBulanan::where('tahun_pajak', $lalu)->count());
 
         // Dua belas draf 2025 tersusun, jadi laporannya harus dapat dicetak.
         $this->get("/laporan/draf-bulanan?tahun={$lalu}&bulan=12")
@@ -366,16 +366,14 @@ class MockupPagesTest extends TestCase
 
     public function test_hanya_draf_tahunan_terbaru_yang_dapat_dibatalkan(): void
     {
-        $tersusun = collect(MockData::drafTahunan())->where('status', 'tersusun');
-
-        // Penanda diturunkan dari data, bukan dari urutan baris pada tabel.
-        $this->assertSame($tersusun->max('tahun'), MockData::tahunBolehDibatalkan());
+        $tersusun = DrafTahunan::orderBy('tahun_pajak')->pluck('tahun_pajak');
+        $this->assertGreaterThan(1, $tersusun->count(), 'Pengujian ini butuh lebih dari satu draf tahunan.');
 
         $halaman = $this->get('/draf-tahunan')->assertOk()->getContent();
 
         // Hanya tahun terbaru yang punya dialog pembatalan; tahun lama ditandai tidak dapat dibatalkan.
-        $this->assertStringContainsString('batal-tahunan-'.$tersusun->max('tahun'), $halaman);
-        $this->assertStringNotContainsString('batal-tahunan-'.$tersusun->min('tahun'), $halaman);
+        $this->assertStringContainsString('batal-tahunan-'.$tersusun->max(), $halaman);
+        $this->assertStringNotContainsString('batal-tahunan-'.$tersusun->min(), $halaman);
         $this->assertStringContainsString('Batalkan draf tahun setelahnya terlebih dahulu', $halaman);
     }
 

@@ -1,6 +1,6 @@
 @php
     $h = $item ?? [];
-    $kodeHarta = \App\Support\MockData::kodeHarta($kategori);
+    $kodeHarta = \App\Models\KodeHarta::daftar($kategori);
 
     // Sebagian kategori tidak memakai judul seksi; kolom khasnya duduk langsung
     // di tengah formulir, sebelum kolom nilai.

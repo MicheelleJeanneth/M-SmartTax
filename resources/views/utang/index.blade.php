@@ -19,7 +19,7 @@
             <x-input name="cari" rapat :value="$cari" placeholder="Cari deskripsi atau nama kreditur" />
         </div>
         <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
-            <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Support\MockData::kodeUtangSingkat()"
+            <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Models\KodeUtang::daftarSingkat()"
                 :terpilih="$kode ?: null" onchange="this.form.submit()" />
         </div>
         <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
@@ -40,7 +40,7 @@
             {{-- NIK Kreditur tidak ditampilkan: sering kosong untuk kreditur lembaga, dan ada di halaman Detail. --}}
             <x-table :kepala="['No', 'Kode', 'Deskripsi', 'Tahun Peminjaman', 'Nama Kreditur', ['teks' => 'Saldo Utang', 'kanan' => true], 'Status', '']">
                 @foreach($utang as $u)
-                    @php $namaKode = \App\Support\MockData::kodeUtangSingkat()[$u['kode']]; @endphp
+                    @php $namaKode = \App\Models\KodeUtang::daftarSingkat()[$u['kode']]; @endphp
                     <tr>
                         <td class="text-ink-2">{{ $utang->firstItem() + $loop->index }}</td>
                         <td class="tabular-nums text-ink-2" title="{{ $namaKode }}">{{ $u['kode'] }}</td>
@@ -80,7 +80,7 @@
             'id' => 'hapus-utang-' . $u['id'],
             'judul' => 'Hapus data utang?',
             'rincian' => [
-                'Kode Utang' => \App\Support\MockData::kodeUtangSingkat()[$u['kode']],
+                'Kode Utang' => \App\Models\KodeUtang::daftarSingkat()[$u['kode']],
                 'Deskripsi' => $u['deskripsi'],
                 'Kreditur' => $u['kreditur'],
                 'Saldo' => rupiah($u['saldo']),

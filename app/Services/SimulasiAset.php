@@ -9,6 +9,21 @@ namespace App\Services;
 class SimulasiAset
 {
     /** Rasio angsuran di bawah batas ini tergolong layak. */
+    /**
+     * Isian awal formulir rencana pembelian, dipakai saat halaman pertama dibuka.
+     *
+     * @var array<string, mixed>
+     */
+    public const RENCANA_BAWAAN = [
+        'jenis_aset' => 'tidak-bergerak',
+        'nama_aset' => '',
+        'cara_pembayaran' => 'Kredit',
+        'harga_aset' => 450_000_000,
+        'uang_muka' => 90_000_000,
+        'jangka_waktu' => 60,
+        'suku_bunga' => 8.5,
+    ];
+
     public const BATAS_LAYAK = 30;
 
     /** Sampai batas ini perlu dipertimbangkan; di atasnya belum disarankan. */

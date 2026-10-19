@@ -2,21 +2,18 @@
 
 namespace App\Support;
 
-use Illuminate\Support\Carbon;
-
 /**
- * Data contoh untuk mockup.
+ * Tetapan dan daftar bawaan yang tidak disimpan di basis data.
  *
- * Seluruh angka di sini hanya pengisi tampilan. Setelah skema ERD masuk,
- * ganti isi setiap method dengan query Eloquent — bentuk keluarannya
- * (nama kunci array) sengaja dibuat mirip kolom tabel agar view tidak berubah.
+ * Isinya tinggal dua macam. Pertama, tetapan tampilan: tahun pajak berjalan,
+ * nama bulan, kewarganegaraan, dan keterangan tiap kategori harta. Kedua,
+ * daftar contoh yang dibaca seeder sebagai isi awal tabel — profil, kode
+ * harta, kode utang, harta, utang, dan konfigurasi pajak. Seluruh angka yang
+ * ditampilkan halaman sudah dibaca dari basis data, bukan dari sini.
  */
 class MockData
 {
     public const TAHUN = 2026;
-
-    /** Bulan terakhir yang drafnya sudah tersusun (1–12). */
-    public const BULAN_TERSUSUN = 6;
 
     /** Satu-satunya kewarganegaraan yang dilayani; nilai inilah yang tersimpan. */
     public const KEWARGANEGARAAN = 'WNI';
@@ -79,141 +76,6 @@ class MockData
             'negara' => 'Indonesia',
             'profil_lengkap' => true,
         ];
-    }
-
-    /** Ringkasan kartu dashboard. */
-    public static function ringkasan(): array
-    {
-        $harta = collect(array_keys(self::kategoriHarta()))
-            ->sum(fn (string $kategori): int => collect(self::harta($kategori))->sum('nilai'));
-        $utang = collect(self::utang())->sum('saldo');
-
-        return [
-            'penghasilan' => collect(self::drafBulanan())->whereIn('status', ['tersusun', 'nihil'])->sum('bruto'),
-            'pph_final' => collect(self::drafBulanan())->sum('pph_final'),
-            'harta' => $harta,
-            'utang' => $utang,
-            'kekayaan_bersih' => $harta - $utang,
-        ];
-    }
-
-    /** Peredaran bruto per bulan pada satu tahun, dipakai grafik batang dan tabel draf. */
-    public static function bruto(int $tahun = self::TAHUN): array
-    {
-        return match ($tahun) {
-            self::TAHUN => [
-                1 => 110_000_000, 2 => 125_000_000, 3 => 140_000_000,
-                4 => 132_000_000, 5 => 148_000_000, 6 => 125_000_000,
-                7 => 136_000_000, 8 => 0, 9 => 0, 10 => 0, 11 => 0, 12 => 0,
-            ],
-            // Tahun lalu sudah lengkap dua belas bulan; jumlahnya Rp 742 juta,
-            // cocok dengan baris 2025 pada drafTahunan().
-            self::TAHUN - 1 => [
-                1 => 55_000_000, 2 => 58_000_000, 3 => 62_000_000,
-                4 => 60_000_000, 5 => 64_000_000, 6 => 59_000_000,
-                7 => 63_000_000, 8 => 61_000_000, 9 => 66_000_000,
-                10 => 64_000_000, 11 => 65_000_000, 12 => 65_000_000,
-            ],
-            default => array_fill(1, 12, 0),
-        };
-    }
-
-    /**
-     * Banyaknya bulan yang drafnya sudah tersusun pada satu tahun.
-     * Tahun yang sudah lewat dianggap lengkap dua belas bulan.
-     */
-    public static function bulanTersusun(int $tahun = self::TAHUN): int
-    {
-        return match (true) {
-            $tahun === self::TAHUN => self::BULAN_TERSUSUN,
-            $tahun === self::TAHUN - 1 => 12,
-            default => 0,
-        };
-    }
-
-    /** Baris tabel draf bulanan — selalu 12 baris tetap. */
-    public static function drafBulanan(int $tahun = self::TAHUN): array
-    {
-        $bruto = self::bruto($tahun);
-        $tersusunSampai = self::bulanTersusun($tahun);
-        $akumulasi = 0;
-        $baris = [];
-
-        foreach (self::bulan() as $i => $nama) {
-            $akumulasi += $bruto[$i];
-
-            // Omzet di bawah Rp 500 juta pertama tidak kena PPh Final 0,5%.
-            $bebas = 500_000_000;
-            $kena = max(0, min($akumulasi, PHP_INT_MAX) - $bebas);
-            $kenaBulanIni = max(0, min($akumulasi - $bebas, $bruto[$i]));
-
-            $tersusun = $i <= $tersusunSampai;
-
-            $baris[] = [
-                'bulan' => $i,
-                'nama' => $nama,
-                'bruto' => $bruto[$i],
-                'akumulasi' => $akumulasi,
-                'omzet_kena_pajak' => $tersusun ? $kenaBulanIni : null,
-                'pph_final' => $tersusun ? (int) round($kenaBulanIni * 0.005) : null,
-                'status' => $tersusun
-                    ? ($bruto[$i] > 0 ? 'tersusun' : 'nihil')
-                    : 'belum',
-                'terkunci_tahunan' => false,
-                'boleh_susun' => $i === $tersusunSampai + 1,
-                'boleh_batal' => $i === $tersusunSampai,
-            ];
-        }
-
-        return $baris;
-    }
-
-    /**
-     * Transaksi penghasilan tahun berjalan, diturunkan dari peredaran bruto bulanan
-     * supaya angka di Dashboard, Data Penghasilan, dan Draf Bulanan selalu sama.
-     *
-     * @return array<int, array{id: int, tanggal: string, nominal: int, keterangan: string, terkunci: bool}>
-     */
-    public static function penghasilan(): array
-    {
-        $contoh = [
-            'Penjualan katalog minggu ke-1',
-            'Pesanan korporat',
-            'Penjualan marketplace',
-            'Penjualan katalog minggu ke-4',
-        ];
-
-        $baris = [];
-
-        // Tiap tahun memakai rentang id sendiri supaya id lama tidak bergeser
-        // ketika tahun baru ditambahkan.
-        foreach ([self::TAHUN => 1, self::TAHUN - 1 => 101] as $tahun => $id) {
-            $tersusunSampai = self::bulanTersusun($tahun);
-
-            foreach (self::bruto($tahun) as $bulan => $nilai) {
-                if ($nilai === 0) {
-                    continue;
-                }
-
-                // Dibagi empat transaksi; sisa pembagian ditaruh di transaksi terakhir.
-                $porsi = intdiv($nilai, 4_000_000) * 1_000_000;
-
-                foreach ([5, 12, 19, 26] as $urutan => $hari) {
-                    $nominal = $urutan === 3 ? $nilai - ($porsi * 3) : $porsi;
-
-                    $baris[] = [
-                        'id' => $id++,
-                        'tanggal' => sprintf('%d-%02d-%02d', $tahun, $bulan, $hari),
-                        'nominal' => $nominal,
-                        'keterangan' => $contoh[$urutan],
-                        // Penghasilan bulan yang drafnya sudah tersusun ikut terkunci.
-                        'terkunci' => $bulan <= $tersusunSampai,
-                    ];
-                }
-            }
-        }
-
-        return $baris;
     }
 
     /**
@@ -540,34 +402,18 @@ class MockData
     }
 
     /**
-     * Kode utang sesuai lampiran SPT, dengan uraian lengkapnya.
-     * Dipakai pada daftar pilihan saat menambah atau mengubah utang.
+     * Kode utang resmi beserta uraiannya, dipakai KodeSeeder sebagai sumber
+     * isi tabel kode_utang. Tampilan membacanya dari tabel lewat KodeUtang.
      *
      * @return array<string, string>
      */
     public static function kodeUtang(): array
     {
         return [
-            '101' => '101 – Utang Bank/Lembaga Keuangan Bukan Bank (KPR, Leasing Kendaraan Bermotor, dan sejenisnya)',
-            '102' => '102 – Kartu Kredit',
-            '103' => '103 – Utang Afiliasi',
-            '109' => '109 – Utang Lainnya',
-        ];
-    }
-
-    /**
-     * Uraian ringkas kode utang untuk tempat yang sempit: filter, tabel,
-     * halaman detail, dan laporan PDF.
-     *
-     * @return array<string, string>
-     */
-    public static function kodeUtangSingkat(): array
-    {
-        return [
-            '101' => '101 – Utang Bank/LKBB',
-            '102' => '102 – Kartu Kredit',
-            '103' => '103 – Utang Afiliasi',
-            '109' => '109 – Utang Lainnya',
+            '101' => 'Utang Bank/Lembaga Keuangan Bukan Bank (KPR, Leasing Kendaraan Bermotor, dan sejenisnya)',
+            '102' => 'Kartu Kredit',
+            '103' => 'Utang Afiliasi',
+            '109' => 'Utang Lainnya',
         ];
     }
 
@@ -577,187 +423,6 @@ class MockData
             ['id' => 1, 'kode' => '101', 'deskripsi' => 'KPR rumah tinggal', 'kreditur' => 'Bank Mandiri', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2020, 'tahun_pelunasan' => null, 'saldo' => 180_000_000, 'cicilan' => 4_100_000, 'keterangan' => 'Angsuran ke-73 dari 180', 'terkunci' => true],
             ['id' => 2, 'kode' => '101', 'deskripsi' => 'Kredit kendaraan bermotor', 'kreditur' => 'Bank BCA', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2022, 'tahun_pelunasan' => null, 'saldo' => 45_000_000, 'cicilan' => 1_750_000, 'keterangan' => null, 'terkunci' => false],
             ['id' => 3, 'kode' => '109', 'deskripsi' => 'Pinjaman modal usaha', 'kreditur' => 'Koperasi Sejahtera', 'nik_kreditur' => '3578012207800004', 'negara' => 'Indonesia', 'tahun' => 2025, 'tahun_pelunasan' => null, 'saldo' => 13_000_000, 'cicilan' => null, 'keterangan' => 'Dibayar sekaligus saat jatuh tempo', 'terkunci' => false],
-        ];
-    }
-
-    public static function drafTahunan(): array
-    {
-        return self::drafTahunanLengkap();
-    }
-
-    /**
-     * Tahun terbaru yang drafnya tersusun, satu-satunya yang boleh dibatalkan.
-     *
-     * Draf tahunan memakai draf tahun sebelumnya sebagai pembanding pada kartu
-     * Pertumbuhan Kekayaan dan Konsistensi Harta. Membatalkan tahun lama
-     * sementara tahun setelahnya masih berdiri akan membuat analisis tahun itu
-     * kehilangan dasar pembandingnya.
-     */
-    public static function tahunBolehDibatalkan(): ?int
-    {
-        return collect(self::drafTahunan())
-            ->where('status', 'tersusun')
-            ->max('tahun');
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function drafTahunanLengkap(): array
-    {
-        return [
-            ['tahun' => 2026, 'draf_bulanan' => 6, 'bruto' => 780_000_000, 'pph_final' => 1_400_000, 'total_harta' => 650_000_000, 'total_utang' => 238_000_000, 'kekayaan_bersih' => 412_000_000, 'status' => 'belum'],
-            ['tahun' => 2025, 'draf_bulanan' => 12, 'bruto' => 742_000_000, 'pph_final' => 1_210_000, 'total_harta' => 500_000_000, 'total_utang' => 183_000_000, 'kekayaan_bersih' => 317_000_000, 'status' => 'tersusun'],
-            ['tahun' => 2024, 'draf_bulanan' => 12, 'bruto' => 604_000_000, 'pph_final' => 520_000, 'total_harta' => 410_000_000, 'total_utang' => 162_000_000, 'kekayaan_bersih' => 248_000_000, 'status' => 'tersusun'],
-        ];
-    }
-
-    /**
-     * Rekap 12 bulan untuk tahun yang drafnya sudah lengkap (dipakai Susun/Lihat Draf Tahunan).
-     *
-     * @return array<int, array{nama: string, bruto: int, akumulasi: int, omzet_kena_pajak: int, pph_final: int}>
-     */
-    public static function rekapTahunan(): array
-    {
-        $bruto = [48, 52, 55, 58, 60, 62, 64, 66, 65, 68, 70, 74];
-        $akumulasi = 0;
-        $baris = [];
-
-        foreach (self::bulan() as $i => $nama) {
-            $nilai = $bruto[$i - 1] * 1_000_000;
-            $akumulasi += $nilai;
-            $kena = max(0, min($akumulasi - 500_000_000, $nilai));
-
-            $baris[$i] = [
-                'nama' => $nama,
-                'bruto' => $nilai,
-                'akumulasi' => $akumulasi,
-                'omzet_kena_pajak' => $kena,
-                'pph_final' => (int) round($kena * 0.005),
-            ];
-        }
-
-        return $baris;
-    }
-
-    /**
-     * Angka perhitungan satu draf bulanan (halaman Susun, Lihat, dan PDF).
-     *
-     * @return array<string, mixed>
-     */
-    public static function perhitunganBulanan(int $bulan, int $tahun = self::TAHUN): array
-    {
-        $bruto = self::bruto($tahun);
-        $namaBulan = self::bulan()[$bulan];
-        $akumulasiSebelum = array_sum(array_slice($bruto, 0, $bulan - 1, true));
-        $brutoBulanIni = $bruto[$bulan];
-        $akumulasi = $akumulasiSebelum + $brutoBulanIni;
-        $konfigurasi = self::konfigurasiPajak();
-        $batasBebas = $konfigurasi['ambang_bebas'];
-        $omzetKenaPajak = max(0, min($akumulasi - $batasBebas, $brutoBulanIni));
-
-        $transaksi = collect(self::penghasilan())
-            ->filter(fn (array $baris): bool => (int) date('n', strtotime($baris['tanggal'])) === $bulan
-                && (int) date('Y', strtotime($baris['tanggal'])) === $tahun)
-            ->values()
-            ->all();
-
-        // Bulan pertama saat akumulasi melewati ambang bebas, untuk menjelaskan
-        // kenapa omzet bulan ini sudah kena pajak.
-        $terlampauiSejak = null;
-        $berjalan = 0;
-
-        foreach ($bruto as $i => $nilai) {
-            if ($i > $bulan) {
-                break;
-            }
-
-            $berjalan += $nilai;
-
-            if ($berjalan > $batasBebas) {
-                $terlampauiSejak = self::bulan()[$i].' '.$tahun;
-                break;
-            }
-        }
-
-        return [
-            'tahun' => $tahun,
-            'bulan' => $bulan,
-            'namaBulan' => $namaBulan,
-            'transaksi' => $transaksi,
-            'brutoBulanIni' => $brutoBulanIni,
-            'akumulasiSebelum' => $akumulasiSebelum,
-            'akumulasi' => $akumulasi,
-            'batasBebas' => $batasBebas,
-            'terlampauiSejak' => $terlampauiSejak,
-            'bulanLalu' => $bulan === 1 ? 'Desember '.($tahun - 1) : self::bulan()[$bulan - 1].' '.$tahun,
-            'batasSetor' => Carbon::create($tahun, $bulan, 1)->addMonthNoOverflow()->day(15),
-            'sisaBebas' => max(0, $batasBebas - $akumulasiSebelum),
-            'omzetKenaPajak' => $omzetKenaPajak,
-            'tarif' => $konfigurasi['tarif_final'],
-            'pphFinal' => (int) round($omzetKenaPajak * $konfigurasi['tarif_final'] / 100),
-            'nihil' => $brutoBulanIni === 0,
-        ];
-    }
-
-    /**
-     * Isi satu draf tahunan (halaman Susun, Lihat, dan PDF).
-     *
-     * @return array<string, mixed>
-     */
-    public static function drafTahunanRinci(int $tahun): array
-    {
-        $rekap = self::rekapTahunan();
-
-        $harta = collect(self::kategoriHarta())->map(fn (array $info, string $kunci): array => [
-            'nama' => $info['nama'],
-            'jumlah' => count(self::harta($kunci)),
-            'nilai' => collect(self::harta($kunci))->sum('nilai'),
-        ]);
-
-        $totalHarta = $harta->sum('nilai');
-        $totalUtang = collect(self::utang())->sum('saldo');
-        $kekayaanBersih = $totalHarta - $totalUtang;
-        $kekayaanTahunLalu = 317_000_000;
-        $bruto = array_sum(array_column($rekap, 'bruto'));
-        $pph = array_sum(array_column($rekap, 'pph_final'));
-
-        return [
-            'tahun' => $tahun,
-            'rekap' => $rekap,
-            'bruto' => $bruto,
-            'pph' => $pph,
-            'harta' => $harta,
-            'utang' => self::utang(),
-            'totalHarta' => $totalHarta,
-            'totalUtang' => $totalUtang,
-            'kekayaanBersih' => $kekayaanBersih,
-            'kekayaanTahunLalu' => $kekayaanTahunLalu,
-            'pertumbuhan' => $kekayaanBersih - $kekayaanTahunLalu,
-            'pertumbuhanPersen' => ($kekayaanBersih - $kekayaanTahunLalu) / $kekayaanTahunLalu * 100,
-            'rasioKonsistensi' => $rasioKonsistensi = ($kekayaanBersih - $kekayaanTahunLalu) / ($bruto - $pph) * 100,
-            'statusKonsistensi' => match (true) {
-                $rasioKonsistensi < 60 => 'normal',
-                $rasioKonsistensi <= 100 => 'tinjau',
-                default => 'periksa',
-            },
-        ];
-    }
-
-    public static function simulasi(): array
-    {
-        return [
-            // Kondisi keuangan tidak ditiru di sini: SimulasiAset mengambilnya
-            // dari AnalisisKeuangan agar tidak pernah berbeda dengan Dashboard.
-            'rencana' => [
-                'jenis_aset' => 'tidak-bergerak',
-                'nama_aset' => '',
-                'cara_pembayaran' => 'Kredit',
-                'harga_aset' => 450_000_000,
-                'uang_muka' => 90_000_000,
-                'jangka_waktu' => 60,
-                'suku_bunga' => 8.5,
-            ],
         ];
     }
 }

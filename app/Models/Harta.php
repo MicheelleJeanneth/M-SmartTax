@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 /**
  * Induk harta untuk keenam kategori. Kolom yang dipakai semua kategori ada
@@ -212,6 +213,12 @@ class Harta extends Model
             'lainnya' => $this->lainnya,
             default => null,
         };
+    }
+
+    /** Nama relasi rincian untuk satu kategori, misalnya tidak-bergerak jadi tidakBergerak. */
+    public static function relasiRincian(string $kategori): string
+    {
+        return Str::camel(str_replace('-', '_', $kategori));
     }
 
     /** Harta pada satu kategori saja, dipakai tiap tab halaman Data Harta. */

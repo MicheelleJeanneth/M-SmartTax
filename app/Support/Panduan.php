@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\KonfigurasiPajak;
 use App\Services\SimulasiAset;
 
 /**
@@ -38,9 +39,10 @@ class Panduan
         // supaya panduan tidak pernah menyebut angka yang berbeda dari
         // perhitungan. Panduan menulis rupiah tanpa spasi, karena itu memakai
         // angka() dan bukan rupiah().
-        $pajak = MockData::konfigurasiPajak();
-        $batasAtas = 'Rp'.angka($pajak['ambang_maksimal']);
-        $batasBebas = 'Rp'.angka($pajak['ambang_bebas']);
+        $pajak = KonfigurasiPajak::berlakuUntukTahun(MockData::TAHUN)
+            ?? throw new \RuntimeException('Konfigurasi pajak belum tersedia.');
+        $batasAtas = 'Rp'.angka((int) $pajak->ambang_maksimal);
+        $batasBebas = 'Rp'.angka((int) $pajak->ambang_bebas);
 
         return [
             'memulai' => [
@@ -367,8 +369,8 @@ class Panduan
                         'warna' => 'subjudul',
                         'tanya' => [
                             ['tanya' => 'Apakah M-SmartTax terhubung dengan Direktorat Jenderal Pajak?', 'jawab' => 'Tidak. M-SmartTax berdiri sendiri dan tidak terhubung dengan Coretax, e-Filing, maupun e-Billing. Seluruh penyetoran dan pelaporan tetap dilakukan melalui saluran resmi DJP.'],
-                            ['tanya' => 'Siapa yang dapat menggunakan sistem ini?', 'jawab' => 'Wajib pajak orang pribadi pelaku UMKM dengan peredaran bruto tidak melebihi '.$batasAtas.' dalam satu tahun pajak, yang memenuhi syarat PPh Final berdasarkan '.$pajak['dasar_hukum'].'.'],
-                            ['tanya' => 'Apa dasar hukum perhitungannya?', 'jawab' => 'Peraturan Pemerintah Nomor 20 Tahun 2026 yang berlaku sejak 22 April 2026, dengan tarif '.persen($pajak['tarif_final']).' dan ambang bebas pajak '.$batasBebas.' per tahun.'],
+                            ['tanya' => 'Siapa yang dapat menggunakan sistem ini?', 'jawab' => 'Wajib pajak orang pribadi pelaku UMKM dengan peredaran bruto tidak melebihi '.$batasAtas.' dalam satu tahun pajak, yang memenuhi syarat PPh Final berdasarkan '.$pajak->dasar_hukum.'.'],
+                            ['tanya' => 'Apa dasar hukum perhitungannya?', 'jawab' => $pajak->dasar_hukum.' yang berlaku sejak '.tanggal_id($pajak->tanggal_berlaku).', dengan tarif '.persen($pajak->tarif_final).' dan ambang bebas pajak '.$batasBebas.' per tahun.'],
                         ],
                     ],
                     [

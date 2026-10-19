@@ -2,13 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DrafBulanan;
+use App\Models\DrafTahunan;
+use App\Models\Harta;
+use App\Models\KodeUtang;
+use App\Models\Utang;
 use App\Services\AnalisisKeuangan;
 use App\Services\FilterTahun;
+use App\Services\PenyusunDrafTahunan;
+use App\Services\PerhitunganPajak;
 use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class LaporanController extends Controller
@@ -26,6 +34,8 @@ class LaporanController extends Controller
     public function __construct(
         private FilterTahun $filterTahun,
         private AnalisisKeuangan $analisis,
+        private PerhitunganPajak $pajak,
+        private PenyusunDrafTahunan $penyusun,
     ) {}
 
     public function show(Request $request, string $jenis): View
@@ -48,8 +58,11 @@ class LaporanController extends Controller
      */
     public function pratinjau(Request $request, string $jenis): View
     {
+        $filter = $this->filter($request, $jenis);
+        abort_unless($this->tersedia($jenis, $filter), 404);
+
         return view("pdf.$jenis", [
-            ...$this->dataLaporan($jenis, $this->filter($request, $jenis)),
+            ...$this->dataLaporan($jenis, $filter),
             'pratinjau' => true,
         ]);
     }
@@ -71,33 +84,66 @@ class LaporanController extends Controller
      */
     private function filter(Request $request, string $jenis): array
     {
-        // Laporan tahunan membuka tahun terbaru yang drafnya sudah tersusun,
-        // karena tahun berjalan belum punya laporan untuk ditampilkan.
-        $bawaan = $jenis === 'draf-tahunan'
-            ? MockData::tahunBolehDibatalkan() ?? MockData::TAHUN
-            : MockData::TAHUN;
+        $tahun = $request->filled('tahun')
+            ? $this->filterTahun->pilih($request->query('tahun'))
+            : $this->tahunBawaan($jenis);
 
         return [
-            'tahun' => $request->filled('tahun')
-                ? $this->filterTahun->pilih($request->query('tahun'))
-                : $bawaan,
-            'bulan' => (int) $request->query('bulan', MockData::BULAN_TERSUSUN),
+            'tahun' => $tahun,
+            'bulan' => $request->filled('bulan')
+                ? max(1, min(12, (int) $request->query('bulan')))
+                : $this->bulanBawaan($tahun),
         ];
     }
 
     /**
-     * Laporan draf hanya ada bila drafnya memang sudah tersusun. Jumlah bulan
-     * tersusun dibaca per tahun, bukan hanya tahun berjalan, supaya laporan
-     * bulanan tahun lalu tidak ikut tertutup.
+     * Laporan tahunan membuka tahun terbaru yang drafnya sudah tersusun, karena
+     * tahun berjalan belum punya laporan untuk ditampilkan.
+     */
+    private function tahunBawaan(string $jenis): int
+    {
+        if ($jenis !== 'draf-tahunan') {
+            return $this->filterTahun->tahunBerjalan();
+        }
+
+        $terbaru = DrafTahunan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->max('tahun_pajak');
+
+        return $terbaru === null ? $this->filterTahun->tahunBerjalan() : (int) $terbaru;
+    }
+
+    /** Bulan terakhir yang drafnya tersusun pada tahun itu; Januari bila belum ada satu pun. */
+    private function bulanBawaan(int $tahun): int
+    {
+        $terakhir = DrafBulanan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->where('tahun_pajak', $tahun)
+            ->max('bulan');
+
+        return $terakhir === null ? 1 : (int) $terakhir;
+    }
+
+    /**
+     * Laporan draf hanya ada bila drafnya memang sudah tersusun, dan itu
+     * diperiksa per periode supaya laporan tahun lalu tidak ikut tertutup.
+     * Laporan harta dan utang selalu ada, karena menggambarkan posisi akhir
+     * tahun apa adanya, termasuk saat posisinya kosong.
      *
      * @param  array{tahun: int, bulan: int}  $filter
      */
     private function tersedia(string $jenis, array $filter): bool
     {
+        $profil = PenggunaSaatIni::id();
+
         return match ($jenis) {
-            'draf-bulanan' => $filter['bulan'] <= MockData::bulanTersusun($filter['tahun']),
-            'draf-tahunan' => collect(MockData::drafTahunan())->where('tahun', $filter['tahun'])->where('status', 'tersusun')->isNotEmpty(),
-            default => $filter['tahun'] <= MockData::TAHUN,
+            'draf-bulanan' => DrafBulanan::query()
+                ->where('id_profil', $profil)
+                ->where('tahun_pajak', $filter['tahun'])
+                ->where('bulan', $filter['bulan'])
+                ->exists(),
+            'draf-tahunan' => $this->drafTahunan($filter['tahun']) !== null,
+            default => $filter['tahun'] <= $this->filterTahun->tahunBerjalan(),
         };
     }
 
@@ -125,14 +171,64 @@ class LaporanController extends Controller
         ];
 
         return match ($jenis) {
-            'draf-bulanan' => [...$dasar, ...MockData::perhitunganBulanan($filter['bulan'])],
-            'draf-tahunan' => [...$dasar, ...MockData::drafTahunanRinci($filter['tahun'])],
+            // Draf bulanan dihitung ulang dari transaksi yang sudah terkunci,
+            // sedangkan draf tahunan dibaca dari salinan bekunya.
+            'draf-bulanan' => [...$dasar, ...$this->pajak->perhitungan($filter['bulan'], $filter['tahun'])],
+            'draf-tahunan' => [...$dasar, ...$this->penyusun->tersimpan(
+                $this->drafTahunan($filter['tahun'])->load(['lampiranHarta', 'lampiranUtang'])
+            )],
             'harta' => [
                 ...$dasar,
                 'kategori' => collect(MockData::kategoriHarta())
-                    ->map(fn (array $info, string $kunci): array => [...$info, 'baris' => MockData::harta($kunci)]),
+                    ->map(fn (array $info, string $kunci): array => [...$info, 'baris' => $this->harta($kunci, $filter['tahun'])]),
             ],
-            'utang' => [...$dasar, 'utang' => MockData::utang()],
+            'utang' => [
+                ...$dasar,
+                'utang' => $this->utang($filter['tahun']),
+                'kodeUtang' => KodeUtang::daftarSingkat(),
+            ],
         };
+    }
+
+    /** Draf tahunan milik pengguna untuk satu tahun pajak. */
+    private function drafTahunan(int $tahun): ?DrafTahunan
+    {
+        return DrafTahunan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->where('tahun_pajak', $tahun)
+            ->first();
+    }
+
+    /**
+     * Harta satu kategori yang masih dimiliki pada akhir tahun itu.
+     *
+     * @return Collection<int, Harta>
+     */
+    private function harta(string $kategori, int $tahun): Collection
+    {
+        return Harta::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->kategori($kategori)
+            ->dimilikiPadaTahun($tahun)
+            ->with(['kodeHarta', Harta::relasiRincian($kategori)])
+            ->orderBy('tahun_perolehan')
+            ->orderBy('id_harta')
+            ->get();
+    }
+
+    /**
+     * Utang yang masih berjalan pada akhir tahun itu.
+     *
+     * @return Collection<int, Utang>
+     */
+    private function utang(int $tahun): Collection
+    {
+        return Utang::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->berlakuPadaTahun($tahun)
+            ->with('kodeUtang')
+            ->orderBy('tahun_peminjaman')
+            ->orderBy('id_utang')
+            ->get();
     }
 }
