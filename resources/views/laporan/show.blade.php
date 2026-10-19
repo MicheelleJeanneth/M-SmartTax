@@ -48,9 +48,24 @@
         </div>
         <p class="mt-2 text-[13px] text-ink-3 sm:hidden">Geser ke samping untuk melihat seluruh lebar dokumen.</p>
     @else
-        <x-empty ikon="file-text" :judul="$jenis === 'draf-tahunan' ? 'Draf tahunan ' . $tahun . ' belum tersusun' : 'Draf ' . (\App\Support\MockData::bulan()[$bulan] ?? '') . ' ' . $tahun . ' belum tersusun'"
-            :tombol="$kePenyusunan[1]" :href="$kePenyusunan[0]">
-            Laporan dapat diunduh setelah draf pada periode ini disusun.
-        </x-empty>
+        @php
+            $periode = $jenis === 'draf-tahunan'
+                ? 'tahunan '.$tahun
+                : (\App\Support\MockData::bulan()[$bulan] ?? '').' '.$tahun;
+        @endphp
+
+        @if($tanpaPenghasilan)
+            {{-- Tahun tanpa penghasilan tidak mungkin punya draf, jadi tombol
+                 menyusun tidak ditawarkan: tidak ada yang bisa disusun di sana. --}}
+            @php $sebutan = $jenis === 'draf-tahunan' ? 'draf tahunan' : 'draf bulanan'; @endphp
+            <x-empty ikon="file-text" :judul="'Tidak ada ' . $sebutan . ' untuk tahun ' . $tahun">
+                Penghasilan pertama Anda tercatat pada {{ $tahunPenghasilanPertama }}, sehingga tidak ada {{ $sebutan }} yang dapat dilaporkan untuk tahun ini.
+            </x-empty>
+        @else
+            <x-empty ikon="file-text" :judul="'Draf ' . $periode . ' belum tersusun'"
+                :tombol="$kePenyusunan[1]" :href="$kePenyusunan[0]">
+                Laporan dapat diunduh setelah draf pada periode ini disusun.
+            </x-empty>
+        @endif
     @endif
 @endsection

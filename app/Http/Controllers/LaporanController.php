@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AnalisisKeuangan;
 use App\Services\FilterTahun;
 use App\Support\MockData;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -21,7 +22,10 @@ class LaporanController extends Controller
         'utang' => 'Laporan Data Utang',
     ];
 
-    public function __construct(private FilterTahun $filterTahun) {}
+    public function __construct(
+        private FilterTahun $filterTahun,
+        private AnalisisKeuangan $analisis,
+    ) {}
 
     public function show(Request $request, string $jenis): View
     {
@@ -33,6 +37,8 @@ class LaporanController extends Controller
             ...$filter,
             'daftarTahun' => $this->filterTahun->daftar(),
             'tersedia' => $this->tersedia($jenis, $filter),
+            'tanpaPenghasilan' => $this->tanpaPenghasilan($filter['tahun']),
+            'tahunPenghasilanPertama' => min($this->filterTahun->daftarPenghasilan()),
         ]);
     }
 
@@ -79,18 +85,29 @@ class LaporanController extends Controller
     }
 
     /**
-     * Mockup: laporan bulanan hanya ada untuk bulan tersusun tahun berjalan,
-     * laporan tahunan hanya untuk tahun dengan draf tersusun.
+     * Laporan draf hanya ada bila drafnya memang sudah tersusun. Jumlah bulan
+     * tersusun dibaca per tahun, bukan hanya tahun berjalan, supaya laporan
+     * bulanan tahun lalu tidak ikut tertutup.
      *
      * @param  array{tahun: int, bulan: int}  $filter
      */
     private function tersedia(string $jenis, array $filter): bool
     {
         return match ($jenis) {
-            'draf-bulanan' => $filter['tahun'] === MockData::TAHUN && $filter['bulan'] <= MockData::BULAN_TERSUSUN,
+            'draf-bulanan' => $filter['bulan'] <= MockData::bulanTersusun($filter['tahun']),
             'draf-tahunan' => collect(MockData::drafTahunan())->where('tahun', $filter['tahun'])->where('status', 'tersusun')->isNotEmpty(),
             default => $filter['tahun'] <= MockData::TAHUN,
         };
+    }
+
+    /**
+     * Benar bila tahun itu memang tidak mungkin punya draf, yaitu belum ada
+     * satu pun penghasilan tercatat. Keadaan kosongnya lalu tidak menawarkan
+     * tombol menyusun, karena tidak ada yang bisa disusun.
+     */
+    private function tanpaPenghasilan(int $tahun): bool
+    {
+        return $this->analisis->peredaranBruto($tahun) === 0;
     }
 
     /**

@@ -239,6 +239,32 @@ class MockupPagesTest extends TestCase
             ->assertSessionHasNoErrors();
     }
 
+    public function test_laporan_bulanan_tersedia_untuk_tahun_lalu_yang_sudah_tersusun(): void
+    {
+        $lalu = MockData::TAHUN - 1;
+        $this->assertSame(12, MockData::bulanTersusun($lalu));
+
+        // Dua belas draf 2025 tersusun, jadi laporannya harus dapat dicetak.
+        $this->get("/laporan/draf-bulanan?tahun={$lalu}&bulan=12")
+            ->assertOk()
+            ->assertDontSee('belum tersusun');
+    }
+
+    public function test_tahun_tanpa_penghasilan_tidak_menawarkan_tombol_menyusun(): void
+    {
+        // 2021 tidak punya penghasilan sama sekali: tidak ada yang bisa disusun.
+        $this->get('/laporan/draf-bulanan?tahun=2021')
+            ->assertOk()
+            ->assertSee('Tidak ada draf bulanan untuk tahun 2021')
+            ->assertDontSee('Buka Draf Bulanan');
+
+        // Bulan yang belum disusun pada tahun berpenghasilan tetap menawarkan tombol.
+        $this->get('/laporan/draf-bulanan?tahun='.MockData::TAHUN.'&bulan=12')
+            ->assertOk()
+            ->assertSee('belum tersusun')
+            ->assertSee('Buka Draf Bulanan');
+    }
+
     public function test_hanya_draf_tahunan_terbaru_yang_dapat_dibatalkan(): void
     {
         $tersusun = collect(MockData::drafTahunan())->where('status', 'tersusun');
