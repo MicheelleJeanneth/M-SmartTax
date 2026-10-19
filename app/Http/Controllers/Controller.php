@@ -30,4 +30,15 @@ abstract class Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
     }
+
+    /**
+     * Membuang pemisah ribuan dari kolom uang. Masukan yang kosong
+     * dikembalikan sebagai null agar aturan "wajib" tetap menangkapnya.
+     */
+    protected function bilangan(?string $nilai): ?string
+    {
+        $angka = preg_replace('/\D/', '', (string) $nilai);
+
+        return $angka === '' ? null : $angka;
+    }
 }

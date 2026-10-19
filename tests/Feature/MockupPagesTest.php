@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Penghasilan;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
 use App\Support\MockData;
@@ -17,7 +18,7 @@ class MockupPagesTest extends TestCase
     {
         $uri = [
             '/login', '/register', '/profil/lengkapi', '/dashboard',
-            '/penghasilan', '/penghasilan/create', '/penghasilan/25/edit',
+            '/penghasilan', '/penghasilan/create',
             '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1', '/harta/kas/1/ubah',
             '/utang', '/utang/create', '/utang/2', '/utang/2/edit',
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
@@ -101,9 +102,26 @@ class MockupPagesTest extends TestCase
             ->assertSee('Perlu Diperiksa');
     }
 
+    /** Transaksi yang drafnya belum disusun, jadi masih boleh diubah. */
+    private function penghasilanTerbuka(): int
+    {
+        return (int) Penghasilan::whereNull('id_draf_bulanan')->value('id_penghasilan');
+    }
+
+    /** Transaksi yang sudah masuk draf bulanan. */
+    private function penghasilanTerkunci(): int
+    {
+        return (int) Penghasilan::whereNotNull('id_draf_bulanan')->value('id_penghasilan');
+    }
+
+    public function test_halaman_ubah_penghasilan_terbuka(): void
+    {
+        $this->get('/penghasilan/'.$this->penghasilanTerbuka().'/edit')->assertOk();
+    }
+
     public function test_data_terkunci_tidak_bisa_diubah_lewat_url(): void
     {
-        $this->get('/penghasilan/1/edit')->assertForbidden();
+        $this->get('/penghasilan/'.$this->penghasilanTerkunci().'/edit')->assertForbidden();
         $this->get('/harta/kas/2/ubah')->assertForbidden();
         $this->get('/utang/1/edit')->assertForbidden();
     }
@@ -113,10 +131,12 @@ class MockupPagesTest extends TestCase
         $terkunci = app(KunciPencatatan::class)->awalTerbuka()->subDay()->toDateString();
         $terbuka = app(KunciPencatatan::class)->awalTerbuka()->toDateString();
 
+        $id = $this->penghasilanTerbuka();
+
         // Transaksi aktif dipindahkan mundur ke bulan yang drafnya sudah disusun.
-        $this->from('/penghasilan/25/edit')
-            ->put('/penghasilan/25', ['tanggal' => $terkunci, 'nominal' => '1.000.000'])
-            ->assertRedirect('/penghasilan/25/edit')
+        $this->from("/penghasilan/{$id}/edit")
+            ->put("/penghasilan/{$id}", ['tanggal' => $terkunci, 'nominal' => '1.000.000'])
+            ->assertRedirect("/penghasilan/{$id}/edit")
             ->assertSessionHasErrors('tanggal');
 
         // Transaksi baru pada bulan yang sama juga ditolak.
@@ -125,12 +145,13 @@ class MockupPagesTest extends TestCase
             ->assertSessionHasErrors('tanggal');
 
         // Bulan yang drafnya belum disusun tetap boleh.
-        $this->put('/penghasilan/25', ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
+        $this->put("/penghasilan/{$id}", ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
             ->assertRedirect('/penghasilan')
             ->assertSessionHasNoErrors();
 
         // Baris yang sudah terkunci tidak bisa diubah lewat request langsung.
-        $this->put('/penghasilan/1', ['tanggal' => $terbuka, 'nominal' => '1.000.000'])->assertForbidden();
+        $this->put('/penghasilan/'.$this->penghasilanTerkunci(), ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
+            ->assertForbidden();
     }
 
     public function test_simpan_perubahan_kembali_ke_daftar_bukan_ke_detail(): void
@@ -138,7 +159,8 @@ class MockupPagesTest extends TestCase
         // Halaman detail sudah tidak punya tombol Ubah, jadi daftar adalah tempat asal pengguna.
         $this->put('/harta/kas/1', ['nama' => 'Deposito'])->assertRedirect('/harta/kas');
         $this->put('/utang/2', ['deskripsi' => 'Kredit kendaraan bermotor'])->assertRedirect('/utang');
-        $this->put('/penghasilan/25', ['tanggal' => '2026-07-05'])->assertRedirect('/penghasilan');
+        $this->put('/penghasilan/'.$this->penghasilanTerbuka(), ['tanggal' => '2026-07-05', 'nominal' => '1.000.000'])
+            ->assertRedirect('/penghasilan');
     }
 
     public function test_filter_tahun_penghasilan_mulai_dari_catatan_pertama(): void

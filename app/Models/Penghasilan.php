@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BerstatusAktif;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -29,6 +30,20 @@ class Penghasilan extends Model
         ];
     }
 
+    /**
+     * Nama pendek untuk kunci utama, supaya tampilan cukup menulis $p['id'].
+     */
+    protected function id(): Attribute
+    {
+        return Attribute::get(fn (): int => $this->id_penghasilan);
+    }
+
+    /** Sudah masuk draf bulanan, sehingga tidak dapat diubah maupun dihapus. */
+    protected function terkunci(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->id_draf_bulanan !== null);
+    }
+
     /** @return BelongsTo<Profil, $this> */
     public function profil(): BelongsTo
     {
@@ -39,12 +54,6 @@ class Penghasilan extends Model
     public function drafBulanan(): BelongsTo
     {
         return $this->belongsTo(DrafBulanan::class, 'id_draf_bulanan');
-    }
-
-    /** Sudah masuk draf bulanan, sehingga terkunci. */
-    public function sudahDirekap(): bool
-    {
-        return $this->id_draf_bulanan !== null;
     }
 
     public function scopeTahun(Builder $kueri, int $tahun): Builder

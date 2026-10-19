@@ -122,3 +122,19 @@ if (! function_exists('titik')) {
         return str_contains('.!?:', mb_substr($bersih, -1)) ? $bersih : $bersih.'.';
     }
 }
+
+if (! function_exists('tanggal_isian')) {
+    /**
+     * Tanggal dalam bentuk Y-m-d untuk kolom isian bertipe date.
+     */
+    function tanggal_isian(DateTimeInterface|string|null $tanggal): string
+    {
+        if ($tanggal === null || $tanggal === '') {
+            return '';
+        }
+
+        return $tanggal instanceof DateTimeInterface
+            ? $tanggal->format('Y-m-d')
+            : substr($tanggal, 0, 10);
+    }
+}

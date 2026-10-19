@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Penghasilan;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
-use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -26,22 +28,18 @@ class PenghasilanController extends Controller
         $bulan = (int) $request->query('bulan', 0);
         $cari = trim((string) $request->query('cari', ''));
 
-        $terpilih = collect(MockData::penghasilan())
-            ->filter(function (array $p) use ($tahun, $bulan, $cari): bool {
-                $tanggal = Carbon::parse($p['tanggal']);
-
-                return (int) $tanggal->year === $tahun
-                    && ($bulan === 0 || (int) $tanggal->month === $bulan)
-                    && ($cari === '' || str_contains(mb_strtolower($p['keterangan']), mb_strtolower($cari)));
-            })
+        $kueri = $this->milik()
+            ->tahun($tahun)
+            ->when($bulan > 0, fn (Builder $k) => $k->bulan($bulan))
+            ->when($cari !== '', fn (Builder $k) => $k->where('keterangan', 'like', '%'.$cari.'%'))
             // Terbaru di atas: transaksi terbaru yang paling sering diubah.
-            ->sortByDesc('tanggal')
-            ->values();
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id_penghasilan');
 
         return view('penghasilan.index', [
-            'penghasilan' => $this->halaman($terpilih, $request),
-            'total' => $terpilih->sum('nominal'),
-            'jumlahTransaksi' => $terpilih->count(),
+            'penghasilan' => $kueri->clone()->paginate(self::PER_HALAMAN)->withQueryString(),
+            'total' => (int) $kueri->clone()->sum('nominal'),
+            'jumlahTransaksi' => $kueri->clone()->count(),
             'tahun' => $tahun,
             'bulan' => $bulan,
             'cari' => $cari,
@@ -56,7 +54,9 @@ class PenghasilanController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->pastikanBulanTerbuka($request);
+        $sah = $this->sahkan($request);
+
+        $this->milik()->create($sah);
 
         return redirect()->route('penghasilan.index')->with('sukses', 'Data penghasilan tersimpan.');
     }
@@ -70,7 +70,7 @@ class PenghasilanController extends Controller
     {
         $penghasilan = $this->cari($id);
 
-        if ($penghasilan['terkunci']) {
+        if ($penghasilan->terkunci) {
             abort(403, 'Data penghasilan ini sudah masuk draf. Batalkan draf bulan tersebut terlebih dahulu untuk mengubahnya.');
         }
 
@@ -82,40 +82,70 @@ class PenghasilanController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        if ($this->cari($id)['terkunci']) {
+        $penghasilan = $this->cari($id);
+
+        if ($penghasilan->terkunci) {
             abort(403, 'Data penghasilan ini sudah masuk draf dan tidak dapat diubah.');
         }
 
-        $this->pastikanBulanTerbuka($request);
+        $penghasilan->update($this->sahkan($request));
 
         return redirect()->route('penghasilan.index')->with('sukses', 'Perubahan data penghasilan tersimpan.');
     }
 
     public function destroy(int $id): RedirectResponse
     {
+        $penghasilan = $this->cari($id);
+
+        if ($penghasilan->terkunci) {
+            abort(403, 'Data penghasilan ini sudah masuk draf dan tidak dapat dihapus.');
+        }
+
+        $penghasilan->hapus();
+
         return redirect()->route('penghasilan.index')->with('sukses', 'Data penghasilan dihapus.');
     }
 
     /**
-     * Menolak tanggal yang jatuh pada bulan yang drafnya sudah disusun, baik saat
+     * Memeriksa isian sekaligus menegakkan aturan bulan terkunci, baik saat
      * menambah transaksi baru maupun saat memindahkan tanggal transaksi lama.
+     *
+     * @return array<string, mixed>
      *
      * @throws ValidationException
      */
-    private function pastikanBulanTerbuka(Request $request): void
+    private function sahkan(Request $request): array
     {
-        $tanggal = (string) $request->input('tanggal', '');
+        $request->merge(['nominal' => $this->bilangan($request->input('nominal'))]);
 
-        if ($tanggal !== '' && $this->kunci->terkunci($tanggal)) {
-            throw ValidationException::withMessages(['tanggal' => $this->kunci->pesan($tanggal)]);
+        $sah = $request->validate([
+            'tanggal' => ['required', 'date', 'before_or_equal:today'],
+            'nominal' => ['required', 'integer', 'min:1'],
+            'keterangan' => ['nullable', 'string', 'max:255'],
+        ], [
+            'tanggal.required' => 'Tanggal wajib diisi.',
+            'tanggal.before_or_equal' => 'Tanggal tidak boleh melewati hari ini.',
+            'nominal.required' => 'Nominal wajib diisi.',
+            'nominal.integer' => 'Nominal hanya boleh berisi angka.',
+            'nominal.min' => 'Nominal harus lebih besar dari nol.',
+            'keterangan.max' => 'Keterangan maksimal 255 karakter.',
+        ]);
+
+        if ($this->kunci->terkunci($sah['tanggal'])) {
+            throw ValidationException::withMessages(['tanggal' => $this->kunci->pesan($sah['tanggal'])]);
         }
+
+        return $sah;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function cari(int $id): array
+    /** Transaksi milik wajib pajak yang sedang masuk. */
+    private function milik(): Builder|HasMany
     {
-        return collect(MockData::penghasilan())->firstWhere('id', $id) ?? abort(404);
+        return PenggunaSaatIni::profil()->penghasilans();
+    }
+
+    private function cari(int $id): Penghasilan
+    {
+        return $this->milik()->findOrFail($id);
     }
 }

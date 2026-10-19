@@ -115,15 +115,4 @@ class SimulasiController extends Controller
             'suku_bunga' => (float) $sah['suku_bunga'],
         ];
     }
-
-    /**
-     * Membuang pemisah ribuan dari kolom uang. Masukan yang kosong
-     * dikembalikan sebagai null agar aturan "wajib" tetap menangkapnya.
-     */
-    private function bilangan(?string $nilai): ?string
-    {
-        $angka = preg_replace('/\D/', '', (string) $nilai);
-
-        return $angka === '' ? null : $angka;
-    }
 }
