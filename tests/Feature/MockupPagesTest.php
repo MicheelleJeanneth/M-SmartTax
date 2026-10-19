@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\DrafBulanan;
+use App\Models\DrafTahunan;
+use App\Models\DrafTahunanHarta;
 use App\Models\Harta;
 use App\Models\Penghasilan;
 use App\Models\Utang;
@@ -25,7 +28,7 @@ class MockupPagesTest extends TestCase
             '/utang', '/utang/create', '/utang/2',
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
             '/draf-bulanan?tahun=2025', '/draf-bulanan/12?tahun=2025', '/draf-bulanan/susun?bulan=3&tahun=2025',
-            '/draf-tahunan', '/draf-tahunan/susun?tahun=2025', '/draf-tahunan/2025',
+            '/draf-tahunan', '/draf-tahunan/2025',
             '/simulasi',
             '/laporan/draf-bulanan', '/laporan/draf-bulanan?bulan=9', '/laporan/draf-tahunan', '/laporan/draf-tahunan?tahun=2026',
             '/laporan/harta', '/laporan/utang',
@@ -324,6 +327,41 @@ class MockupPagesTest extends TestCase
             ->assertOk()
             ->assertSee('belum tersusun')
             ->assertSee('Buka Draf Bulanan');
+    }
+
+    public function test_alur_susun_dan_batalkan_draf_tahunan(): void
+    {
+        $tahun = MockData::TAHUN;
+
+        // Tahun yang drafnya sudah tersusun tidak boleh disusun ulang.
+        $this->get('/draf-tahunan/susun?tahun='.($tahun - 1))->assertForbidden();
+
+        // Dua belas draf bulanan dilengkapi dulu; bulan tanpa penghasilan jadi draf nihil.
+        for ($bulan = 7; $bulan <= 12; $bulan++) {
+            $this->post('/draf-bulanan', ['bulan' => $bulan, 'tahun' => $tahun])->assertRedirect();
+        }
+
+        $this->get('/draf-tahunan/susun?tahun='.$tahun)->assertOk();
+
+        $this->post('/draf-tahunan', ['tahun' => $tahun])->assertRedirect('/draf-tahunan');
+
+        $draf = DrafTahunan::where('tahun_pajak', $tahun)->firstOrFail();
+        $this->assertSame(12, DrafBulanan::where('id_draf_tahunan', $draf->id_draf_tahunan)->count());
+        // Seluruh harta dan utang tahun itu ikut terkunci dan tersalin.
+        $this->assertSame(0, Harta::whereNull('id_draf_tahunan')->count());
+        $this->assertSame(0, Utang::whereNull('id_draf_tahunan')->count());
+        $this->assertSame(
+            Harta::count(),
+            DrafTahunanHarta::where('id_draf_tahunan', $draf->id_draf_tahunan)->count(),
+        );
+
+        $this->get('/draf-tahunan/'.$tahun)->assertOk();
+
+        // Dibatalkan: seluruh penguncian terbuka dan salinannya ikut terhapus.
+        $this->delete('/draf-tahunan/'.$tahun)->assertRedirect('/draf-tahunan');
+        $this->assertSame(0, DrafTahunan::where('tahun_pajak', $tahun)->count());
+        $this->assertSame(0, DrafTahunanHarta::where('id_draf_tahunan', $draf->id_draf_tahunan)->count());
+        $this->assertGreaterThan(0, Harta::whereNull('id_draf_tahunan')->count());
     }
 
     public function test_hanya_draf_tahunan_terbaru_yang_dapat_dibatalkan(): void
