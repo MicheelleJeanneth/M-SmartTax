@@ -1,6 +1,6 @@
 {{-- Sidebar sesuai Figma: tanpa ikon, garis pemisah antar grup, menu aktif berlatar biru muda dengan garis kiri. --}}
 @php
-    $profil = \App\Support\MockData::profil();
+    $profil = \App\Support\PenggunaSaatIni::profil();
 
     $menu = [
         'HALAMAN UTAMA' => [

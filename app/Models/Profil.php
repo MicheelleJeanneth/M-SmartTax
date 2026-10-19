@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BerstatusAktif;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -30,6 +31,24 @@ class Profil extends Authenticatable
             'status' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Sebutan tetap pada sidebar dan kartu identitas. Bukan kolom basis data
+     * karena aplikasi ini hanya melayani satu jenis wajib pajak.
+     */
+    protected function peran(): Attribute
+    {
+        return Attribute::get(fn (): string => 'Wajib Pajak Orang Pribadi UMKM');
+    }
+
+    /** Dua huruf awal nama, untuk lingkaran identitas. */
+    protected function inisial(): Attribute
+    {
+        return Attribute::get(fn (): string => collect(explode(' ', (string) $this->nama))
+            ->take(2)
+            ->map(fn (string $kata): string => mb_strtoupper(mb_substr($kata, 0, 1)))
+            ->implode(''));
     }
 
     /** @return HasMany<Penghasilan, $this> */
@@ -81,16 +100,5 @@ class Profil extends Authenticatable
             $this->kota,
             $this->provinsi,
         ])->filter()->implode(', ');
-    }
-
-    /**
-     * Dua huruf awal nama, dipakai pada lingkaran identitas di sidebar.
-     */
-    public function inisial(): string
-    {
-        return collect(explode(' ', (string) $this->nama))
-            ->take(2)
-            ->map(fn (string $kata): string => mb_strtoupper(mb_substr($kata, 0, 1)))
-            ->implode('');
     }
 }

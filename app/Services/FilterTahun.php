@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\DrafTahunan;
+use App\Models\Harta;
+use App\Models\Penghasilan;
+use App\Models\Utang;
 use App\Support\MockData;
-use Illuminate\Support\Carbon;
+use App\Support\PenggunaSaatIni;
 
 /**
  * Daftar tahun untuk filter di Dashboard, Data Penghasilan, Draf Bulanan,
@@ -54,26 +58,31 @@ class FilterTahun
             : $this->tahunBerjalan();
     }
 
+    /**
+     * Tahun pajak berjalan.
+     *
+     * Masih diambil dari tetapan supaya data contoh yang berpusat di 2026
+     * tetap utuh saat didemokan. Begitu aplikasinya dipakai sungguhan,
+     * nilainya diganti dengan tahun kalender sekarang.
+     */
     public function tahunBerjalan(): int
     {
         return MockData::TAHUN;
     }
 
     /**
-     * Tahun terkecil dari penghasilan, keenam kategori harta, utang, dan draf tahunan.
+     * Tahun terkecil dari penghasilan, harta, utang, dan draf tahunan.
      */
     private function tahunTerlama(): int
     {
-        $tahun = collect([$this->tahunTerlamaPenghasilan()]);
+        $profil = PenggunaSaatIni::id();
 
-        foreach (array_keys(MockData::kategoriHarta()) as $kategori) {
-            $tahun = $tahun->merge(collect(MockData::harta($kategori))->pluck('tahun'));
-        }
-
-        $tahun = $tahun
-            ->merge(collect(MockData::utang())->pluck('tahun'))
-            ->merge(collect(MockData::drafTahunan())->pluck('tahun'))
-            ->filter();
+        $tahun = collect([
+            $this->tahunTerlamaPenghasilan(),
+            Harta::query()->where('id_profil', $profil)->min('tahun_perolehan'),
+            Utang::query()->where('id_profil', $profil)->min('tahun_peminjaman'),
+            DrafTahunan::query()->where('id_profil', $profil)->min('tahun_pajak'),
+        ])->filter();
 
         return (int) $tahun->min();
     }
@@ -83,9 +92,12 @@ class FilterTahun
      */
     private function tahunTerlamaPenghasilan(): int
     {
-        return (int) collect(MockData::penghasilan())
-            ->map(fn (array $baris): int => (int) Carbon::parse($baris['tanggal'])->year)
-            ->push($this->tahunBerjalan())
-            ->min();
+        $paling = Penghasilan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->min('tanggal');
+
+        return $paling === null
+            ? $this->tahunBerjalan()
+            : min((int) substr((string) $paling, 0, 4), $this->tahunBerjalan());
     }
 }

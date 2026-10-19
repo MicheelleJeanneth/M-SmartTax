@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\DrafBulanan;
 use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
 use Illuminate\Support\Carbon;
 
 /**
@@ -14,11 +16,23 @@ use Illuminate\Support\Carbon;
 class KunciPencatatan
 {
     /**
-     * Hari pertama bulan yang drafnya belum disusun.
+     * Hari pertama bulan yang drafnya belum disusun, yaitu sehari setelah
+     * bulan terakhir yang sudah berdraf.
      */
     public function awalTerbuka(): Carbon
     {
-        return Carbon::create(MockData::TAHUN, 1, 1)->addMonths(MockData::BULAN_TERSUSUN);
+        $terakhir = DrafBulanan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->orderByDesc('tahun_pajak')
+            ->orderByDesc('bulan')
+            ->first();
+
+        if ($terakhir === null) {
+            // Belum ada draf sama sekali: seluruh tanggal masih terbuka.
+            return Carbon::create(1900, 1, 1);
+        }
+
+        return Carbon::create($terakhir->tahun_pajak, $terakhir->bulan, 1)->addMonthNoOverflow();
     }
 
     /**
@@ -34,9 +48,10 @@ class KunciPencatatan
      */
     public function pesan(string $tanggal): string
     {
-        $bulan = MockData::bulan()[(int) Carbon::parse($tanggal)->month];
+        $waktu = Carbon::parse($tanggal);
+        $bulan = MockData::bulan()[(int) $waktu->month];
 
-        return "Draf pajak {$bulan} ".Carbon::parse($tanggal)->year.' sudah disusun, '
+        return "Draf pajak {$bulan} ".$waktu->year.' sudah disusun, '
             .'sehingga transaksi tidak dapat dicatat pada bulan itu. '
             .'Batalkan draf bulan tersebut terlebih dahulu.';
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AnalisisKeuangan;
 use App\Services\FilterTahun;
 use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -118,7 +119,7 @@ class LaporanController extends Controller
     {
         $dasar = [
             'judul' => self::JUDUL[$jenis],
-            'profil' => MockData::profil(),
+            'profil' => PenggunaSaatIni::profil(),
             'tanggalCetak' => now(),
             ...$filter,
         ];

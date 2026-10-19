@@ -30,7 +30,7 @@
             :value="\App\Support\MockData::KEWARGANEGARAAN"
             bantuan="Warga Negara Indonesia. M-SmartTax hanya melayani wajib pajak WNI." />
         <x-input label="Nomor Handphone" name="nomor_handphone" type="tel" wajib
-            placeholder="08xx xxxx xxxx" :value="$p['telepon'] ?? ''" />
+            placeholder="08xx xxxx xxxx" :value="$p['nomor_handphone'] ?? ''" />
     </div>
 
     @if($terkunci)

@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Models\DrafTahunan;
 use App\Models\Harta;
 use App\Models\Penghasilan;
-use App\Models\Profil;
 use App\Models\Utang;
 use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -179,31 +179,22 @@ class AnalisisKeuangan
         };
     }
 
-    /**
-     * Wajib pajak yang sedang masuk. Selama autentikasi belum dipasang,
-     * dipakai satu-satunya profil yang ada di basis data.
-     */
-    private function profilId(): ?int
-    {
-        return auth()->id() ?? Profil::query()->value('id_profil');
-    }
-
     /** @return Builder<Harta> */
     private function harta(int $tahun)
     {
-        return Harta::query()->where('id_profil', $this->profilId())->dimilikiPadaTahun($tahun);
+        return Harta::query()->where('id_profil', PenggunaSaatIni::id())->dimilikiPadaTahun($tahun);
     }
 
     /** @return Builder<Utang> */
     private function utang(int $tahun)
     {
-        return Utang::query()->where('id_profil', $this->profilId())->berlakuPadaTahun($tahun);
+        return Utang::query()->where('id_profil', PenggunaSaatIni::id())->berlakuPadaTahun($tahun);
     }
 
     /** @return Builder<Penghasilan> */
     private function penghasilan(int $tahun)
     {
-        $kueri = Penghasilan::query()->where('id_profil', $this->profilId())->tahun($tahun);
+        $kueri = Penghasilan::query()->where('id_profil', PenggunaSaatIni::id())->tahun($tahun);
 
         return $this->peraga === 'penghasilan-nol' ? $kueri->whereRaw('1 = 0') : $kueri;
     }
@@ -218,7 +209,7 @@ class AnalisisKeuangan
         }
 
         return DrafTahunan::query()
-            ->where('id_profil', $this->profilId())
+            ->where('id_profil', PenggunaSaatIni::id())
             ->where('tahun_pajak', $tahun - 1)
             ->first();
     }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Rules\NikCocokKelahiran;
-use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,12 +30,12 @@ class ProfilController extends Controller
 
     public function show(): View
     {
-        return view('profil.show', ['profil' => MockData::profil()]);
+        return view('profil.show', ['profil' => PenggunaSaatIni::profil()]);
     }
 
     public function edit(): View
     {
-        return view('profil.edit', ['profil' => MockData::profil()]);
+        return view('profil.edit', ['profil' => PenggunaSaatIni::profil()]);
     }
 
     public function update(Request $request): RedirectResponse
