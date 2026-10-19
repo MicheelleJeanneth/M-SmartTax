@@ -89,6 +89,7 @@
                 <form method="POST" action="{{ route('draf-bulanan.destroy', $d['bulan']) }}">
                     @csrf
                     @method('DELETE')
+                    <input type="hidden" name="tahun" value="{{ $tahun }}">
                     <x-button type="submit" varian="danger">Batalkan Draf</x-button>
                 </form>
             </x-slot:aksi>

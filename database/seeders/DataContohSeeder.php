@@ -75,13 +75,8 @@ class DataContohSeeder extends Seeder
         2 => [2024 => 75_000_000, 2025 => 60_000_000],
     ];
 
-    private KonfigurasiPajak $pajak;
-
     public function run(): void
     {
-        $this->pajak = KonfigurasiPajak::berlakuUntukTahun(MockData::TAHUN)
-            ?? throw new \RuntimeException('Jalankan KonfigurasiPajakSeeder lebih dahulu.');
-
         $profil = $this->buatProfil();
         $this->buatHarta($profil);
         $this->buatUtang($profil);
@@ -94,6 +89,13 @@ class DataContohSeeder extends Seeder
         foreach (self::TAHUNAN_TERSUSUN as $tahun) {
             $this->buatDrafTahunan($profil, $tahun);
         }
+    }
+
+    /** Konfigurasi pajak yang berlaku pada satu tahun. */
+    private function pajak(int $tahun): KonfigurasiPajak
+    {
+        return KonfigurasiPajak::berlakuUntukTahun($tahun)
+            ?? throw new \RuntimeException("Konfigurasi pajak tahun {$tahun} belum tersedia.");
     }
 
     private function buatProfil(): Profil
@@ -230,12 +232,12 @@ class DataContohSeeder extends Seeder
             }
 
             // Hanya kelebihan di atas ambang bebas yang dikenai tarif.
-            $kena = max(0, min($akumulasi - $this->pajak->ambang_bebas, $bruto));
+            $kena = max(0, min($akumulasi - $this->pajak($tahun)->ambang_bebas, $bruto));
 
             $draf = DrafBulanan::create([
                 'kode_draf' => sprintf('DB-%d-%02d', $tahun, $bulan),
                 'id_profil' => $profil->id_profil,
-                'id_konfigurasi' => $this->pajak->id_konfigurasi,
+                'id_konfigurasi' => $this->pajak($tahun)->id_konfigurasi,
                 'tahun_pajak' => $tahun,
                 'bulan' => $bulan,
                 'tanggal_dibuat' => Carbon::create($tahun, $bulan, 1)->addMonthNoOverflow()->day(5),
@@ -243,7 +245,7 @@ class DataContohSeeder extends Seeder
                 'akumulasi_sebelumnya' => $sebelum,
                 'akumulasi_sekarang' => $akumulasi,
                 'omzet_kena_pajak' => $kena,
-                'pph_final' => (int) round($kena * $this->pajak->tarif_final / 100),
+                'pph_final' => (int) round($kena * $this->pajak($tahun)->tarif_final / 100),
             ]);
 
             Penghasilan::whereIn('id_penghasilan', $transaksi->pluck('id_penghasilan'))
@@ -271,7 +273,7 @@ class DataContohSeeder extends Seeder
         $draf = DrafTahunan::create([
             'kode_draf' => 'DT-'.$tahun,
             'id_profil' => $profil->id_profil,
-            'id_konfigurasi' => $this->pajak->id_konfigurasi,
+            'id_konfigurasi' => $this->pajak($tahun)->id_konfigurasi,
             'tahun_pajak' => $tahun,
             'tanggal_dibuat' => Carbon::create($tahun + 1, 3, 1),
             'total_peredaran_bruto' => $bruto,
