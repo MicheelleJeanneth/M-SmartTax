@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BerstatusAktif;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -24,6 +25,46 @@ class Utang extends Model
     protected function casts(): array
     {
         return ['status' => 'boolean'];
+    }
+
+    /**
+     * Nama-nama turunan di bawah ini menjaga agar tampilan yang sudah jadi
+     * tetap bekerja tanpa perlu tahu nama kolom di basis data.
+     */
+    protected function id(): Attribute
+    {
+        return Attribute::get(fn (): int => $this->id_utang);
+    }
+
+    protected function kreditur(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->nama_kreditur);
+    }
+
+    protected function cicilan(): Attribute
+    {
+        return Attribute::get(fn (): ?int => $this->cicilan_bulanan);
+    }
+
+    protected function tahun(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) $this->tahun_peminjaman);
+    }
+
+    protected function negara(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->negara_kreditur);
+    }
+
+    protected function kode(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->kodeUtang?->kode);
+    }
+
+    /** Sudah masuk draf tahunan, sehingga tidak dapat diubah maupun dihapus. */
+    protected function terkunci(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->id_draf_tahunan !== null);
     }
 
     /** @return BelongsTo<Profil, $this> */
@@ -52,10 +93,5 @@ class Utang extends Model
     {
         return $kueri->where('tahun_peminjaman', '<=', $tahun)
             ->where(fn (Builder $k) => $k->whereNull('tahun_pelunasan')->orWhere('tahun_pelunasan', '>', $tahun));
-    }
-
-    public function sudahDirekap(): bool
-    {
-        return $this->id_draf_tahunan !== null;
     }
 }

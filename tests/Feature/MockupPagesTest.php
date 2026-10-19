@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Harta;
 use App\Models\Penghasilan;
+use App\Models\Utang;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
 use App\Support\MockData;
@@ -21,7 +22,7 @@ class MockupPagesTest extends TestCase
             '/login', '/register', '/profil/lengkapi', '/dashboard',
             '/penghasilan', '/penghasilan/create',
             '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1',
-            '/utang', '/utang/create', '/utang/2', '/utang/2/edit',
+            '/utang', '/utang/create', '/utang/2',
             '/draf-bulanan', '/draf-bulanan/susun', '/draf-bulanan/susun?bulan=8', '/draf-bulanan/6',
             '/draf-bulanan?tahun=2025', '/draf-bulanan/12?tahun=2025', '/draf-bulanan/susun?bulan=3&tahun=2025',
             '/draf-tahunan', '/draf-tahunan/susun?tahun=2025', '/draf-tahunan/2025',
@@ -126,6 +127,17 @@ class MockupPagesTest extends TestCase
         $this->get('/penghasilan/'.$this->penghasilanTerbuka().'/edit')->assertOk();
     }
 
+    /** Utang yang belum terekap draf tahunan. */
+    private function utangTerbuka(): Utang
+    {
+        return Utang::whereNull('id_draf_tahunan')->with('kodeUtang')->firstOrFail();
+    }
+
+    public function test_halaman_ubah_utang_terbuka(): void
+    {
+        $this->get('/utang/'.$this->utangTerbuka()->id.'/edit')->assertOk();
+    }
+
     public function test_halaman_ubah_harta_terbuka(): void
     {
         $harta = $this->hartaTerbuka();
@@ -178,7 +190,14 @@ class MockupPagesTest extends TestCase
             'nilai' => '91.000.000',
             'tahun' => $harta->tahun,
         ])->assertRedirect("/harta/{$kategori}");
-        $this->put('/utang/2', ['deskripsi' => 'Kredit kendaraan bermotor'])->assertRedirect('/utang');
+        $utang = $this->utangTerbuka();
+        $this->put('/utang/'.$utang->id, [
+            'kode' => $utang->kodeUtang->kode,
+            'deskripsi' => $utang->deskripsi,
+            'saldo' => '13.000.000',
+            'tahun_peminjaman' => $utang->tahun,
+            'nama_kreditur' => $utang->kreditur,
+        ])->assertRedirect('/utang');
         $this->put('/penghasilan/'.$this->penghasilanTerbuka(), ['tanggal' => '2026-07-05', 'nominal' => '1.000.000'])
             ->assertRedirect('/penghasilan');
     }

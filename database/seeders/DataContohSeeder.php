@@ -45,6 +45,15 @@ class DataContohSeeder extends Seeder
     private const HARTA_TAHUN_BERJALAN = ['0701'];
 
     /**
+     * Utang yang baru dipinjam pada tahun berjalan, disebut lewat nomornya.
+     * Alasannya sama dengan harta: tanpa ini seluruh utang ikut terekap draf
+     * tahunan terakhir dan tidak ada satu pun yang masih dapat diubah.
+     *
+     * @var array<int, int>
+     */
+    private const UTANG_TAHUN_BERJALAN = [3];
+
+    /**
      * Peredaran bruto tiap bulan, dalam juta rupiah.
      *
      * @var array<int, array<int, int>>
@@ -64,7 +73,6 @@ class DataContohSeeder extends Seeder
     private const SALDO_UTANG = [
         1 => [2024 => 210_000_000, 2025 => 195_000_000],
         2 => [2024 => 75_000_000, 2025 => 60_000_000],
-        3 => [2025 => 20_000_000],
     ];
 
     private KonfigurasiPajak $pajak;
@@ -165,7 +173,9 @@ class DataContohSeeder extends Seeder
                 'keterangan' => $baris['keterangan'],
                 'saldo' => $baris['saldo'],
                 'cicilan_bulanan' => $baris['cicilan'],
-                'tahun_peminjaman' => $baris['tahun'],
+                'tahun_peminjaman' => in_array($baris['id'], self::UTANG_TAHUN_BERJALAN, true)
+                    ? MockData::TAHUN
+                    : $baris['tahun'],
                 'tahun_pelunasan' => $baris['tahun_pelunasan'],
                 'nama_kreditur' => $baris['kreditur'],
                 'nik_kreditur' => $baris['nik_kreditur'],
