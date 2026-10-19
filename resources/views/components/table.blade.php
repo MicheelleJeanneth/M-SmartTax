@@ -15,11 +15,11 @@
                 @endforeach
             </tr>
         </thead>
-        <tbody class="divide-y divide-line-soft text-sm text-ink [&_tr]:transition [&_tr:hover]:bg-page {{ $rapat ? '[&_td]:px-3' : '[&_td]:px-4' }} [&_td]:py-3">
+        <tbody class="divide-y divide-line-soft text-sm text-ink [&_.tabular-nums]:whitespace-nowrap [&_tr]:transition [&_tr:hover]:bg-page {{ $rapat ? '[&_td]:px-3' : '[&_td]:px-4' }} [&_td]:py-3">
             {{ $slot }}
         </tbody>
         @isset($kaki)
-            <tfoot class="border-t border-line text-sm font-medium text-ink [&_td]:px-4 [&_td]:py-3">
+            <tfoot class="border-t border-line text-sm font-medium text-ink [&_.tabular-nums]:whitespace-nowrap [&_td]:px-4 [&_td]:py-3">
                 {{ $kaki }}
             </tfoot>
         @endisset
