@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             KonfigurasiPajakSeeder::class,
             KodeSeeder::class,
+            DataContohSeeder::class,
         ]);
     }
 }
