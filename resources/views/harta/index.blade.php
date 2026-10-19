@@ -107,7 +107,7 @@
         @endif
     </x-card>
 
-    <x-info varian="catatan" class="mt-4">{{ $info['catatan'] }}</x-info>
+    <x-info varian="biru-muda" class="mt-4">{{ $info['catatan'] }}</x-info>
 
     @foreach($harta->where('terkunci', false) as $h)
         @include('partials.dialog-hapus', [

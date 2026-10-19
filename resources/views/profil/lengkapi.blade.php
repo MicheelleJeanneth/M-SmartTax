@@ -28,7 +28,7 @@
         @csrf
         @include('profil._form-data-diri', ['profil' => []])
 
-        <x-info varian="catatan" class="mt-6">
+        <x-info varian="biru-muda" class="mt-6">
             NIK berfungsi sebagai NPWP dan akan tercetak pada seluruh dokumen laporan. Pastikan NIK sesuai kartu tanda penduduk sebelum menyimpan.
         </x-info>
 

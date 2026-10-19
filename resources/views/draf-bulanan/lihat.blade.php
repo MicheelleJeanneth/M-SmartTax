@@ -15,7 +15,7 @@
 @section('isi')
     @include('draf-bulanan._perhitungan')
 
-    <x-info varian="catatan" class="mt-4">
+    <x-info varian="biru-muda" class="mt-4">
         Draf ini terkunci. Data penghasilan {{ $namaBulan }} hanya dapat diubah setelah draf dibatalkan.
     </x-info>
 @endsection
