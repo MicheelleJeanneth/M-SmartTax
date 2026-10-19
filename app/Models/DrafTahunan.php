@@ -6,6 +6,7 @@ use App\Models\Concerns\BerstatusAktif;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * Draf SPT Tahunan. Angkanya dibekukan saat disusun, termasuk salinan harta
@@ -21,6 +22,15 @@ class DrafTahunan extends Model
 
     protected $guarded = ['id_draf_tahunan'];
 
+    /**
+     * Tahun pajak yang drafnya sudah tersusun, per wajib pajak. Disimpan
+     * sekali per permintaan karena setiap baris harta dan utang membacanya
+     * untuk menentukan status terkuncinya.
+     *
+     * @var array<int, Collection<int, int>>
+     */
+    private static array $ingatanTahun = [];
+
     protected function casts(): array
     {
         return [
@@ -29,6 +39,26 @@ class DrafTahunan extends Model
             'rasio_konsistensi' => 'decimal:4',
             'status' => 'boolean',
         ];
+    }
+
+    /**
+     * Tahun pajak yang drafnya sudah tersusun untuk satu wajib pajak.
+     *
+     * @return Collection<int, int>
+     */
+    public static function tahunTersusun(int $profil): Collection
+    {
+        return self::$ingatanTahun[$profil] ??= static::query()
+            ->where('id_profil', $profil)
+            ->orderByDesc('tahun_pajak')
+            ->pluck('tahun_pajak')
+            ->map(fn ($tahun): int => (int) $tahun);
+    }
+
+    /** Dipanggil setelah draf disusun atau dibatalkan, agar daftarnya dibaca ulang. */
+    public static function lupakanTahunTersusun(): void
+    {
+        self::$ingatanTahun = [];
     }
 
     /** @return BelongsTo<Profil, $this> */

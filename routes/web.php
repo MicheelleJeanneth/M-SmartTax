@@ -37,8 +37,11 @@ Route::post('/profil/lengkapi', [ProfilController::class, 'simpanLengkapi']);
 Route::middleware('profil.lengkap')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
+    // whereNumber menjaga URL salah ketik seperti /penghasilan/buat berhenti
+    // sebagai 404, bukan menabrak parameter int di controller dan jadi 500.
     Route::resource('penghasilan', PenghasilanController::class)
-        ->parameters(['penghasilan' => 'id']);
+        ->parameters(['penghasilan' => 'id'])
+        ->whereNumber('id');
 
     $kategori = 'kas|piutang|investasi|bergerak|tidak-bergerak|lainnya';
     Route::prefix('harta')->name('harta.')->controller(HartaController::class)->group(function () use ($kategori) {
@@ -51,7 +54,7 @@ Route::middleware('profil.lengkap')->group(function () {
         Route::delete('/{kategori}/{id}', 'destroy')->name('destroy')->where('kategori', $kategori)->whereNumber('id');
     });
 
-    Route::resource('utang', UtangController::class)->parameters(['utang' => 'id']);
+    Route::resource('utang', UtangController::class)->parameters(['utang' => 'id'])->whereNumber('id');
 
     Route::prefix('draf-bulanan')->name('draf-bulanan.')->controller(DrafBulananController::class)->group(function () {
         Route::get('/', 'index')->name('index');

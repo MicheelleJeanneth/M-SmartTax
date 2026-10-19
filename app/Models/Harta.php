@@ -99,10 +99,17 @@ class Harta extends Model
         return Attribute::get(fn (): ?string => $this->kodeHarta?->kode);
     }
 
-    /** Sudah masuk draf tahunan, sehingga tidak dapat diubah maupun dihapus. */
+    /**
+     * Terkunci bila ada draf tahunan tersusun yang memuat baris ini.
+     *
+     * Statusnya diturunkan dari tahun kepemilikan, bukan dari kolom
+     * id_draf_tahunan, karena satu harta dapat masuk draf beberapa tahun
+     * sekaligus sedangkan kolom itu hanya mampu menunjuk satu draf.
+     */
     protected function terkunci(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->id_draf_tahunan !== null);
+        return Attribute::get(fn (): bool => DrafTahunan::tahunTersusun((int) $this->id_profil)
+            ->contains(fn (int $tahun): bool => $this->dimilikiPada($tahun)));
     }
 
     /**
@@ -227,6 +234,13 @@ class Harta extends Model
         return $kueri->whereHas('kodeHarta', fn (Builder $k) => $k->where('kategori', $kategori));
     }
 
+    /** Aturan yang sama dengan scopeDimilikiPadaTahun, untuk satu baris. */
+    public function dimilikiPada(int $tahun): bool
+    {
+        return (int) $this->tahun_perolehan <= $tahun
+            && ($this->tahun_pelepasan === null || (int) $this->tahun_pelepasan > $tahun);
+    }
+
     /**
      * Harta yang dimiliki pada akhir satu tahun pajak: sudah diperoleh sampai
      * tahun itu dan belum dilepas.
@@ -235,11 +249,5 @@ class Harta extends Model
     {
         return $kueri->where('tahun_perolehan', '<=', $tahun)
             ->where(fn (Builder $k) => $k->whereNull('tahun_pelepasan')->orWhere('tahun_pelepasan', '>', $tahun));
-    }
-
-    /** Sudah masuk draf tahunan, sehingga terkunci. */
-    public function sudahDirekap(): bool
-    {
-        return $this->id_draf_tahunan !== null;
     }
 }

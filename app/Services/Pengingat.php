@@ -23,6 +23,15 @@ use Illuminate\Support\Collection;
  */
 class Pengingat
 {
+    /**
+     * Pasangan tahun dan bulan yang drafnya sudah tersusun. Dibaca sekali
+     * karena pemeriksaan 3.1 menelusuri setiap bulan dari tahun pertama
+     * sampai tahun berjalan.
+     *
+     * @var Collection<int, string>|null
+     */
+    private ?Collection $tersusun = null;
+
     public function __construct(
         private readonly AnalisisKeuangan $analisis,
         private readonly FilterTahun $filterTahun,
@@ -301,10 +310,11 @@ class Pengingat
 
     private function drafTersusun(int $tahun, int $bulan): bool
     {
-        return DrafBulanan::query()
+        $this->tersusun ??= DrafBulanan::query()
             ->where('id_profil', PenggunaSaatIni::id())
-            ->where('tahun_pajak', $tahun)
-            ->where('bulan', $bulan)
-            ->exists();
+            ->get(['tahun_pajak', 'bulan'])
+            ->map(fn (DrafBulanan $d): string => $d->tahun_pajak.'-'.$d->bulan);
+
+        return $this->tersusun->contains($tahun.'-'.$bulan);
     }
 }

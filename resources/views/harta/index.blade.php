@@ -89,7 +89,8 @@
                             @include('partials.aksi-baris', [
                                 'lihat' => route('harta.show', [$kategori, $h['id']]),
                                 'terkunci' => $h['terkunci'],
-                                'alasanKunci' => 'Sudah masuk draf pajak tahunan',
+                                'alasanKunci' => 'Sudah masuk draf pajak tahunan, hanya nilainya yang dapat diperbarui',
+                                'ubahNilai' => true,
                                 'ubah' => route('harta.edit', [$kategori, $h['id']]),
                                 'dialog' => 'hapus-harta-' . $h['id'],
                             ])

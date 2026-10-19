@@ -2,6 +2,8 @@
 
 namespace Tests;
 
+use App\Models\DrafTahunan;
+use App\Support\PenggunaSaatIni;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -15,4 +17,17 @@ abstract class TestCase extends BaseTestCase
     use RefreshDatabase;
 
     protected $seed = true;
+
+    /**
+     * Ingatan di bawah ini hidup selama satu permintaan HTTP. Di dalam tes,
+     * satu proses menjalankan banyak permintaan berturut-turut, jadi keduanya
+     * dibersihkan agar keadaan satu tes tidak terbawa ke tes berikutnya.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        PenggunaSaatIni::lupakan();
+        DrafTahunan::lupakanTahunTersusun();
+    }
 }

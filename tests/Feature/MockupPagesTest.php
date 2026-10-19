@@ -150,9 +150,14 @@ class MockupPagesTest extends TestCase
 
     public function test_data_terkunci_tidak_bisa_diubah_lewat_url(): void
     {
+        // Penghasilan terkunci tertutup sepenuhnya: tidak ada nilai berjalan
+        // yang masih perlu diperbarui pada satu transaksi.
         $this->get('/penghasilan/'.$this->penghasilanTerkunci().'/edit')->assertForbidden();
-        $this->get('/harta/kas/2/ubah')->assertForbidden();
-        $this->get('/utang/1/edit')->assertForbidden();
+
+        // Harta dan utang terkunci membuka formulir khusus nilai, bukan
+        // formulir penuh. Aturan rincinya diuji di KunciPeriodeBerdrafTest.
+        $this->get('/harta/kas/2/ubah')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
+        $this->get('/utang/1/edit')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
     }
 
     public function test_tanggal_tidak_boleh_dipindah_ke_bulan_yang_drafnya_sudah_disusun(): void

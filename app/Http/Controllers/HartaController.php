@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Harta;
 use App\Models\KodeHarta;
 use App\Models\Profil;
+use App\Services\KunciPencatatan;
 use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,8 @@ use Illuminate\View\View;
 
 class HartaController extends Controller
 {
+    public function __construct(private readonly KunciPencatatan $kunci) {}
+
     public function index(Request $request, string $kategori = 'kas'): View
     {
         $data = $this->dataKategori($kategori);
@@ -94,21 +97,23 @@ class HartaController extends Controller
 
     public function edit(string $kategori, int $id): View
     {
-        $item = $this->cari($kategori, $id);
-
-        if ($item->terkunci) {
-            abort(403, 'Data harta ini sudah masuk draf tahunan. Batalkan draf tahunan terlebih dahulu untuk mengubahnya.');
-        }
-
-        return view('harta.edit', [...$this->dataKategori($kategori), 'item' => $item]);
+        return view('harta.edit', [
+            ...$this->dataKategori($kategori),
+            'item' => $this->cari($kategori, $id),
+        ]);
     }
 
     public function update(Request $request, string $kategori, int $id): RedirectResponse
     {
         $harta = $this->cari($kategori, $id);
 
+        // Baris yang sudah masuk draf tahunan hanya boleh diperbarui nilainya.
+        // Kode, tahun, dan rinciannya tetap terkunci karena itulah yang
+        // menentukan draf tahun mana yang memuat baris ini.
         if ($harta->terkunci) {
-            abort(403, 'Data harta ini sudah masuk draf tahunan dan tidak dapat diubah.');
+            $harta->update($this->sahkanNilai($request));
+
+            return redirect()->route('harta.index', $kategori)->with('sukses', 'Nilai harta diperbarui.');
         }
 
         [$induk, $rincian] = $this->sahkan($request, $kategori);
@@ -130,6 +135,35 @@ class HartaController extends Controller
         $harta->hapus();
 
         return redirect()->route('harta.index', $kategori)->with('sukses', 'Data harta dihapus.');
+    }
+
+    /**
+     * Memeriksa isian untuk baris terkunci, yang hanya boleh mengubah nilai.
+     *
+     * Laporan tahun yang sudah tersusun membaca salinan bekunya sendiri,
+     * sehingga memperbarui nilai sekarang tidak mengubah angka di laporan itu.
+     *
+     * @return array<string, mixed>
+     */
+    private function sahkanNilai(Request $request): array
+    {
+        $request->merge([
+            'nilai' => $this->bilangan($request->input('nilai')),
+            'nilai_kini' => $this->bilangan($request->input('nilai_kini')),
+        ]);
+
+        $sah = $request->validate([
+            'nilai' => ['required', 'integer', 'min:1'],
+            'nilai_kini' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'nilai.required' => 'Nilai wajib diisi.',
+            'nilai.min' => 'Nilai harus lebih besar dari nol.',
+        ]);
+
+        return [
+            'nilai' => $sah['nilai'],
+            'nilai_saat_ini' => $sah['nilai_kini'] ?? null,
+        ];
     }
 
     /**
@@ -167,6 +201,8 @@ class HartaController extends Controller
             'tahun_pelepasan.digits' => 'Tahun pelepasan ditulis empat angka.',
         ]);
 
+        $this->tolakTahunBerdraf($sah);
+
         $kode = KodeHarta::where('kategori', $kategori)->where('kode', $sah['kode'])->firstOr(
             fn () => throw ValidationException::withMessages(['kode' => 'Kode harta tidak dikenali.'])
         );
@@ -194,6 +230,26 @@ class HartaController extends Controller
         }
 
         return [$induk, $rincian];
+    }
+
+    /**
+     * Harta yang dimiliki pada tahun berdraf ikut lampiran draf tahunan itu,
+     * jadi barisnya tidak boleh dicatat maupun dipindahkan ke sana.
+     *
+     * @param  array<string, mixed>  $sah
+     *
+     * @throws ValidationException
+     */
+    private function tolakTahunBerdraf(array $sah): void
+    {
+        $terkunci = $this->kunci->tahunTerkunci(
+            (int) $sah['tahun'],
+            isset($sah['tahun_pelepasan']) ? (int) $sah['tahun_pelepasan'] : null,
+        );
+
+        if ($terkunci !== null) {
+            throw ValidationException::withMessages(['tahun' => $this->kunci->pesanTahun($terkunci)]);
+        }
     }
 
     /**

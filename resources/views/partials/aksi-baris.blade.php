@@ -1,5 +1,11 @@
-{{-- Aksi baris tabel: lihat / ubah / hapus, atau gembok bila terkunci. --}}
-@php $lihat = $lihat ?? null; @endphp
+{{--
+    Aksi baris tabel: lihat / ubah / hapus, atau gembok bila terkunci.
+
+    'ubahNilai' dipakai baris yang terkunci tetapi nilainya masih boleh
+    diperbarui, yaitu harta dan utang yang sudah masuk draf tahunan. Gemboknya
+    tetap tampil karena penghapusannya masih tertutup.
+--}}
+@php $lihat = $lihat ?? null; $ubahNilai = $ubahNilai ?? false; @endphp
 <div class="flex items-center justify-end gap-1">
     @if($lihat)
         <a href="{{ $lihat }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Lihat detail">
@@ -7,6 +13,11 @@
         </a>
     @endif
     @if($terkunci)
+        @if($ubahNilai)
+            <a href="{{ $ubah }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Perbarui nilai" title="Perbarui nilai">
+                <x-icon name="pencil" :size="18" />
+            </a>
+        @endif
         <span class="p-2 text-locked" title="{{ $alasanKunci ?? 'Sudah masuk draf' }}" aria-label="{{ $alasanKunci ?? 'Sudah masuk draf' }}">
             <x-icon name="lock" :size="18" />
         </span>

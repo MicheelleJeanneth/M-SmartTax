@@ -53,7 +53,8 @@
                             @include('partials.aksi-baris', [
                                 'lihat' => route('utang.show', $u['id']),
                                 'terkunci' => $u['terkunci'],
-                                'alasanKunci' => 'Sudah masuk draf pajak tahunan',
+                                'alasanKunci' => 'Sudah masuk draf pajak tahunan, hanya saldonya yang dapat diperbarui',
+                                'ubahNilai' => true,
                                 'ubah' => route('utang.edit', $u['id']),
                                 'dialog' => 'hapus-utang-' . $u['id'],
                             ])

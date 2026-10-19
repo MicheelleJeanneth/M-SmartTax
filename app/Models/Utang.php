@@ -61,10 +61,16 @@ class Utang extends Model
         return Attribute::get(fn (): ?string => $this->kodeUtang?->kode);
     }
 
-    /** Sudah masuk draf tahunan, sehingga tidak dapat diubah maupun dihapus. */
+    /**
+     * Terkunci bila ada draf tahunan tersusun yang memuat baris ini.
+     *
+     * Sama seperti harta, statusnya diturunkan dari tahun berlakunya karena
+     * satu utang dapat masuk draf beberapa tahun sekaligus.
+     */
     protected function terkunci(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->id_draf_tahunan !== null);
+        return Attribute::get(fn (): bool => DrafTahunan::tahunTersusun((int) $this->id_profil)
+            ->contains(fn (int $tahun): bool => $this->berlakuPada($tahun)));
     }
 
     /** @return BelongsTo<Profil, $this> */
@@ -83,6 +89,13 @@ class Utang extends Model
     public function drafTahunan(): BelongsTo
     {
         return $this->belongsTo(DrafTahunan::class, 'id_draf_tahunan');
+    }
+
+    /** Aturan yang sama dengan scopeBerlakuPadaTahun, untuk satu baris. */
+    public function berlakuPada(int $tahun): bool
+    {
+        return (int) $this->tahun_peminjaman <= $tahun
+            && ($this->tahun_pelunasan === null || (int) $this->tahun_pelunasan > $tahun);
     }
 
     /**

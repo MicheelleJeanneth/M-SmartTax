@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\KodeUtang;
 use App\Models\Profil;
 use App\Models\Utang;
+use App\Services\KunciPencatatan;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,8 @@ use Illuminate\View\View;
 
 class UtangController extends Controller
 {
+    public function __construct(private readonly KunciPencatatan $kunci) {}
+
     public function index(Request $request): View
     {
         $cari = trim((string) $request->query('cari', ''));
@@ -64,21 +67,21 @@ class UtangController extends Controller
 
     public function edit(int $id): View
     {
-        $utang = $this->cari($id);
-
-        if ($utang->terkunci) {
-            abort(403, 'Data utang ini sudah masuk draf tahunan. Batalkan draf tahunan terlebih dahulu untuk mengubahnya.');
-        }
-
-        return view('utang.edit', ['utang' => $utang]);
+        return view('utang.edit', ['utang' => $this->cari($id)]);
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
         $utang = $this->cari($id);
 
+        // Saldo utang menyusut tiap tahun, jadi baris yang sudah masuk draf
+        // tahunan tetap boleh diperbarui saldo dan cicilannya. Kode, kreditur,
+        // dan tahunnya terkunci karena menentukan draf tahun mana yang
+        // memuatnya.
         if ($utang->terkunci) {
-            abort(403, 'Data utang ini sudah masuk draf tahunan dan tidak dapat diubah.');
+            $utang->update($this->sahkanNilai($request));
+
+            return redirect()->route('utang.index')->with('sukses', 'Saldo utang diperbarui.');
         }
 
         $utang->update($this->sahkan($request));
@@ -104,6 +107,35 @@ class UtangController extends Controller
      *
      * @throws ValidationException
      */
+    /**
+     * Memeriksa isian untuk baris terkunci, yang hanya boleh mengubah saldo
+     * dan cicilannya.
+     *
+     * Laporan tahun yang sudah tersusun membaca salinan bekunya sendiri,
+     * sehingga memperbarui saldo sekarang tidak mengubah angka di laporan itu.
+     *
+     * @return array<string, mixed>
+     */
+    private function sahkanNilai(Request $request): array
+    {
+        $request->merge([
+            'saldo' => $this->bilangan($request->input('saldo')),
+            'cicilan_bulanan' => $this->bilangan($request->input('cicilan_bulanan')),
+        ]);
+
+        $sah = $request->validate([
+            'saldo' => ['required', 'integer', 'min:0'],
+            'cicilan_bulanan' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'saldo.required' => 'Saldo wajib diisi.',
+        ]);
+
+        return [
+            'saldo' => $sah['saldo'],
+            'cicilan_bulanan' => $sah['cicilan_bulanan'] ?? null,
+        ];
+    }
+
     private function sahkan(Request $request): array
     {
         $request->merge([
@@ -132,6 +164,16 @@ class UtangController extends Controller
             'nama_kreditur.required' => 'Nama kreditur wajib diisi.',
             'nik_kreditur.digits' => 'NIK kreditur terdiri dari 16 angka.',
         ]);
+
+        $terkunci = $this->kunci->tahunTerkunci(
+            (int) $sah['tahun_peminjaman'],
+            isset($sah['tahun_pelunasan']) ? (int) $sah['tahun_pelunasan'] : null,
+        );
+
+        // Utang yang berlaku pada tahun berdraf ikut lampiran draf tahunan itu.
+        if ($terkunci !== null) {
+            throw ValidationException::withMessages(['tahun_peminjaman' => $this->kunci->pesanTahun($terkunci)]);
+        }
 
         $kode = KodeUtang::where('kode', $sah['kode'])->firstOr(
             fn () => throw ValidationException::withMessages(['kode' => 'Kode utang tidak dikenali.'])

@@ -132,10 +132,9 @@ class PenyusunDrafTahunan
 
             DrafBulanan::whereIn('id_draf_bulanan', $bulanan->pluck('id_draf_bulanan'))
                 ->update(['id_draf_tahunan' => $draf->id_draf_tahunan]);
-            Harta::whereIn('id_harta', $harta->pluck('id_harta'))
-                ->update(['id_draf_tahunan' => $draf->id_draf_tahunan]);
-            Utang::whereIn('id_utang', $utang->pluck('id_utang'))
-                ->update(['id_draf_tahunan' => $draf->id_draf_tahunan]);
+
+            DrafTahunan::lupakanTahunTersusun();
+            $this->segarkanPenanda((int) $draf->id_profil);
 
             return $draf;
         });
@@ -147,13 +146,54 @@ class PenyusunDrafTahunan
     public function batalkan(DrafTahunan $draf): void
     {
         DB::transaction(function () use ($draf): void {
+            $profil = (int) $draf->id_profil;
+
             DrafBulanan::where('id_draf_tahunan', $draf->id_draf_tahunan)->update(['id_draf_tahunan' => null]);
-            Harta::where('id_draf_tahunan', $draf->id_draf_tahunan)->update(['id_draf_tahunan' => null]);
-            Utang::where('id_draf_tahunan', $draf->id_draf_tahunan)->update(['id_draf_tahunan' => null]);
 
             // Lampiran ikut terhapus lewat kunci asing bercabang hapus.
             $draf->delete();
+
+            DrafTahunan::lupakanTahunTersusun();
+            $this->segarkanPenanda($profil);
         });
+    }
+
+    /**
+     * Mengarahkan penanda id_draf_tahunan pada harta dan utang ke draf
+     * tersusun paling baru yang masih memuat baris itu, atau mengosongkannya
+     * bila tidak ada draf yang memuatnya.
+     *
+     * Satu harta dapat termuat beberapa draf tahunan sekaligus, sedangkan
+     * kolomnya hanya mampu menunjuk satu draf. Karena itu penandanya disusun
+     * ulang setiap kali draf disusun maupun dibatalkan, dan status terkunci
+     * sendiri dibaca dari tahunnya lewat accessor terkunci.
+     */
+    private function segarkanPenanda(int $profil): void
+    {
+        $draf = DrafTahunan::query()
+            ->where('id_profil', $profil)
+            ->orderByDesc('tahun_pajak')
+            ->get();
+
+        $hartas = Harta::query()->where('id_profil', $profil)->get()
+            ->groupBy(fn (Harta $h): int => (int) ($draf->first(
+                fn (DrafTahunan $d): bool => $h->dimilikiPada((int) $d->tahun_pajak)
+            )?->id_draf_tahunan ?? 0));
+
+        foreach ($hartas as $id => $baris) {
+            Harta::whereIn('id_harta', $baris->pluck('id_harta'))
+                ->update(['id_draf_tahunan' => $id ?: null]);
+        }
+
+        $utangs = Utang::query()->where('id_profil', $profil)->get()
+            ->groupBy(fn (Utang $u): int => (int) ($draf->first(
+                fn (DrafTahunan $d): bool => $u->berlakuPada((int) $d->tahun_pajak)
+            )?->id_draf_tahunan ?? 0));
+
+        foreach ($utangs as $id => $baris) {
+            Utang::whereIn('id_utang', $baris->pluck('id_utang'))
+                ->update(['id_draf_tahunan' => $id ?: null]);
+        }
     }
 
     /**
