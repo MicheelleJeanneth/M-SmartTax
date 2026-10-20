@@ -17,7 +17,16 @@ use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-class MockupPagesTest extends TestCase
+/**
+ * Pengujian lintas halaman: setiap halaman dapat dibuka, judul dan sapaannya
+ * benar, serta aturan yang tidak terikat satu fitur saja ikut terjaga —
+ * autentikasi halaman, kunci periode berdraf, pemeriksaan NIK, dan kolom yang
+ * sengaja dibuat terkunci.
+ *
+ * Aturan yang punya berkas sendiri diuji terpisah: KunciPeriodeBerdrafTest,
+ * PembatalanBerantaiTest, dan AutentikasiTest.
+ */
+class HalamanAplikasiTest extends TestCase
 {
     /**
      * @return array<string, array{string}>
@@ -43,7 +52,7 @@ class MockupPagesTest extends TestCase
     }
 
     #[DataProvider('halaman')]
-    public function test_halaman_mockup_dapat_dibuka(string $uri): void
+    public function test_setiap_halaman_dapat_dibuka(string $uri): void
     {
         $this->get($uri)->assertOk();
     }
