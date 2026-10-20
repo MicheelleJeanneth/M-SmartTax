@@ -7,6 +7,7 @@ use App\Models\DrafTahunan;
 use App\Services\AnalisisKeuangan;
 use App\Services\FilterTahun;
 use App\Services\PenyusunDrafTahunan;
+use App\Services\PerhitunganPajak;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class DrafTahunanController extends Controller
         private readonly FilterTahun $filterTahun,
         private readonly AnalisisKeuangan $analisis,
         private readonly PenyusunDrafTahunan $penyusun,
+        private readonly PerhitunganPajak $pajak,
     ) {}
 
     public function index(): View
@@ -34,6 +36,7 @@ class DrafTahunanController extends Controller
                     ->where('id_profil', PenggunaSaatIni::id())
                     ->where('tahun_pajak', $tahun)
                     ->count(),
+                'draf_bulanan_wajib' => $this->pajak->jumlahWajib($tahun),
                 // Tahun yang drafnya tersusun memakai angka beku; sisanya keadaan sekarang.
                 'bruto' => (int) ($draf?->total_peredaran_bruto ?? $this->analisis->peredaranBruto($tahun)),
                 'pph_final' => (int) ($draf?->total_pph_final ?? 0),
@@ -60,7 +63,11 @@ class DrafTahunanController extends Controller
             ->where('tahun_pajak', $tahun)
             ->count();
 
-        abort_if($lengkap < 12, 403, 'Draf tahunan hanya dapat disusun setelah seluruh dua belas draf bulanan selesai.');
+        // Tahun yang dimulai di tengah tidak butuh dua belas draf, melainkan
+        // sebanyak bulan sejak penghasilan pertama sampai Desember.
+        $wajib = $this->pajak->jumlahWajib($tahun);
+
+        abort_if($wajib === 0 || $lengkap < $wajib, 403, 'Draf tahunan hanya dapat disusun setelah seluruh draf bulanan tahun ini selesai.');
 
         return view('draf-tahunan.susun', $this->penyusun->perkiraan($tahun));
     }

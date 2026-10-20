@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('judul', 'Draf Pajak Penghasilan Tahunan')
-@section('keterangan', 'Draf SPT Tahunan disusun setelah dua belas draf bulanan lengkap.')
+@section('keterangan', 'Draf SPT Tahunan disusun setelah seluruh draf bulanan tahun itu lengkap.')
 
 @section('isi')
     <x-info varian="kuning" class="mb-4">
@@ -12,7 +12,7 @@
             @foreach($draf as $d)
                 <tr>
                     <td class="font-medium tabular-nums">{{ $d['tahun'] }}</td>
-                    <td class="tabular-nums {{ $d['draf_bulanan'] < 12 ? 'text-warn-ink' : '' }}">{{ $d['draf_bulanan'] }} dari 12</td>
+                    <td class="tabular-nums {{ $d['draf_bulanan'] < $d['draf_bulanan_wajib'] ? 'text-warn-ink' : '' }}">{{ $d['draf_bulanan'] }} dari {{ $d['draf_bulanan_wajib'] }}</td>
                     <td class="text-right tabular-nums">{{ rupiah($d['bruto']) }}</td>
                     <td class="text-right tabular-nums">{{ rupiah($d['pph_final']) }}</td>
                     <td class="text-right tabular-nums">{{ rupiah($d['kekayaan_bersih']) }}</td>
@@ -31,11 +31,11 @@
                                 @else
                                     <span class="p-2 text-muted" title="Batalkan draf tahun setelahnya terlebih dahulu" aria-hidden="true"><x-icon name="circle-x" :size="18" /></span>
                                 @endif
-                            @elseif($d['draf_bulanan'] === 12)
+                            @elseif($d['draf_bulanan_wajib'] > 0 && $d['draf_bulanan'] >= $d['draf_bulanan_wajib'])
                                 <x-button :href="route('draf-tahunan.create', ['tahun' => $d['tahun']])" class="!h-9 !px-4 !text-sm">Susun</x-button>
                             @else
-                                {{-- Belum genap dua belas draf bulanan: tulisan biasa, bukan tombol mati. --}}
-                                <span class="px-5 py-2 text-sm text-ink-3" title="Lengkapi dua belas draf bulanan terlebih dahulu">Susun</span>
+                                {{-- Draf bulanannya belum lengkap: tulisan biasa, bukan tombol mati. --}}
+                                <span class="px-5 py-2 text-sm text-ink-3" title="Lengkapi seluruh draf bulanan tahun ini terlebih dahulu">Susun</span>
                             @endif
                         </div>
                     </td>
@@ -45,7 +45,7 @@
     </x-card>
 
     <x-info varian="biru-muda" class="mt-4">
-        Draf tahunan hanya dapat disusun setelah seluruh dua belas draf bulanan selesai, dan akan mengunci draf bulanan, data harta, serta data utang pada tahun tersebut.
+        Draf tahunan hanya dapat disusun setelah seluruh draf bulanan tahun itu selesai, dan akan mengunci draf bulanan, data harta, serta data utang pada tahun tersebut.
         Pembatalan hanya dapat dimulai dari tahun terakhir; untuk membatalkan tahun sebelumnya, batalkan dulu draf tahun setelahnya.
     </x-info>
 
@@ -57,7 +57,7 @@
         <div class="mt-4 rounded-field bg-warn-bg px-4 py-3.5 text-sm text-warn-ink">
             <p class="font-medium">Data berikut akan terbuka kembali dan dapat diubah:</p>
             <ul class="mt-2 list-disc space-y-1 pl-5">
-                <li>12 draf PPh Final bulanan tahun {{ $batal['tahun'] }}</li>
+                <li>Seluruh draf PPh Final bulanan tahun {{ $batal['tahun'] }}</li>
                 <li>Seluruh data harta pada enam kategori</li>
                 <li>Seluruh data utang</li>
             </ul>

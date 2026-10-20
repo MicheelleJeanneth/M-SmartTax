@@ -20,7 +20,74 @@ use Illuminate\Support\Collection;
  */
 class PerhitunganPajak
 {
+    /**
+     * Penghasilan paling awal milik pengguna, dibaca sekali per permintaan.
+     *
+     * @var array{0: bool, 1: Carbon|null}
+     */
+    private array $awal = [false, null];
+
     public function __construct(private AnalisisKeuangan $analisis) {}
+
+    /**
+     * Bulan pertama pada satu tahun yang menjadi kewajiban wajib pajak.
+     *
+     * Wajib pajak yang baru mulai mencatat pada Oktober tidak punya masa pajak
+     * Januari sampai September, jadi rantai draf tahun itu dimulai dari Oktober.
+     * Bila ia sudah mencatat sejak tahun sebelumnya, rantainya mulai Januari.
+     * Null berarti tahun itu belum menjadi kewajibannya sama sekali.
+     */
+    public function bulanPertama(int $tahun): ?int
+    {
+        $awal = $this->awalPencatatan();
+
+        if ($awal === null || (int) $awal->year > $tahun) {
+            return null;
+        }
+
+        return (int) $awal->year < $tahun ? 1 : (int) $awal->month;
+    }
+
+    /** Banyaknya draf bulanan yang membuat satu tahun pajak lengkap. */
+    public function jumlahWajib(int $tahun): int
+    {
+        $pertama = $this->bulanPertama($tahun);
+
+        return $pertama === null ? 0 : 13 - $pertama;
+    }
+
+    /**
+     * Bulan yang giliran disusun berikutnya, atau null bila tidak ada lagi.
+     *
+     * Draf disusun berurutan, tetapi urutannya dimulai dari bulan pertama yang
+     * menjadi kewajiban, bukan dari Januari.
+     */
+    public function bulanBerikutnya(int $tahun): ?int
+    {
+        $pertama = $this->bulanPertama($tahun);
+
+        if ($pertama === null) {
+            return null;
+        }
+
+        $terakhir = $this->drafTahun($tahun)->keys()->max();
+        $berikut = $terakhir === null ? $pertama : (int) $terakhir + 1;
+
+        return $berikut > 12 ? null : $berikut;
+    }
+
+    private function awalPencatatan(): ?Carbon
+    {
+        if (! $this->awal[0]) {
+            $paling = Penghasilan::query()
+                ->where('id_profil', PenggunaSaatIni::id())
+                ->min('tanggal');
+
+            $this->awal = [true, $paling === null ? null : Carbon::parse($paling)];
+        }
+
+        return $this->awal[1];
+    }
 
     /**
      * Dua belas baris tetap untuk tabel Draf Pajak Penghasilan Bulanan.
@@ -32,7 +99,8 @@ class PerhitunganPajak
         $bruto = $this->analisis->brutoPerBulan($tahun);
         $draf = $this->drafTahun($tahun);
         $terakhirTersusun = $draf->keys()->max() ?? 0;
-        $konfigurasi = $this->konfigurasi($tahun);
+        $pertamaWajib = $this->bulanPertama($tahun);
+        $berikutnya = $this->bulanBerikutnya($tahun);
 
         $akumulasi = 0;
         $baris = [];
@@ -58,8 +126,10 @@ class PerhitunganPajak
                     default => 'tersusun',
                 },
                 'terkunci_tahunan' => $tersusun?->id_draf_tahunan !== null,
-                // Draf disusun berurutan: hanya bulan tepat setelah yang terakhir.
-                'boleh_susun' => $bulan === $terakhirTersusun + 1,
+                // Bulan sebelum penghasilan pertama bukan masa pajaknya.
+                'wajib' => $pertamaWajib !== null && $bulan >= $pertamaWajib,
+                // Draf disusun berurutan, mulai dari bulan pertama yang wajib.
+                'boleh_susun' => $bulan === $berikutnya,
                 // Setiap bulan tersusun boleh dibatalkan, kecuali yang sudah
                 // dikunci draf tahunan. Bulan sesudahnya ikut terbatalkan.
                 'boleh_batal' => $tersusun !== null && $tersusun->id_draf_tahunan === null,

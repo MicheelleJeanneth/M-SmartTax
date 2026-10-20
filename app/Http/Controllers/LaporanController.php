@@ -49,6 +49,7 @@ class LaporanController extends Controller
             'daftarTahun' => $this->filterTahun->daftar(),
             'tersedia' => $this->tersedia($jenis, $filter),
             'tanpaPenghasilan' => $this->tanpaPenghasilan($filter['tahun']),
+            'diluarMasaPajak' => $this->diluarMasaPajak($jenis, $filter),
             'tahunPenghasilanPertama' => min($this->filterTahun->daftarPenghasilan()),
         ]);
     }
@@ -113,7 +114,13 @@ class LaporanController extends Controller
         return $terbaru === null ? $this->filterTahun->tahunBerjalan() : (int) $terbaru;
     }
 
-    /** Bulan terakhir yang drafnya tersusun pada tahun itu; Januari bila belum ada satu pun. */
+    /**
+     * Bulan terakhir yang drafnya tersusun pada tahun itu.
+     *
+     * Bila belum ada satu pun, dibuka bulan pertama yang menjadi kewajiban
+     * wajib pajak — bukan Januari, yang bagi pengguna baru justru bulan yang
+     * tidak pernah bisa disusun.
+     */
     private function bulanBawaan(int $tahun): int
     {
         $terakhir = DrafBulanan::query()
@@ -121,7 +128,27 @@ class LaporanController extends Controller
             ->where('tahun_pajak', $tahun)
             ->max('bulan');
 
-        return $terakhir === null ? 1 : (int) $terakhir;
+        return $terakhir === null
+            ? ($this->pajak->bulanPertama($tahun) ?? 1)
+            : (int) $terakhir;
+    }
+
+    /**
+     * Benar bila bulan yang dipilih berada sebelum penghasilan pertama
+     * tercatat, sehingga bukan masa pajak pengguna dan tidak akan pernah
+     * punya draf.
+     *
+     * @param  array{tahun: int, bulan: int}  $filter
+     */
+    private function diluarMasaPajak(string $jenis, array $filter): bool
+    {
+        if ($jenis !== 'draf-bulanan') {
+            return false;
+        }
+
+        $pertama = $this->pajak->bulanPertama($filter['tahun']);
+
+        return $pertama !== null && $filter['bulan'] < $pertama;
     }
 
     /**

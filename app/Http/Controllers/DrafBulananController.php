@@ -35,6 +35,8 @@ class DrafBulananController extends Controller
             'daftarTahun' => $daftarTahun,
             'draf' => $draf,
             'jumlahTersusun' => $tersusun->count(),
+            // Tahun yang dimulai di tengah lengkap dengan draf lebih sedikit dari dua belas.
+            'jumlahWajib' => $this->pajak->jumlahWajib($tahun),
             'akumulasi' => $tersusun->sum('bruto'),
             'totalPph' => $tersusun->sum('pph_final'),
         ]);
@@ -43,7 +45,18 @@ class DrafBulananController extends Controller
     public function create(Request $request): View
     {
         $tahun = $this->filterTahun->pilih($request->query('tahun'), $this->filterTahun->daftarPenghasilan());
-        $bulan = (int) $request->query('bulan', $this->bulanBerikutnya($tahun));
+        // bulanBerikutnya bernilai null karena dua sebab: tahun itu belum
+        // menjadi kewajiban sama sekali, atau drafnya sudah lengkap. Hanya
+        // sebab pertama yang perlu ditolak di sini.
+        abort_if(
+            $this->pajak->jumlahWajib($tahun) === 0,
+            403,
+            'Belum ada penghasilan tercatat pada tahun ini, jadi belum ada draf yang dapat disusun.',
+        );
+
+        // Tanpa bulan di alamatnya, dibuka bulan yang giliran disusun. Tahun
+        // yang sudah lengkap tidak punya giliran, jadi berhenti sebagai 404.
+        $bulan = (int) $request->query('bulan', $this->pajak->bulanBerikutnya($tahun) ?? 13);
         abort_unless($bulan >= 1 && $bulan <= 12, 404);
 
         return view('draf-bulanan.susun', $this->pajak->perhitungan($bulan, $tahun));
@@ -56,8 +69,14 @@ class DrafBulananController extends Controller
     {
         [$bulan, $tahun] = $this->periode($request);
 
-        // Draf disusun berurutan: hanya bulan tepat setelah yang terakhir tersusun.
-        abort_unless($bulan === $this->bulanBerikutnya($tahun), 403, 'Susun draf bulan sebelumnya terlebih dahulu.');
+        abort_if(
+            $this->pajak->jumlahWajib($tahun) === 0,
+            403,
+            'Belum ada penghasilan tercatat pada tahun ini, jadi belum ada draf yang dapat disusun.',
+        );
+
+        // Draf disusun berurutan, mulai dari bulan pertama yang wajib.
+        abort_unless($bulan === $this->pajak->bulanBerikutnya($tahun), 403, 'Susun draf bulan sebelumnya terlebih dahulu.');
 
         $hitung = $this->pajak->perhitungan($bulan, $tahun);
 
@@ -135,12 +154,6 @@ class DrafBulananController extends Controller
             ->with('sukses', $ikut->count() === 1
                 ? "Draf {$nama} dibatalkan. Data penghasilan bulan tersebut dapat diubah kembali."
                 : "{$ikut->count()} draf dibatalkan, mulai {$nama}. Data penghasilannya dapat diubah kembali.");
-    }
-
-    /** Bulan yang giliran disusun berikutnya pada satu tahun. */
-    private function bulanBerikutnya(int $tahun): int
-    {
-        return ($this->pajak->drafTahun($tahun)->keys()->max() ?? 0) + 1;
     }
 
     /**

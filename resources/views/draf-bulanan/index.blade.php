@@ -17,7 +17,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <x-stat label="Akumulasi Penghasilan" :nilai="rupiah($akumulasi)" />
         <x-stat label="Total PPh Final" :nilai="rupiah($totalPph)" />
-        <x-stat varian="putih" label="Draf Tersusun" :nilai="$jumlahTersusun . ' dari 12'" />
+        <x-stat varian="putih" label="Draf Tersusun" :nilai="$jumlahTersusun . ' dari ' . max($jumlahWajib, $jumlahTersusun)" />
     </div>
 
     <x-info varian="kuning" class="mt-4">
@@ -34,7 +34,13 @@
                     <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['akumulasi']) : '-' }}</td>
                     <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['omzet_kena_pajak']) : '-' }}</td>
                     <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['pph_final']) : '-' }}</td>
-                    <td><x-badge :status="$d['status']" /></td>
+                    <td>
+                        @if($sudah || $d['wajib'])
+                            <x-badge :status="$d['status']" />
+                        @else
+                            <span class="text-[13px] text-muted">&mdash;</span>
+                        @endif
+                    </td>
                     <td>
                         <div class="flex items-center justify-end gap-1">
                             @if($sudah)
@@ -56,6 +62,10 @@
                                 @endif
                             @elseif($d['boleh_susun'])
                                 <x-button :href="route('draf-bulanan.create', ['bulan' => $d['bulan'], 'tahun' => $tahun])" class="!h-9 !px-5 !text-sm">Susun</x-button>
+                            @elseif(! $d['wajib'])
+                                {{-- Sebelum penghasilan pertama tercatat: bukan masa pajaknya,
+                                     jadi tidak ada draf yang perlu disusun di sini. --}}
+                                <span class="px-5 py-2 text-sm text-muted" title="Belum ada penghasilan tercatat sampai bulan ini">&mdash;</span>
                             @else
                                 {{-- Bulan yang belum tiba gilirannya: tulisan biasa, bukan tombol mati. --}}
                                 <span class="px-5 py-2 text-sm text-ink-3" title="Susun draf bulan sebelumnya terlebih dahulu">Susun</span>

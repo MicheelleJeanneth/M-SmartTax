@@ -2,7 +2,7 @@
 @section('periode', 'Tahun Pajak ' . $tahun)
 
 @section('isi')
-    <h2>A. Rekap Peredaran Bruto 12 Bulan</h2>
+    <h2>A. Rekap Peredaran Bruto {{ count($rekap) }} Bulan</h2>
     <table class="data">
         <thead><tr><th>Bulan</th><th class="r">Peredaran Bruto</th><th class="r">Omzet Kena Pajak</th><th class="r">PPh Final</th></tr></thead>
         <tbody>

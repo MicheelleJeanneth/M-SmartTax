@@ -54,7 +54,13 @@
                 : (\App\Support\MockData::bulan()[$bulan] ?? '').' '.$tahun;
         @endphp
 
-        @if($tanpaPenghasilan)
+        @if($diluarMasaPajak)
+            {{-- Bulan sebelum penghasilan pertama bukan masa pajaknya, jadi
+                 tidak ada draf yang bisa disusun di sana. --}}
+            <x-empty ikon="file-text" :judul="'Tidak ada draf untuk ' . $periode">
+                Penghasilan pertama Anda tercatat setelah bulan ini, sehingga {{ $periode }} bukan masa pajak Anda dan tidak memiliki draf.
+            </x-empty>
+        @elseif($tanpaPenghasilan)
             {{-- Tahun tanpa penghasilan tidak mungkin punya draf, jadi tombol
                  menyusun tidak ditawarkan: tidak ada yang bisa disusun di sana. --}}
             @php $sebutan = $jenis === 'draf-tahunan' ? 'draf tahunan' : 'draf bulanan'; @endphp

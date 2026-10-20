@@ -35,6 +35,7 @@ class Pengingat
     public function __construct(
         private readonly AnalisisKeuangan $analisis,
         private readonly FilterTahun $filterTahun,
+        private readonly PerhitunganPajak $pajak,
     ) {}
 
     /**
@@ -236,7 +237,7 @@ class Pengingat
     }
 
     /**
-     * 3.3 Dua belas draf bulanan lengkap tetapi draf tahunannya belum ada.
+     * 3.3 Seluruh draf bulanan satu tahun lengkap tetapi draf tahunannya belum ada.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -245,12 +246,16 @@ class Pengingat
         $profil = PenggunaSaatIni::id();
         $pengingat = [];
 
+        // Tahun yang dimulai di tengah lengkap dengan draf lebih sedikit dari
+        // dua belas, jadi ambangnya dihitung per tahun.
         $lengkap = DrafBulanan::query()
             ->where('id_profil', $profil)
             ->selectRaw('tahun_pajak, COUNT(*) as jumlah')
             ->groupBy('tahun_pajak')
-            ->having('jumlah', '>=', 12)
-            ->pluck('tahun_pajak');
+            ->pluck('jumlah', 'tahun_pajak')
+            ->filter(fn ($jumlah, $tahun): bool => $this->pajak->jumlahWajib((int) $tahun) > 0
+                && (int) $jumlah >= $this->pajak->jumlahWajib((int) $tahun))
+            ->keys();
 
         $sudahTersusun = DrafTahunan::query()->where('id_profil', $profil)->pluck('tahun_pajak');
 

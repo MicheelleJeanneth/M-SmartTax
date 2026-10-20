@@ -84,8 +84,10 @@ class PenyusunDrafTahunan
     {
         $bulanan = $this->bulanan($tahun);
 
-        if ($bulanan->count() < 12) {
-            abort(403, 'Draf tahunan hanya dapat disusun setelah seluruh dua belas draf bulanan selesai.');
+        $wajib = $this->pajak->jumlahWajib($tahun);
+
+        if ($wajib === 0 || $bulanan->count() < $wajib) {
+            abort(403, 'Draf tahunan hanya dapat disusun setelah seluruh draf bulanan tahun ini selesai.');
         }
 
         $harta = $this->hartaHidup($tahun);

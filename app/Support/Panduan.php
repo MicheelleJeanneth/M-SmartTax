@@ -63,7 +63,7 @@ class Panduan
                             'baris' => [
                                 ['Menyusun draf bulanan', 'Data penghasilan bulan itu sudah lengkap'],
                                 ['Membatalkan draf bulanan', 'Hapus dari bulan terakhir, mundur satu per satu'],
-                                ['Menyusun draf tahunan', 'Seluruh dua belas draf bulanan sudah tersusun'],
+                                ['Menyusun draf tahunan', 'Seluruh draf bulanan tahun itu sudah tersusun'],
                                 ['Mengubah data terkunci', 'Batalkan dulu draf yang menguncinya'],
                             ],
                         ],
@@ -239,11 +239,11 @@ class Panduan
                 'judul' => 'Menyusun Draf Tahunan',
                 'kartu' => [
                     [
-                        'pengantar' => 'Draf tahunan merangkum dua belas draf bulanan beserta lampiran harta dan utang pada akhir tahun. Draf ini menjadi gambaran isi SPT Tahunan Anda.',
+                        'pengantar' => 'Draf tahunan merangkum seluruh draf bulanan tahun itu beserta lampiran harta dan utang pada akhir tahun. Draf ini menjadi gambaran isi SPT Tahunan Anda.',
                         'langkah' => [
-                            ['judul' => 'Pastikan dua belas draf bulanan selesai', 'keterangan' => 'Tombol Susun baru tersedia setelah seluruh bulan tersusun, termasuk bulan yang drafnya nihil.'],
+                            ['judul' => 'Pastikan seluruh draf bulanan selesai', 'keterangan' => 'Tombol Susun baru tersedia setelah seluruh bulan tersusun, termasuk bulan yang drafnya nihil. Bulan sebelum penghasilan pertama Anda tercatat tidak ikut dihitung.'],
                             ['judul' => 'Perbarui data harta dan utang', 'keterangan' => 'Sistem mengambil keadaan harta dan utang pada saat draf disusun. Perbarui saldo dan tambahkan harta baru sebelum melanjutkan.'],
-                            ['judul' => 'Periksa rekap dan hasil analisis', 'keterangan' => 'Halaman penyusunan menampilkan rekap dua belas bulan, lampiran harta dan utang, serta dua kartu analisis keuangan.'],
+                            ['judul' => 'Periksa rekap dan hasil analisis', 'keterangan' => 'Halaman penyusunan menampilkan rekap seluruh bulan tahun itu, lampiran harta dan utang, serta dua kartu analisis keuangan.'],
                             ['judul' => 'Simpan draf tahunan', 'keterangan' => 'Seluruh draf bulanan, data harta, dan data utang tahun tersebut akan terkunci.'],
                         ],
                     ],
@@ -266,7 +266,7 @@ class Panduan
                     [
                         'judul' => 'Pertanyaan yang sering muncul',
                         'tanya' => [
-                            ['tanya' => 'Mengapa tombol Susun tidak tersedia?', 'jawab' => 'Masih ada draf bulanan yang belum tersusun. Kolom Draf Bulanan pada tabel menunjukkan berapa dari dua belas yang sudah selesai.'],
+                            ['tanya' => 'Mengapa tombol Susun tidak tersedia?', 'jawab' => 'Masih ada draf bulanan yang belum tersusun. Kolom Draf Bulanan pada tabel menunjukkan berapa yang sudah selesai dari jumlah yang dibutuhkan tahun itu.'],
                             ['tanya' => 'Apakah status Perlu Ditinjau menghalangi penyimpanan?', 'jawab' => 'Tidak. Status itu hanya pengingat. Pertambahan harta yang besar bisa saja wajar, misalnya karena warisan atau hibah.'],
                             ['tanya' => 'Bagaimana jika ada data yang perlu diperbaiki setelah draf tahunan disimpan?', 'jawab' => 'Batalkan draf tahunan terlebih dahulu. Seluruh draf bulanan, harta, dan utang tahun itu akan terbuka kembali.'],
                         ],
@@ -293,7 +293,7 @@ class Panduan
                             'lebar' => ['w-[25%]', 'w-[49%]', 'w-[26%]'],
                             'baris' => [
                                 ['Draf Pajak Bulanan', 'Rincian transaksi dan perhitungan PPh Final satu masa pajak', 'Draf bulanan tersusun'],
-                                ['Draf Pajak Tahunan', 'Rekap dua belas bulan, daftar harta dan utang, kekayaan bersih', 'Draf tahunan tersusun'],
+                                ['Draf Pajak Tahunan', 'Rekap seluruh bulan, daftar harta dan utang, kekayaan bersih', 'Draf tahunan tersusun'],
                                 ['Data Harta', 'Daftar seluruh harta menurut enam kategori', 'Ada data harta'],
                                 ['Data Utang', 'Daftar seluruh utang beserta data kreditur', 'Ada data utang'],
                             ],
