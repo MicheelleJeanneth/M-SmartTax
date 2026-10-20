@@ -6,9 +6,11 @@
 @endphp
 
 <x-card judul="Data Diri">
-    {{-- Pada Ubah Profil, NIK berbagi baris dengan nama. Di
-         Lengkapi Profil kolomnya lebih sempit, jadi keduanya tetap bertumpuk
-         agar petunjuk isiannya tidak terpotong. --}}
+    {{-- Lengkapi Profil memakai layout tengah selebar 560px, sehingga satu
+         kolomnya hanya sekitar 223px — setengah lebar kolom di Ubah Profil.
+         Baris yang punya teks petunjuk karena itu dibuat bertumpuk di sana,
+         supaya petunjuknya tidak pecah menjadi tiga baris dan membuat kolom
+         di sebelahnya menggantung. --}}
     <div @class(['grid grid-cols-1 sm:grid-cols-2 gap-x-4' => $terkunci])>
         <x-input label="NIK" name="nik" wajib inputmode="numeric" maxlength="16" pattern="\d{16}" data-digit
             x-ref="nik" placeholder="16 digit sesuai kartu tanda penduduk" :value="$p['nik'] ?? ''"
@@ -24,7 +26,8 @@
 
     <x-radio label="Jenis Kelamin" name="jenis_kelamin" wajib :pilihan="['Pria', 'Wanita']" :terpilih="$p['jenis_kelamin'] ?? null" />
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+    {{-- Bertumpuk di Lengkapi Profil karena alasan yang sama dengan NIK di atas. --}}
+    <div @class(['grid grid-cols-1 sm:grid-cols-2 gap-x-4' => $terkunci])>
         {{-- M-SmartTax hanya untuk wajib pajak WNI, jadi kolom ini tetap tampil tetapi terkunci. --}}
         <x-input-locked label="Kewarganegaraan" name="kewarganegaraan"
             :value="\App\Support\MockData::KEWARGANEGARAAN"
