@@ -6,6 +6,7 @@ use App\Models\DrafBulanan;
 use App\Models\Penghasilan;
 use App\Services\FilterTahun;
 use App\Services\PerhitunganPajak;
+use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,7 +95,12 @@ class DrafBulananController extends Controller
     }
 
     /**
-     * Membatalkan draf: barisnya dihapus dan transaksinya terbuka kembali.
+     * Membatalkan draf satu bulan beserta seluruh bulan sesudahnya.
+     *
+     * Akumulasi peredaran bruto dihitung berurutan, jadi draf bulan sesudahnya
+     * tidak lagi sah begitu bulan sebelumnya dibuka. Tanpa pembatalan berantai,
+     * bulan yang jauh ke belakang mustahil dibatalkan padahal pesan kesalahan
+     * pada Data Penghasilan menyuruh membatalkannya.
      *
      * Draf dihapus sungguhan, bukan ditandai tidak aktif, supaya bulan itu
      * dapat disusun ulang tanpa bertabrakan dengan aturan satu draf per bulan.
@@ -102,21 +108,33 @@ class DrafBulananController extends Controller
     public function destroy(Request $request, int $bulan): RedirectResponse
     {
         $tahun = $this->filterTahun->pilih($request->input('tahun'), $this->filterTahun->daftarPenghasilan());
-        $draf = $this->pajak->drafTahun($tahun)->get($bulan) ?? abort(404);
+        $draf = $this->pajak->drafTahun($tahun);
 
-        abort_if($draf->id_draf_tahunan !== null, 403, 'Draf ini sudah masuk draf tahunan. Batalkan draf tahunan terlebih dahulu.');
-        abort_unless($bulan === $this->pajak->drafTahun($tahun)->keys()->max(), 403, 'Batalkan draf bulan setelahnya terlebih dahulu.');
+        abort_unless($draf->has($bulan), 404);
 
-        DB::transaction(function () use ($draf): void {
-            Penghasilan::query()
-                ->where('id_draf_bulanan', $draf->id_draf_bulanan)
-                ->update(['id_draf_bulanan' => null]);
+        $ikut = $draf->filter(fn (DrafBulanan $d): bool => (int) $d->bulan >= $bulan);
 
-            $draf->delete();
+        // Draf tahunan mengunci kedua belas bulannya sekaligus, jadi lapisan
+        // itu harus dibuka lebih dahulu dari halaman Draf Tahunan.
+        abort_if(
+            $ikut->contains(fn (DrafBulanan $d): bool => $d->id_draf_tahunan !== null),
+            403,
+            'Draf ini sudah masuk draf tahunan. Batalkan draf tahunan terlebih dahulu.',
+        );
+
+        DB::transaction(function () use ($ikut): void {
+            $id = $ikut->pluck('id_draf_bulanan');
+
+            Penghasilan::query()->whereIn('id_draf_bulanan', $id)->update(['id_draf_bulanan' => null]);
+            DrafBulanan::query()->whereIn('id_draf_bulanan', $id)->delete();
         });
 
+        $nama = MockData::bulan()[$bulan];
+
         return redirect()->route('draf-bulanan.index', ['tahun' => $tahun])
-            ->with('sukses', 'Draf dibatalkan. Data penghasilan bulan tersebut dapat diubah kembali.');
+            ->with('sukses', $ikut->count() === 1
+                ? "Draf {$nama} dibatalkan. Data penghasilan bulan tersebut dapat diubah kembali."
+                : "{$ikut->count()} draf dibatalkan, mulai {$nama}. Data penghasilannya dapat diubah kembali.");
     }
 
     /** Bulan yang giliran disusun berikutnya pada satu tahun. */

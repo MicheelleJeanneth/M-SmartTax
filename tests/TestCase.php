@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Models\DrafTahunan;
+use App\Models\Profil;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -29,5 +30,10 @@ abstract class TestCase extends BaseTestCase
 
         PenggunaSaatIni::lupakan();
         DrafTahunan::lupakanTahunTersusun();
+
+        // Seluruh halaman aplikasi berada di balik middleware 'auth', jadi tes
+        // berjalan sebagai wajib pajak contoh. Tes yang justru menguji
+        // autentikasinya sendiri memakai keadaan tamu lewat Auth::logout().
+        $this->actingAs(Profil::query()->firstOrFail());
     }
 }

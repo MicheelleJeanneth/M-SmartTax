@@ -7,10 +7,13 @@ use App\Models\DrafTahunan;
 use App\Models\DrafTahunanHarta;
 use App\Models\Harta;
 use App\Models\Penghasilan;
+use App\Models\Profil;
 use App\Models\Utang;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
 use App\Support\MockData;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -22,7 +25,7 @@ class MockupPagesTest extends TestCase
     public static function halaman(): array
     {
         $uri = [
-            '/login', '/register', '/profil/lengkapi', '/dashboard',
+            '/profil/lengkapi', '/dashboard',
             '/penghasilan', '/penghasilan/create',
             '/harta', '/harta/tidak-bergerak', '/harta/kas/tambah', '/harta/kas/1',
             '/utang', '/utang/create', '/utang/2',
@@ -43,6 +46,43 @@ class MockupPagesTest extends TestCase
     public function test_halaman_mockup_dapat_dibuka(string $uri): void
     {
         $this->get($uri)->assertOk();
+    }
+
+    /** Masuk dan Daftar justru hanya terbuka untuk tamu. */
+    public function test_halaman_tamu_dapat_dibuka(): void
+    {
+        Auth::logout();
+
+        $this->get('/login')->assertOk();
+        $this->get('/register')->assertOk();
+    }
+
+    public function test_halaman_aplikasi_tertutup_untuk_tamu(): void
+    {
+        Auth::logout();
+
+        foreach (['/dashboard', '/penghasilan', '/harta/kas', '/utang', '/draf-bulanan', '/profil'] as $uri) {
+            $this->get($uri)->assertRedirect('/login');
+        }
+    }
+
+    /** Yang sudah masuk tidak perlu melihat halaman masuk dan daftar lagi. */
+    public function test_halaman_tamu_tertutup_setelah_masuk(): void
+    {
+        $this->get('/login')->assertRedirect('/dashboard');
+        $this->get('/register')->assertRedirect('/dashboard');
+    }
+
+    public function test_kata_sandi_salah_tidak_dapat_masuk(): void
+    {
+        Auth::logout();
+        $email = Profil::query()->value('email');
+
+        $this->from('/login')->post('/login', ['email' => $email, 'password' => 'salah-sekali'])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
     }
 
     public function test_panduan_menyorot_bagian_yang_sedang_dibuka(): void
@@ -256,21 +296,47 @@ class MockupPagesTest extends TestCase
 
     public function test_alur_registrasi_sampai_dashboard(): void
     {
-        $this->post('/register')->assertRedirect('/login');
+        Auth::logout();
+
+        $akun = ['email' => 'wajibpajak.baru@gmail.com', 'password' => 'rahasia-baru-8'];
+
+        $this->post('/register', [...$akun, 'password_confirmation' => 'rahasia-baru-8'])
+            ->assertRedirect('/login')
+            ->assertSessionHasNoErrors();
+
+        // Akunnya benar-benar tersimpan, dengan profil yang belum lengkap.
+        $baru = Profil::where('email', $akun['email'])->firstOrFail();
+        $this->assertFalse($baru->profil_lengkap);
+        $this->assertTrue(Hash::check('rahasia-baru-8', $baru->password));
+
         $this->get('/login')->assertSee('Akun berhasil dibuat');
 
         // Profil belum lengkap: login dan URL langsung sama-sama diarahkan ke Lengkapi Profil.
-        $this->post('/login')->assertRedirect('/profil/lengkapi');
+        $this->post('/login', $akun)->assertRedirect('/profil/lengkapi');
+        $this->assertAuthenticatedAs($baru);
         $this->get('/dashboard')->assertRedirect('/profil/lengkapi');
         $this->get('/harta/kas')->assertRedirect('/profil/lengkapi');
         $this->get('/profil/lengkapi')->assertOk();
 
-        // Setelah profil tersimpan, seluruh halaman terbuka.
-        $this->post('/profil/lengkapi', $this->profilSah())->assertRedirect('/dashboard');
+        // NIK wajib pajak contoh sudah terpakai, jadi akun baru memakai NIK lain
+        // dengan tanggal lahir yang sama supaya tetap lolos pemeriksaan silang.
+        $this->post('/profil/lengkapi', $this->profilSah(['nik' => '3578012509800002', 'nama' => 'Siti Aminah']))
+            ->assertRedirect('/dashboard')
+            ->assertSessionHasNoErrors();
+
+        // Data dirinya memang tersimpan, bukan hanya lolos validasi.
+        $baru->refresh();
+        $this->assertTrue($baru->profil_lengkap);
+        $this->assertSame('Siti Aminah', $baru->nama);
+        $this->assertSame('Kalirungkut', $baru->kelurahan);
+        // Kedua kolom ini tidak diambil dari kiriman pengguna.
+        $this->assertSame('WNI', $baru->kewarganegaraan);
+        $this->assertSame('Indonesia', $baru->negara);
+
         $this->get('/dashboard')->assertOk();
 
-        // Keluar mengembalikan keadaan awal.
         $this->post('/logout')->assertRedirect('/login');
+        $this->assertGuest();
     }
 
     /**
@@ -283,8 +349,18 @@ class MockupPagesTest extends TestCase
     {
         return array_merge([
             'nik' => '3578012509800001',
+            'nama' => 'Budi Santoso',
+            'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1980-09-25',
             'jenis_kelamin' => 'Pria',
+            'nomor_handphone' => '0812 3456 7890',
+            'alamat' => 'Jl. Rungkut Asri Timur 12',
+            'rt' => '004',
+            'rw' => '007',
+            'kelurahan' => 'Kalirungkut',
+            'kecamatan' => 'Rungkut',
+            'kota' => 'Surabaya',
+            'provinsi' => 'Jawa Timur',
         ], $ubah);
     }
 
@@ -405,23 +481,36 @@ class MockupPagesTest extends TestCase
     {
         $this->get('/profil/kata-sandi')->assertOk()->assertSee('Kata Sandi Saat Ini');
 
-        $sah = ['kata_sandi_lama' => 'rahasia-lama', 'kata_sandi' => 'rahasia-baru-8', 'kata_sandi_confirmation' => 'rahasia-baru-8'];
-
-        $this->from('/profil/kata-sandi')->put('/profil/kata-sandi', $sah)
-            ->assertRedirect('/profil')
-            ->assertSessionHasNoErrors();
+        // Kata sandi wajib pajak contoh, disemai DataContohSeeder.
+        $lama = 'rahasia123';
+        $sah = ['kata_sandi_lama' => $lama, 'kata_sandi' => 'rahasia-baru-8', 'kata_sandi_confirmation' => 'rahasia-baru-8'];
 
         // Terlalu pendek, ulangan tidak sama, dan sama dengan kata sandi lama.
         foreach ([
             ['kata_sandi' => 'pendek', 'kata_sandi_confirmation' => 'pendek'],
             ['kata_sandi_confirmation' => 'beda-sendiri'],
-            ['kata_sandi' => 'rahasia-lama', 'kata_sandi_confirmation' => 'rahasia-lama'],
+            ['kata_sandi' => $lama, 'kata_sandi_confirmation' => $lama],
         ] as $salah) {
             $this->from('/profil/kata-sandi')
                 ->put('/profil/kata-sandi', array_merge($sah, $salah))
                 ->assertRedirect('/profil/kata-sandi')
                 ->assertSessionHasErrors('kata_sandi');
         }
+
+        // Kata sandi saat ini yang salah juga ditolak, pada kolomnya sendiri.
+        $this->from('/profil/kata-sandi')
+            ->put('/profil/kata-sandi', array_merge($sah, ['kata_sandi_lama' => 'bukan-kata-sandinya']))
+            ->assertRedirect('/profil/kata-sandi')
+            ->assertSessionHasErrors('kata_sandi_lama');
+
+        $this->from('/profil/kata-sandi')->put('/profil/kata-sandi', $sah)
+            ->assertRedirect('/profil')
+            ->assertSessionHasNoErrors();
+
+        // Kata sandinya benar-benar berganti, dan yang lama tidak berlaku lagi.
+        $profil = Profil::query()->firstOrFail();
+        $this->assertTrue(Hash::check('rahasia-baru-8', $profil->password));
+        $this->assertFalse(Hash::check($lama, $profil->password));
     }
 
     public function test_nik_tidak_lagi_terkunci_pada_ubah_profil(): void

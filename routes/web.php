@@ -15,26 +15,30 @@ use App\Http\Controllers\SimulasiController;
 use App\Http\Controllers\UtangController;
 use Illuminate\Support\Facades\Route;
 
-/*
- | Mockup: belum ada middleware auth. Setelah autentikasi dibuat,
- | bungkus grup tamu dengan 'guest' dan grup aplikasi dengan 'auth'.
- */
-
 Route::redirect('/', '/login');
 
-// Tamu
-Route::get('/login', [LoginController::class, 'create'])->name('login');
-Route::post('/login', [LoginController::class, 'store']);
-Route::get('/register', [RegisterController::class, 'create'])->name('register');
-Route::post('/register', [RegisterController::class, 'store']);
-Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+// Tamu: hanya dapat dibuka oleh yang belum masuk.
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'create'])->name('login');
+    Route::post('/login', [LoginController::class, 'store']);
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store']);
+});
 
-// Lengkapi profil (layout center, tanpa middleware profil.lengkap)
-Route::get('/profil/lengkapi', [ProfilController::class, 'lengkapi'])->name('profil.lengkapi');
-Route::post('/profil/lengkapi', [ProfilController::class, 'simpanLengkapi']);
+Route::post('/logout', [LoginController::class, 'destroy'])->name('logout')->middleware('auth');
+
+/*
+ | Lengkapi Profil berada di dalam 'auth' tetapi di luar 'profil.lengkap':
+ | pengguna harus sudah masuk untuk mengisinya, dan justru halaman inilah
+ | tujuan pengalihan selama profilnya belum lengkap.
+ */
+Route::middleware('auth')->group(function () {
+    Route::get('/profil/lengkapi', [ProfilController::class, 'lengkapi'])->name('profil.lengkapi');
+    Route::post('/profil/lengkapi', [ProfilController::class, 'simpanLengkapi']);
+});
 
 // Aplikasi
-Route::middleware('profil.lengkap')->group(function () {
+Route::middleware(['auth', 'profil.lengkap'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     // whereNumber menjaga URL salah ketik seperti /penghasilan/buat berhenti

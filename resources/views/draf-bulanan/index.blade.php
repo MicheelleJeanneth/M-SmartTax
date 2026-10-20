@@ -41,15 +41,18 @@
                                 <a href="{{ route('draf-bulanan.show', ['bulan' => $d['bulan'], 'tahun' => $tahun]) }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Lihat draf {{ $d['nama'] }}">
                                     <x-icon name="eye" :size="18" />
                                 </a>
+                                {{-- Bulan tersusun selalu dapat dibatalkan, kecuali yang
+                                     terkunci draf tahunan: lapisan itu dibuka dari halaman
+                                     Draf Tahunan. --}}
                                 @if($d['terkunci_tahunan'])
-                                    <span class="p-2 text-locked" title="Terkunci draf tahunan"><x-icon name="lock" :size="18" /></span>
-                                @elseif($d['boleh_batal'])
+                                    <span class="p-2 text-locked" title="Terkunci draf tahunan, batalkan draf tahunan terlebih dahulu"><x-icon name="lock" :size="18" /></span>
+                                @else
                                     <button type="button" x-data @click="$dispatch('buka-dialog', 'batal-{{ $d['bulan'] }}')"
-                                        class="rounded-field p-2 text-danger hover:bg-danger/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Batalkan draf {{ $d['nama'] }}">
+                                        class="rounded-field p-2 text-danger hover:bg-danger/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                                        aria-label="Batalkan draf {{ $d['nama'] }}"
+                                        title="{{ $d['jumlah_ikut'] > 1 ? 'Batalkan draf ' . $d['nama'] . ' beserta ' . ($d['jumlah_ikut'] - 1) . ' bulan sesudahnya' : 'Batalkan draf ' . $d['nama'] }}">
                                         <x-icon name="circle-x" :size="18" />
                                     </button>
-                                @else
-                                    <span class="p-2 text-muted" title="Batalkan draf bulan setelahnya terlebih dahulu" aria-hidden="true"><x-icon name="circle-x" :size="18" /></span>
                                 @endif
                             @elseif($d['boleh_susun'])
                                 <x-button :href="route('draf-bulanan.create', ['bulan' => $d['bulan'], 'tahun' => $tahun])" class="!h-9 !px-5 !text-sm">Susun</x-button>
@@ -79,12 +82,23 @@
     </x-card>
 
     <x-info varian="biru-muda" class="mt-4">
-        Draf hanya dapat dibatalkan mulai dari bulan terakhir. Untuk membatalkan bulan sebelumnya, batalkan dulu draf bulan setelahnya.
+        Akumulasi peredaran bruto dihitung berurutan, sehingga membatalkan draf satu bulan ikut membatalkan draf bulan-bulan sesudahnya pada tahun yang sama.
+        Draf yang sudah masuk draf pajak tahunan dibatalkan dari halaman Draf Pajak Penghasilan Tahunan terlebih dahulu.
     </x-info>
 
     @foreach(collect($draf)->where('boleh_batal', true) as $d)
-        <x-dialog :id="'batal-' . $d['bulan']" :judul="'Batalkan draf ' . $d['nama'] . '?'">
-            Data penghasilan {{ $d['nama'] }} akan terbuka kembali dan dapat diubah. Anda perlu menyusun ulang draf ini sebelum menyusun bulan berikutnya.
+        <x-dialog :id="'batal-' . $d['bulan']"
+            :judul="$d['jumlah_ikut'] > 1
+                ? 'Batalkan draf ' . $d['nama'] . ' sampai ' . $d['ikut_sampai'] . '?'
+                : 'Batalkan draf ' . $d['nama'] . '?'">
+            @if($d['jumlah_ikut'] > 1)
+                {{-- Jumlahnya disebut terang-terangan: pengguna menekan satu baris
+                     tetapi yang terbatalkan beberapa draf sekaligus. --}}
+                <strong>{{ $d['jumlah_ikut'] }} draf</strong> akan dibatalkan sekaligus, yaitu {{ $d['nama'] }} sampai {{ $d['ikut_sampai'] }} {{ $tahun }},
+                karena akumulasi peredaran bruto bulan sesudahnya ikut berubah. Seluruh data penghasilannya terbuka kembali dan perlu disusun ulang mulai dari {{ $d['nama'] }}.
+            @else
+                Data penghasilan {{ $d['nama'] }} akan terbuka kembali dan dapat diubah. Anda perlu menyusun ulang draf ini sebelum menyusun bulan berikutnya.
+            @endif
             <x-slot:aksi>
                 <form method="POST" action="{{ route('draf-bulanan.destroy', $d['bulan']) }}">
                     @csrf

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureProfilLengkap;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,8 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'profil.lengkap' => \App\Http\Middleware\EnsureProfilLengkap::class,
+            'profil.lengkap' => EnsureProfilLengkap::class,
         ]);
+
+        // Pengguna yang sudah masuk tidak perlu melihat halaman masuk dan daftar.
+        $middleware->redirectUsersTo('/dashboard');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

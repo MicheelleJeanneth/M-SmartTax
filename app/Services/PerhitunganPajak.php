@@ -41,6 +41,10 @@ class PerhitunganPajak
             $akumulasi += $bruto[$bulan];
             $tersusun = $draf->get($bulan);
 
+            // Membatalkan satu bulan ikut membatalkan bulan sesudahnya, jadi
+            // tiap baris perlu tahu berapa draf yang akan terbawa.
+            $ikut = $draf->keys()->map(fn ($b): int => (int) $b)->filter(fn (int $b): bool => $b >= $bulan);
+
             $baris[] = [
                 'bulan' => $bulan,
                 'nama' => $nama,
@@ -56,8 +60,11 @@ class PerhitunganPajak
                 'terkunci_tahunan' => $tersusun?->id_draf_tahunan !== null,
                 // Draf disusun berurutan: hanya bulan tepat setelah yang terakhir.
                 'boleh_susun' => $bulan === $terakhirTersusun + 1,
-                // Pembatalan hanya dari bulan terakhir, dan tidak boleh bila sudah dikunci draf tahunan.
-                'boleh_batal' => $bulan === $terakhirTersusun && $tersusun?->id_draf_tahunan === null,
+                // Setiap bulan tersusun boleh dibatalkan, kecuali yang sudah
+                // dikunci draf tahunan. Bulan sesudahnya ikut terbatalkan.
+                'boleh_batal' => $tersusun !== null && $tersusun->id_draf_tahunan === null,
+                'jumlah_ikut' => $tersusun === null ? 0 : $ikut->count(),
+                'ikut_sampai' => $tersusun === null ? null : MockData::bulan()[$ikut->max()],
             ];
         }
 
