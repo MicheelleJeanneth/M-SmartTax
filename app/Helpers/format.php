@@ -103,6 +103,46 @@ if (! function_exists('terbilang')) {
     }
 }
 
+if (! function_exists('telepon_angka')) {
+    /**
+     * Nomor handphone dalam bentuk bakunya: hanya angka, berawalan 0.
+     *
+     * Nomor yang disalin dari kontak sering datang sebagai "+62 812-3456-7890"
+     * atau "0812 3456 7890". Semuanya diseragamkan di sini supaya yang
+     * tersimpan di basis data selalu satu bentuk.
+     */
+    function telepon_angka(?string $nomor): string
+    {
+        $angka = preg_replace('/\D/', '', (string) $nomor);
+
+        return str_starts_with($angka, '62') ? '0'.substr($angka, 2) : $angka;
+    }
+}
+
+if (! function_exists('telepon')) {
+    /**
+     * 0812 3456 7890 — dikelompokkan 4-4-sisa, cara nomor Indonesia dibaca.
+     *
+     * Spasinya dibubuhkan saat ditampilkan, bukan saat diketik: panjang nomor
+     * Indonesia berkisar 10 sampai 13 angka, jadi pengelompokan yang kaku akan
+     * pecah di nomor yang lebih pendek atau lebih panjang.
+     */
+    function telepon(?string $nomor): string
+    {
+        $angka = telepon_angka($nomor);
+
+        if ($angka === '') {
+            return '-';
+        }
+
+        return implode(' ', array_filter([
+            substr($angka, 0, 4),
+            substr($angka, 4, 4),
+            substr($angka, 8),
+        ], 'strlen'));
+    }
+}
+
 if (! function_exists('titik')) {
     /**
      * Menutup kalimat keterangan dengan titik bila belum ada.

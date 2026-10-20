@@ -169,4 +169,43 @@ class AutentikasiTest extends TestCase
             ->assertRedirect('/profil/ubah')
             ->assertSessionHasErrors('nik');
     }
+
+    public function test_nomor_handphone_diseragamkan_dan_diperiksa(): void
+    {
+        $profil = Profil::query()->firstOrFail();
+
+        $isian = fn (string $nomor): array => [
+            'nik' => $profil->nik,
+            'nama' => 'Budi Santoso',
+            'tempat_lahir' => 'Surabaya',
+            'tanggal_lahir' => '1980-09-25',
+            'jenis_kelamin' => 'Pria',
+            'nomor_handphone' => $nomor,
+            'alamat' => 'Jl. Rungkut Asri Timur 12',
+            'rt' => '004',
+            'rw' => '007',
+            'kelurahan' => 'Kalirungkut',
+            'kecamatan' => 'Rungkut',
+            'kota' => 'Surabaya',
+            'provinsi' => 'Jawa Timur',
+        ];
+
+        // Ketiga bentuk ini tersimpan sebagai angka yang sama persis.
+        foreach (['0812 3456 7890', '081234567890', '+62 812-3456-7890'] as $nomor) {
+            $this->put('/profil', $isian($nomor))->assertRedirect('/profil')->assertSessionHasNoErrors();
+            $this->assertSame('081234567890', $profil->fresh()->nomor_handphone, "Bentuk \"{$nomor}\" tidak diseragamkan.");
+        }
+
+        // Yang bukan nomor handphone Indonesia ditolak.
+        foreach (['halo apa kabar', '123', '08', '08123456789012', '6281234567890123'] as $nomor) {
+            $this->from('/profil/ubah')->put('/profil', $isian($nomor))
+                ->assertRedirect('/profil/ubah')
+                ->assertSessionHasErrors('nomor_handphone');
+        }
+
+        // Spasinya dibubuhkan saat ditampilkan, bukan saat disimpan.
+        $this->assertSame('0812 3456 7890', telepon('081234567890'));
+        $this->assertSame('0813 2222 333', telepon('08132222333'));
+        $this->get('/profil')->assertOk()->assertSee('0812 3456 7890');
+    }
 }

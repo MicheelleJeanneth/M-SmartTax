@@ -32,8 +32,12 @@
         <x-input-locked label="Kewarganegaraan" name="kewarganegaraan"
             :value="\App\Support\MockData::KEWARGANEGARAAN"
             bantuan="Warga Negara Indonesia. M-SmartTax hanya melayani wajib pajak WNI." />
+        {{-- Hanya angka, sama seperti NIK. Spasinya dibubuhkan saat
+             ditampilkan lewat telepon(), bukan saat diketik. --}}
         <x-input label="Nomor Handphone" name="nomor_handphone" type="tel" wajib
-            placeholder="08xx xxxx xxxx" :value="$p['nomor_handphone'] ?? ''" />
+            inputmode="numeric" maxlength="13" data-digit placeholder="08xxxxxxxxxx"
+            :value="telepon_angka($p['nomor_handphone'] ?? '')"
+            bantuan="Diketik tanpa spasi, contoh 081234567890." />
     </div>
 
     @if($terkunci)

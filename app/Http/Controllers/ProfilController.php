@@ -88,6 +88,10 @@ class ProfilController extends Controller
      */
     private function sahkan(Request $request, Profil $profil): array
     {
+        // Nomor yang ditempel dari kontak boleh berisi spasi, tanda hubung,
+        // atau awalan +62. Semuanya diseragamkan dulu, baru diperiksa.
+        $request->merge(['nomor_handphone' => telepon_angka($request->input('nomor_handphone'))]);
+
         $sah = $request->validate([
             'nik' => [
                 'required',
@@ -102,7 +106,8 @@ class ProfilController extends Controller
             'tempat_lahir' => ['required', 'string', 'max:255'],
             'tanggal_lahir' => ['required', 'date', 'before:today'],
             'jenis_kelamin' => ['required', Rule::in(['Pria', 'Wanita'])],
-            'nomor_handphone' => ['required', 'string', 'max:20'],
+            // Nomor handphone Indonesia: berawalan 08, seluruhnya 10 sampai 13 angka.
+            'nomor_handphone' => ['required', 'regex:/^08\d{8,11}$/'],
             'alamat' => ['required', 'string', 'max:255'],
             'rt' => ['required', 'digits_between:1,3'],
             'rw' => ['required', 'digits_between:1,3'],
@@ -120,6 +125,7 @@ class ProfilController extends Controller
             'tanggal_lahir.before' => 'Tanggal lahir tidak boleh hari ini atau setelahnya.',
             'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
             'nomor_handphone.required' => 'Nomor handphone wajib diisi.',
+            'nomor_handphone.regex' => 'Nomor handphone diawali 08 dan terdiri dari 10 sampai 13 angka.',
             'alamat.required' => 'Alamat wajib diisi.',
             'rt.required' => 'RT wajib diisi.',
             'rt.digits_between' => 'RT maksimal 3 angka.',

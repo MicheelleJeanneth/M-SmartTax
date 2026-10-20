@@ -65,7 +65,7 @@ class MockData
             'tanggal_lahir' => '1980-09-25',
             'jenis_kelamin' => 'Pria',
             'kewarganegaraan' => self::KEWARGANEGARAAN,
-            'telepon' => '0812 3456 7890',
+            'telepon' => '081234567890',
             'alamat' => 'Jl. Rungkut Asri Timur 12',
             'rt' => '004',
             'rw' => '007',
