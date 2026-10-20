@@ -143,34 +143,67 @@ class Pengingat
     /**
      * 3.1 Masa pajak sudah berakhir tetapi drafnya belum tersusun.
      *
+     * Penelusuran dimulai dari bulan penghasilan pertama tercatat, bukan dari
+     * Januari tahun berjalan. Pengguna yang baru mendaftar pada Oktober tidak
+     * punya kewajiban apa pun untuk Januari sampai September, jadi menagih draf
+     * bulan-bulan itu hanya menakut-nakuti tanpa sebab.
+     *
+     * Bulan kosong di tengah tetap ditagih: draf disusun berurutan, sehingga
+     * bulan tanpa penghasilan pun perlu drafnya sendiri yang bernilai nihil
+     * sebelum bulan sesudahnya dapat disusun.
+     *
      * @return array<int, array<string, mixed>>
      */
     private function drafBulananBelumDisusun(): array
     {
-        $hariIni = now();
+        $masa = $this->awalPencatatan();
+
+        // Belum ada satu pun penghasilan: tidak ada yang bisa disusun.
+        if ($masa === null) {
+            return [];
+        }
+
+        // Bulan berjalan belum berakhir, jadi drafnya belum jatuh tempo.
+        $batasAkhir = now()->startOfMonth();
         $pengingat = [];
 
-        foreach ($this->filterTahun->daftarPenghasilan() as $tahun) {
-            foreach (range(1, 12) as $bulan) {
-                $akhirMasa = Carbon::create($tahun, $bulan)->endOfMonth();
+        while ($masa->lt($batasAkhir)) {
+            $tahun = (int) $masa->year;
+            $bulan = (int) $masa->month;
 
-                if ($akhirMasa->isAfter($hariIni) || $this->drafTersusun($tahun, $bulan)) {
-                    continue;
-                }
+            if ($this->drafTersusun($tahun, $bulan)) {
+                $masa->addMonthNoOverflow();
 
-                $namaBulan = MockData::bulan()[$bulan];
-                $batas = $akhirMasa->copy()->addMonthNoOverflow()->day(15);
-
-                $pengingat[] = [
-                    'jenis' => sprintf('draf_bulanan_%d_%02d', $tahun, $bulan),
-                    'judul' => "Draf pajak $namaBulan $tahun belum disusun",
-                    'pesan' => "Susun draf pajak penghasilan $namaBulan $tahun sebelum batas penyetoran pada {$batas->translatedFormat('j F Y')}.",
-                    'jatuh_tempo' => $batas->toDateString(),
-                ];
+                continue;
             }
+
+            $namaBulan = MockData::bulan()[$bulan];
+            $batas = $masa->copy()->endOfMonth()->addMonthNoOverflow()->day(15);
+
+            $pengingat[] = [
+                'jenis' => sprintf('draf_bulanan_%d_%02d', $tahun, $bulan),
+                'judul' => "Draf pajak $namaBulan $tahun belum disusun",
+                'pesan' => "Susun draf pajak penghasilan $namaBulan $tahun sebelum batas penyetoran pada {$batas->translatedFormat('j F Y')}.",
+                'jatuh_tempo' => $batas->toDateString(),
+            ];
+
+            $masa->addMonthNoOverflow();
         }
 
         return $pengingat;
+    }
+
+    /**
+     * Awal bulan dari penghasilan paling awal yang tercatat, atau null bila
+     * pengguna belum mencatat apa pun.
+     */
+    private function awalPencatatan(): ?Carbon
+    {
+        $paling = Penghasilan::query()
+            ->where('id_profil', PenggunaSaatIni::id())
+            ->min('tanggal');
+
+        return $paling === null ? null : Carbon::parse($paling)->startOfMonth();
     }
 
     /**
