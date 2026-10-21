@@ -62,6 +62,9 @@
                                 @endif
                             @elseif($d['boleh_susun'])
                                 <x-button :href="route('draf-bulanan.create', ['bulan' => $d['bulan'], 'tahun' => $tahun])" class="!h-9 !px-5 !text-sm">Susun</x-button>
+                            @elseif($d['menunggu_akhir'])
+                                {{-- Gilirannya sudah tiba tetapi bulannya masih berjalan. --}}
+                                <span class="px-3 py-2 text-sm text-ink-3" title="Draf dapat disusun setelah {{ $d['nama'] }} berakhir">Menunggu akhir bulan</span>
                             @elseif(! $d['wajib'])
                                 {{-- Sebelum penghasilan pertama tercatat: bukan masa pajaknya,
                                      jadi tidak ada draf yang perlu disusun di sini. --}}

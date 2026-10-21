@@ -12,6 +12,7 @@ use App\Models\Utang;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
 use App\Support\MockData;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -423,6 +424,10 @@ class HalamanAplikasiTest extends TestCase
     {
         $tahun = MockData::TAHUN;
 
+        // Draf hanya dapat disusun setelah masa pajaknya berakhir, jadi waktu
+        // dimajukan ke awal tahun berikutnya agar seluruh bulan sudah lewat.
+        Carbon::setTestNow(($tahun + 1).'-01-05');
+
         // Tahun yang drafnya sudah tersusun tidak boleh disusun ulang.
         $this->get('/draf-tahunan/susun?tahun='.($tahun - 1))->assertForbidden();
 
@@ -446,6 +451,8 @@ class HalamanAplikasiTest extends TestCase
         );
 
         $this->get('/draf-tahunan/'.$tahun)->assertOk();
+
+        Carbon::setTestNow();
 
         // Dibatalkan: seluruh penguncian terbuka dan salinannya ikut terhapus.
         $this->delete('/draf-tahunan/'.$tahun)->assertRedirect('/draf-tahunan');

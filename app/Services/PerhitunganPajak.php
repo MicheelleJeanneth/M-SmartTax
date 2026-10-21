@@ -48,6 +48,20 @@ class PerhitunganPajak
         return (int) $awal->year < $tahun ? 1 : (int) $awal->month;
     }
 
+    /**
+     * Masa pajak satu bulan sudah berakhir.
+     *
+     * Draf hanya boleh disusun setelah bulannya lewat: menyusun di tengah
+     * bulan akan mengunci bulan itu, sehingga penghasilan yang masuk sesudahnya
+     * tidak lagi dapat dicatat dan PPh Final-nya jadi lebih kecil dari
+     * seharusnya. Batas setornya pun baru tanggal 15 bulan berikutnya, jadi
+     * tidak ada untungnya menyusun lebih awal.
+     */
+    public function masaBerakhir(int $tahun, int $bulan): bool
+    {
+        return Carbon::create($tahun, $bulan)->endOfMonth()->isPast();
+    }
+
     /** Banyaknya draf bulanan yang membuat satu tahun pajak lengkap. */
     public function jumlahWajib(int $tahun): int
     {
@@ -128,8 +142,11 @@ class PerhitunganPajak
                 'terkunci_tahunan' => $tersusun?->id_draf_tahunan !== null,
                 // Bulan sebelum penghasilan pertama bukan masa pajaknya.
                 'wajib' => $pertamaWajib !== null && $bulan >= $pertamaWajib,
-                // Draf disusun berurutan, mulai dari bulan pertama yang wajib.
-                'boleh_susun' => $bulan === $berikutnya,
+                // Draf disusun berurutan, mulai dari bulan pertama yang wajib,
+                // dan hanya setelah masa pajaknya berakhir.
+                'boleh_susun' => $bulan === $berikutnya && $this->masaBerakhir($tahun, $bulan),
+                // Gilirannya sudah tiba tetapi bulannya masih berjalan.
+                'menunggu_akhir' => $bulan === $berikutnya && ! $this->masaBerakhir($tahun, $bulan),
                 // Setiap bulan tersusun boleh dibatalkan, kecuali yang sudah
                 // dikunci draf tahunan. Bulan sesudahnya ikut terbatalkan.
                 'boleh_batal' => $tersusun !== null && $tersusun->id_draf_tahunan === null,

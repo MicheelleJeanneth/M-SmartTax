@@ -10,6 +10,7 @@ use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -58,6 +59,7 @@ class DrafBulananController extends Controller
         // yang sudah lengkap tidak punya giliran, jadi berhenti sebagai 404.
         $bulan = (int) $request->query('bulan', $this->pajak->bulanBerikutnya($tahun) ?? 13);
         abort_unless($bulan >= 1 && $bulan <= 12, 404);
+        $this->tolakMasaBerjalan($tahun, $bulan);
 
         return view('draf-bulanan.susun', $this->pajak->perhitungan($bulan, $tahun));
     }
@@ -74,6 +76,8 @@ class DrafBulananController extends Controller
             403,
             'Belum ada penghasilan tercatat pada tahun ini, jadi belum ada draf yang dapat disusun.',
         );
+
+        $this->tolakMasaBerjalan($tahun, $bulan);
 
         // Draf disusun berurutan, mulai dari bulan pertama yang wajib.
         abort_unless($bulan === $this->pajak->bulanBerikutnya($tahun), 403, 'Susun draf bulan sebelumnya terlebih dahulu.');
@@ -154,6 +158,23 @@ class DrafBulananController extends Controller
             ->with('sukses', $ikut->count() === 1
                 ? "Draf {$nama} dibatalkan. Data penghasilan bulan tersebut dapat diubah kembali."
                 : "{$ikut->count()} draf dibatalkan, mulai {$nama}. Data penghasilannya dapat diubah kembali.");
+    }
+
+    /**
+     * Menolak penyusunan draf untuk bulan yang masa pajaknya belum berakhir.
+     */
+    private function tolakMasaBerjalan(int $tahun, int $bulan): void
+    {
+        if ($this->pajak->masaBerakhir($tahun, $bulan)) {
+            return;
+        }
+
+        $akhir = Carbon::create($tahun, $bulan)->endOfMonth();
+
+        abort(403, sprintf(
+            'Draf %s %d baru dapat disusun setelah masa pajaknya berakhir pada %s.',
+            MockData::bulan()[$bulan], $tahun, $akhir->translatedFormat('j F Y'),
+        ));
     }
 
     /**

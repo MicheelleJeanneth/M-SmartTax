@@ -139,12 +139,18 @@ class PengingatTest extends TestCase
         $this->assertSame(3, $pajak->jumlahWajib(2026), 'Oktober sampai Desember, bukan dua belas.');
 
         $rekap = collect($pajak->rekapTahun(2026))->keyBy('bulan');
-        $this->assertFalse($rekap[1]['boleh_susun']);
         $this->assertFalse($rekap[1]['wajib']);
-        $this->assertTrue($rekap[10]['boleh_susun']);
         $this->assertTrue($rekap[10]['wajib']);
 
-        // Oktober memang dapat disusun lewat antarmuka, Januari ditolak.
+        // Oktober gilirannya, tetapi bulannya masih berjalan: belum boleh disusun.
+        $this->assertFalse($rekap[10]['boleh_susun']);
+        $this->assertTrue($rekap[10]['menunggu_akhir']);
+        $this->post('/draf-bulanan', ['bulan' => 10, 'tahun' => 2026])->assertForbidden();
+
+        // Begitu Oktober berakhir, barulah terbuka.
+        Carbon::setTestNow('2026-11-01');
+
+        $this->assertTrue(collect($pajak->rekapTahun(2026))->keyBy('bulan')[10]['boleh_susun']);
         $this->get('/draf-bulanan/susun?bulan=10')->assertOk();
         $this->post('/draf-bulanan', ['bulan' => 1, 'tahun' => 2026])->assertForbidden();
         $this->post('/draf-bulanan', ['bulan' => 10, 'tahun' => 2026])->assertRedirect('/draf-bulanan?tahun=2026');
