@@ -213,4 +213,25 @@ class PengingatTest extends TestCase
             ->assertOk()
             ->assertSee('Rekap Peredaran Bruto 12 Bulan');
     }
+
+    public function test_peredaran_bruto_tampil_walau_drafnya_belum_dapat_disusun(): void
+    {
+        Carbon::setTestNow('2026-10-21');
+        $profil = $this->akunBaru();
+
+        // Juni gilirannya; September dan Oktober masih menunggu giliran.
+        $this->catat($profil, '2026-06-11');
+        $this->catat($profil, '2026-09-10');
+        $this->catat($profil, '2026-10-11');
+
+        $halaman = $this->get('/draf-bulanan')->assertOk()->getContent();
+
+        // Sebelum diperbaiki, dua bulan terakhir tertulis Rp 0 — bukan sekadar
+        // disembunyikan, tetapi dinyatakan nol padahal datanya ada.
+        $this->assertSame(3, substr_count($halaman, rupiah(5_000_000)),
+            'Ketiga bulan berpenghasilan harus menampilkan brutonya masing-masing.');
+
+        // Totalnya menjumlahkan seluruh bulan, bukan hanya yang drafnya tersusun.
+        $this->assertStringContainsString(rupiah(15_000_000), $halaman);
+    }
 }

@@ -36,6 +36,9 @@ class DrafBulananController extends Controller
             'daftarTahun' => $daftarTahun,
             'draf' => $draf,
             'jumlahTersusun' => $tersusun->count(),
+            // Seluruh penghasilan tercatat tahun itu, terlepas dari apakah
+            // drafnya sudah disusun. Angka ini fakta dari data penghasilan.
+            'brutoTahun' => (int) collect($draf)->sum('bruto'),
             // Tahun yang dimulai di tengah lengkap dengan draf lebih sedikit dari dua belas.
             'jumlahWajib' => $this->pajak->jumlahWajib($tahun),
             'akumulasi' => $tersusun->sum('bruto'),
