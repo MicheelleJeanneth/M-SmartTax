@@ -53,12 +53,12 @@ class PengingatTest extends TestCase
         return $profil;
     }
 
-    private function catat(Profil $profil, string $tanggal): void
+    private function catat(Profil $profil, string $tanggal, int $nominal = 5_000_000): void
     {
         Penghasilan::create([
             'id_profil' => $profil->id_profil,
             'tanggal' => $tanggal,
-            'nominal' => 5_000_000,
+            'nominal' => $nominal,
             'keterangan' => 'Penjualan uji',
             'status' => true,
         ]);
@@ -219,19 +219,23 @@ class PengingatTest extends TestCase
         Carbon::setTestNow('2026-10-21');
         $profil = $this->akunBaru();
 
-        // Juni gilirannya; September dan Oktober masih menunggu giliran.
-        $this->catat($profil, '2026-06-11');
-        $this->catat($profil, '2026-09-10');
-        $this->catat($profil, '2026-10-11');
+        // Nominalnya sengaja dibuat berbeda jauh agar tidak bertabrakan dengan
+        // angka akumulasi, sehingga kemunculannya menunjuk satu sel tertentu.
+        $this->catat($profil, '2026-06-11', 1_000_000);    // gilirannya
+        $this->catat($profil, '2026-09-10', 20_000_000);   // menunggu giliran
+        $this->catat($profil, '2026-10-11', 300_000_000);  // menunggu giliran
 
         $halaman = $this->get('/draf-bulanan')->assertOk()->getContent();
 
         // Sebelum diperbaiki, dua bulan terakhir tertulis Rp 0 — bukan sekadar
         // disembunyikan, tetapi dinyatakan nol padahal datanya ada.
-        $this->assertSame(3, substr_count($halaman, rupiah(5_000_000)),
-            'Ketiga bulan berpenghasilan harus menampilkan brutonya masing-masing.');
+        $this->assertStringContainsString(rupiah(20_000_000), $halaman);
+        $this->assertStringContainsString(rupiah(300_000_000), $halaman);
+
+        // Akumulasi berjalan ikut tampil walau drafnya belum disusun.
+        $this->assertStringContainsString(rupiah(21_000_000), $halaman);
 
         // Totalnya menjumlahkan seluruh bulan, bukan hanya yang drafnya tersusun.
-        $this->assertStringContainsString(rupiah(15_000_000), $halaman);
+        $this->assertStringContainsString(rupiah(321_000_000), $halaman);
     }
 }

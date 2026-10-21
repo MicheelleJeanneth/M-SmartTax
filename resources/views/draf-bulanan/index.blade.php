@@ -35,7 +35,10 @@
                          Menuliskannya Rp 0 selama drafnya belum disusun membuat
                          tabel ini menyatakan hal yang tidak benar. --}}
                     <td class="text-right tabular-nums">{{ rupiah($d['bruto']) }}</td>
-                    <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['akumulasi']) : '-' }}</td>
+                    {{-- Akumulasi hanyalah penjumlahan berjalan dari Peredaran Bruto,
+                         jadi ikut ditampilkan apa adanya. Dua kolom sesudahnya baru
+                         bertanda strip, karena keduanya memang lahir dari draf. --}}
+                    <td class="text-right tabular-nums">{{ rupiah($d['akumulasi']) }}</td>
                     <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['omzet_kena_pajak']) : '-' }}</td>
                     <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['pph_final']) : '-' }}</td>
                     <td>
@@ -82,15 +85,15 @@
                 </tr>
             @endforeach
             <x-slot:kaki>
-                {{-- Peredaran Bruto menjumlahkan seluruh bulan, karena kolomnya
-                     memang menampilkan seluruh bulan. Tiga kolom sisanya lahir dari
-                     draf, jadi totalnya hanya dari bulan yang drafnya sudah tersusun.
-                     Kolom Akumulasi memakai nilai akhir, bukan jumlah tiap baris —
-                     menjumlahkannya akan menghitung Januari berulang kali. --}}
+                {{-- Peredaran Bruto dan Akumulasi menjumlahkan seluruh bulan, karena
+                     kolomnya memang menampilkan seluruh bulan. Dua kolom sisanya lahir
+                     dari draf, jadi totalnya hanya dari bulan yang drafnya sudah
+                     tersusun. Kolom Akumulasi memakai nilai akhir, bukan jumlah tiap
+                     baris — menjumlahkannya akan menghitung Januari berulang kali. --}}
                 <tr>
                     <td>Total</td>
                     <td class="text-right tabular-nums">{{ rupiah($brutoTahun) }}</td>
-                    <td class="text-right tabular-nums">{{ $jumlahTersusun > 0 ? rupiah($akumulasi) : '-' }}</td>
+                    <td class="text-right tabular-nums">{{ rupiah($brutoTahun) }}</td>
                     <td class="text-right tabular-nums">{{ $jumlahTersusun > 0 ? rupiah(collect($draf)->sum('omzet_kena_pajak')) : '-' }}</td>
                     <td class="text-right tabular-nums">{{ $jumlahTersusun > 0 ? rupiah($totalPph) : '-' }}</td>
                     <td colspan="2"></td>
