@@ -210,6 +210,32 @@ class HalamanAplikasiTest extends TestCase
         $this->get('/utang/1/edit')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
     }
 
+    public function test_keterangan_penghasilan_wajib_diisi(): void
+    {
+        $terbuka = app(KunciPencatatan::class)->awalTerbuka()->toDateString();
+        $jumlah = Penghasilan::count();
+
+        $this->from('/penghasilan/create')
+            ->post('/penghasilan', ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
+            ->assertRedirect('/penghasilan/create')
+            ->assertSessionHasErrors('keterangan');
+
+        $this->assertSame($jumlah, Penghasilan::count());
+
+        // Diisi: tersimpan seperti biasa.
+        $this->post('/penghasilan', [
+            'tanggal' => $terbuka, 'nominal' => '1.000.000', 'keterangan' => 'Penjualan katalog',
+        ])->assertRedirect('/penghasilan')->assertSessionHasNoErrors();
+
+        // Kolomnya ikut ditandai wajib pada formulir, bukan hanya di server.
+        $this->get('/penghasilan/create')->assertOk()->assertSee('name="keterangan" ', false);
+        $this->assertStringContainsString(
+            'required',
+            substr($this->get('/penghasilan/create')->getContent(),
+                strpos($this->get('/penghasilan/create')->getContent(), 'name="keterangan"'), 200),
+        );
+    }
+
     public function test_peringatan_dini_memakai_kalimat_dari_server(): void
     {
         $kunci = app(KunciPencatatan::class);
@@ -234,22 +260,22 @@ class HalamanAplikasiTest extends TestCase
 
         // Transaksi aktif dipindahkan mundur ke bulan yang drafnya sudah disusun.
         $this->from("/penghasilan/{$id}/edit")
-            ->put("/penghasilan/{$id}", ['tanggal' => $terkunci, 'nominal' => '1.000.000'])
+            ->put("/penghasilan/{$id}", ['tanggal' => $terkunci, 'nominal' => '1.000.000', 'keterangan' => 'uji'])
             ->assertRedirect("/penghasilan/{$id}/edit")
             ->assertSessionHasErrors('tanggal');
 
         // Transaksi baru pada bulan yang sama juga ditolak.
         $this->from('/penghasilan/create')
-            ->post('/penghasilan', ['tanggal' => $terkunci, 'nominal' => '1.000.000'])
+            ->post('/penghasilan', ['tanggal' => $terkunci, 'nominal' => '1.000.000', 'keterangan' => 'uji'])
             ->assertSessionHasErrors('tanggal');
 
         // Bulan yang drafnya belum disusun tetap boleh.
-        $this->put("/penghasilan/{$id}", ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
+        $this->put("/penghasilan/{$id}", ['tanggal' => $terbuka, 'nominal' => '1.000.000', 'keterangan' => 'uji'])
             ->assertRedirect('/penghasilan')
             ->assertSessionHasNoErrors();
 
         // Baris yang sudah terkunci tidak bisa diubah lewat request langsung.
-        $this->put('/penghasilan/'.$this->penghasilanTerkunci(), ['tanggal' => $terbuka, 'nominal' => '1.000.000'])
+        $this->put('/penghasilan/'.$this->penghasilanTerkunci(), ['tanggal' => $terbuka, 'nominal' => '1.000.000', 'keterangan' => 'uji'])
             ->assertForbidden();
     }
 
@@ -271,7 +297,7 @@ class HalamanAplikasiTest extends TestCase
             'tahun_peminjaman' => $utang->tahun,
             'nama_kreditur' => $utang->kreditur,
         ])->assertRedirect('/utang');
-        $this->put('/penghasilan/'.$this->penghasilanTerbuka(), ['tanggal' => '2026-07-05', 'nominal' => '1.000.000'])
+        $this->put('/penghasilan/'.$this->penghasilanTerbuka(), ['tanggal' => '2026-07-05', 'nominal' => '1.000.000', 'keterangan' => 'uji'])
             ->assertRedirect('/penghasilan');
     }
 

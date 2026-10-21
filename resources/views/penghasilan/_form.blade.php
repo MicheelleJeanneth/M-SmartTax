@@ -5,8 +5,8 @@
     <x-input label="Nominal" name="nominal" wajib uang placeholder="0"
         :value="isset($p['nominal']) ? angka($p['nominal']) : ''"
         bantuan="Isi dengan peredaran bruto, sebelum dikurangi diskon atau potongan penjualan." />
-    <x-input label="Keterangan" name="keterangan" placeholder="Contoh: Penjualan toko" :value="$p['keterangan'] ?? ''"
-        bantuan="Opsional, membantu dalam mengenali transaksi nanti." />
+    <x-input label="Keterangan" name="keterangan" wajib placeholder="Contoh: Penjualan toko" :value="$p['keterangan'] ?? ''"
+        bantuan="Membantu mengenali transaksi ini nanti, dan menjadi kolom yang dicari pada daftar penghasilan." />
 
     {{-- Tombol berada di dalam kartu dan rata kiri. --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">

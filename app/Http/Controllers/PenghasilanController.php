@@ -126,13 +126,14 @@ class PenghasilanController extends Controller
         $sah = $request->validate([
             'tanggal' => ['required', 'date', 'before_or_equal:today'],
             'nominal' => ['required', 'integer', 'min:1'],
-            'keterangan' => ['nullable', 'string', 'max:255'],
+            'keterangan' => ['required', 'string', 'max:255'],
         ], [
             'tanggal.required' => 'Tanggal wajib diisi.',
             'tanggal.before_or_equal' => 'Tanggal tidak boleh melewati hari ini.',
             'nominal.required' => 'Nominal wajib diisi.',
             'nominal.integer' => 'Nominal hanya boleh berisi angka.',
             'nominal.min' => 'Nominal harus lebih besar dari nol.',
+            'keterangan.required' => 'Keterangan wajib diisi.',
             'keterangan.max' => 'Keterangan maksimal 255 karakter.',
         ]);
 
