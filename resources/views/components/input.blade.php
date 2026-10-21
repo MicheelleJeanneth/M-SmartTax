@@ -1,4 +1,4 @@
-@props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null, 'uang' => false, 'kunciSebelum' => null])
+@props(['rapat' => false, 'label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'type' => 'text', 'value' => null, 'uang' => false, 'kunciSebelum' => null, 'kunciPesan' => null])
 @php
     // Kolom tanggal bawaan browser membolehkan tahun lebih dari 4 digit.
     // Batasnya disimpan sebagai data-* lalu ditegakkan di app.js sesudah kolom
@@ -17,7 +17,11 @@
     $penanda = $wajib ? ['required' => true] : [];
 
     // Tanggal sebelum batas ini ditolak karena drafnya sudah disusun; app.js memperingatkan lebih awal.
-    $kunci = $kunciSebelum ? ['data-kunci-sebelum' => $kunciSebelum] : [];
+    // Kalimat peringatannya disusun server, karena hanya server yang tahu
+    // draf bulan mana yang sebenarnya menahan tanggal tersebut.
+    $kunci = $kunciSebelum
+        ? ['data-kunci-sebelum' => $kunciSebelum, 'data-kunci-pesan' => $kunciPesan]
+        : [];
 @endphp
 <div class="{{ $rapat ? '' : 'mb-5' }}">
     @if($label)

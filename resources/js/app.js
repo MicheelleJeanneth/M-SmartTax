@@ -111,16 +111,13 @@ const peringatkanBulanTerkunci = (kolom) => {
     const batas = kolom.dataset.kunciSebelum;
     const melanggar = kolom.value !== '' && kolom.value < batas;
 
-    let pesan = '';
-
-    if (melanggar) {
-        // Tanggal ISO tanpa zona waktu supaya tidak bergeser sehari.
-        const bulan = new Date(`${kolom.value}T00:00:00`)
-            .toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-
-        pesan = `Draf pajak ${bulan} sudah disusun, sehingga transaksi tidak dapat `
-            + 'dicatat pada bulan itu. Batalkan draf bulan tersebut terlebih dahulu.';
-    }
+    // Kalimatnya datang dari server lewat data-kunci-pesan. Menyusunnya di
+    // sini pernah keliru: browser hanya tahu tanggal batasnya, lalu mengaku
+    // bahwa bulan yang dipilih pengguna sudah berdraf — padahal yang menahan
+    // bisa jadi draf bulan lain yang lebih baru.
+    const pesan = melanggar
+        ? (kolom.dataset.kunciPesan || 'Tanggal tersebut tidak dapat menerima transaksi baru.')
+        : '';
 
     // setCustomValidity membuat kolom ini ikut terhitung :invalid, sehingga
     // tombol kirim otomatis mati lewat perbaruiTombolKirim di bawah.

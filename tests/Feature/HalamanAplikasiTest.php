@@ -210,6 +210,21 @@ class HalamanAplikasiTest extends TestCase
         $this->get('/utang/1/edit')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
     }
 
+    public function test_peringatan_dini_memakai_kalimat_dari_server(): void
+    {
+        $kunci = app(KunciPencatatan::class);
+
+        foreach (['/penghasilan/create', '/penghasilan/'.$this->penghasilanTerbuka().'/edit'] as $uri) {
+            $this->get($uri)
+                ->assertOk()
+                // Browser hanya tahu tanggal batasnya. Dulu ia menyusun sendiri
+                // kalimat "Draf pajak <bulan pilihan> sudah disusun", yang keliru
+                // untuk bulan yang sebenarnya tidak punya draf.
+                ->assertSee('data-kunci-pesan="'.e($kunci->pesanBatas()).'"', false)
+                ->assertSee('data-kunci-sebelum="'.$kunci->awalTerbuka()->toDateString().'"', false);
+        }
+    }
+
     public function test_tanggal_tidak_boleh_dipindah_ke_bulan_yang_drafnya_sudah_disusun(): void
     {
         $terkunci = app(KunciPencatatan::class)->awalTerbuka()->subDay()->toDateString();

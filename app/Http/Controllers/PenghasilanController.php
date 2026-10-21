@@ -49,7 +49,11 @@ class PenghasilanController extends Controller
 
     public function create(): View
     {
-        return view('penghasilan.create', ['awalTerbuka' => $this->kunci->awalTerbuka()->toDateString()]);
+        return view('penghasilan.create', [
+            'awalTerbuka' => $this->kunci->awalTerbuka()->toDateString(),
+            'pesanKunci' => $this->kunci->pesanBatas(),
+            'pesanKunci' => $this->kunci->pesanBatas(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -77,6 +81,7 @@ class PenghasilanController extends Controller
         return view('penghasilan.edit', [
             'penghasilan' => $penghasilan,
             'awalTerbuka' => $this->kunci->awalTerbuka()->toDateString(),
+            'pesanKunci' => $this->kunci->pesanBatas(),
         ]);
     }
 

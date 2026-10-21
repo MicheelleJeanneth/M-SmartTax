@@ -76,8 +76,12 @@ class KunciPencatatan
      * Pesan untuk tanggal yang bulannya tidak berdraf, tetapi tertahan batas
      * global. Menyebut draf Mei 2023 "sudah disusun" padahal tidak ada hanya
      * menyesatkan, jadi yang disebut draf penahannya.
+     *
+     * Kalimat ini benar untuk tanggal mana pun yang tertahan, jadi dipakai
+     * juga sebagai peringatan dini di browser — yang hanya tahu tanggal
+     * batasnya dan tidak tahu bulan mana saja yang berdraf.
      */
-    private function pesanBatas(): string
+    public function pesanBatas(): string
     {
         $awal = $this->awalTerbuka();
         $penahan = $this->drafTerakhir();
