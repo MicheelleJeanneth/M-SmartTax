@@ -7,7 +7,7 @@
     <div class="relative w-full max-w-[540px] text-white">
         <h2 class="text-[40px] leading-[1.15] font-medium">Susun draf pajak sebelum melapor</h2>
         <p class="mt-5 text-base leading-relaxed text-dark-3">
-            Catat penghasilan, harta, dan utang usaha Anda. M-SmartTax menghitung PPh Final 0,5% sesuai PP Nomor 20 Tahun 2026.
+            Catat penghasilan, harta, dan utang Anda. M-SmartTax menghitung PPh Final 0,5% bagi wajib pajak orang pribadi pelaku UMKM.
         </p>
 
         <ul class="mt-10 space-y-6">
