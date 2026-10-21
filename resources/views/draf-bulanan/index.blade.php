@@ -16,7 +16,7 @@
 @section('isi')
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <x-stat label="Penghasilan Tercatat" :nilai="rupiah($brutoTahun)" />
-        <x-stat label="Total PPh Final" :nilai="rupiah($totalPph)" />
+        <x-stat label="Total PPh Final" :nilai="rupiah($pphTahun)" />
         <x-stat varian="putih" label="Draf Tersusun" :nilai="$jumlahTersusun . ' dari ' . max($jumlahWajib, $jumlahTersusun)" />
     </div>
 
@@ -39,8 +39,11 @@
                          jadi ikut ditampilkan apa adanya. Dua kolom sesudahnya baru
                          bertanda strip, karena keduanya memang lahir dari draf. --}}
                     <td class="text-right tabular-nums">{{ rupiah($d['akumulasi']) }}</td>
-                    <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['omzet_kena_pajak']) : '-' }}</td>
-                    <td class="text-right tabular-nums">{{ $sudah ? rupiah($d['pph_final']) : '-' }}</td>
+                    {{-- Bulan yang drafnya sudah tersusun menampilkan angka bekunya;
+                         sisanya perkiraan dari penghasilan yang tercatat sekarang.
+                         Strip hanya muncul bila tahun itu belum punya aturan pajak. --}}
+                    <td class="text-right tabular-nums">{{ $d['omzet_kena_pajak'] === null ? '-' : rupiah($d['omzet_kena_pajak']) }}</td>
+                    <td class="text-right tabular-nums">{{ $d['pph_final'] === null ? '-' : rupiah($d['pph_final']) }}</td>
                     <td>
                         @if($sudah || $d['wajib'])
                             <x-badge :status="$d['status']" />
@@ -85,17 +88,15 @@
                 </tr>
             @endforeach
             <x-slot:kaki>
-                {{-- Peredaran Bruto dan Akumulasi menjumlahkan seluruh bulan, karena
-                     kolomnya memang menampilkan seluruh bulan. Dua kolom sisanya lahir
-                     dari draf, jadi totalnya hanya dari bulan yang drafnya sudah
-                     tersusun. Kolom Akumulasi memakai nilai akhir, bukan jumlah tiap
+                {{-- Keempat kolom menjumlahkan seluruh bulan, karena seluruhnya memang
+                     ditampilkan. Kolom Akumulasi memakai nilai akhir, bukan jumlah tiap
                      baris — menjumlahkannya akan menghitung Januari berulang kali. --}}
                 <tr>
                     <td>Total</td>
                     <td class="text-right tabular-nums">{{ rupiah($brutoTahun) }}</td>
                     <td class="text-right tabular-nums">{{ rupiah($brutoTahun) }}</td>
-                    <td class="text-right tabular-nums">{{ $jumlahTersusun > 0 ? rupiah(collect($draf)->sum('omzet_kena_pajak')) : '-' }}</td>
-                    <td class="text-right tabular-nums">{{ $jumlahTersusun > 0 ? rupiah($totalPph) : '-' }}</td>
+                    <td class="text-right tabular-nums">{{ rupiah(collect($draf)->sum('omzet_kena_pajak')) }}</td>
+                    <td class="text-right tabular-nums">{{ rupiah($pphTahun) }}</td>
                     <td colspan="2"></td>
                 </tr>
             </x-slot:kaki>

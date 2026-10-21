@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DrafBulanan;
+use App\Models\KonfigurasiPajak;
 use App\Models\Penghasilan;
 use App\Models\Profil;
 use App\Services\Pengingat;
@@ -237,5 +238,43 @@ class PengingatTest extends TestCase
 
         // Totalnya menjumlahkan seluruh bulan, bukan hanya yang drafnya tersusun.
         $this->assertStringContainsString(rupiah(321_000_000), $halaman);
+    }
+
+    public function test_omzet_kena_pajak_dan_pph_diperkirakan_sebelum_drafnya_disusun(): void
+    {
+        Carbon::setTestNow('2026-12-10');
+        $profil = $this->akunBaru();
+
+        $bebas = (int) KonfigurasiPajak::berlakuUntukTahun(2026)->ambang_bebas;
+
+        // Akumulasi menembus ambang bebas tepat pada bulan kedua.
+        $this->catat($profil, '2026-10-05', $bebas);
+        $this->catat($profil, '2026-11-05', 30_000_000);
+
+        $rekap = collect(app(PerhitunganPajak::class)->rekapTahun(2026))->keyBy('bulan');
+
+        // Bulan yang masih di dalam ambang bebas belum dikenai pajak.
+        $this->assertSame(0, (int) $rekap[10]['omzet_kena_pajak']);
+        $this->assertSame(0, (int) $rekap[10]['pph_final']);
+
+        // Hanya kelebihan di atas ambang yang dikenai tarif, walau drafnya belum disusun.
+        $this->assertSame(30_000_000, (int) $rekap[11]['omzet_kena_pajak']);
+        $this->assertSame(150_000, (int) $rekap[11]['pph_final']);
+
+        $this->get('/draf-bulanan')->assertOk()->assertSee(rupiah(150_000));
+    }
+
+    public function test_bulan_tersusun_memakai_angka_bekunya_bukan_hitungan_ulang(): void
+    {
+        // Budi: enam bulan 2026 sudah tersusun.
+        $rekap = collect(app(PerhitunganPajak::class)->rekapTahun(2026))->keyBy('bulan');
+
+        foreach (DrafBulanan::where('tahun_pajak', 2026)->get() as $draf) {
+            $this->assertSame(
+                (int) $draf->pph_final,
+                (int) $rekap[(int) $draf->bulan]['pph_final'],
+                'Bulan tersusun harus memakai angka beku drafnya.',
+            );
+        }
     }
 }

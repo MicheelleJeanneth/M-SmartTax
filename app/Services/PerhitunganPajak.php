@@ -116,6 +116,13 @@ class PerhitunganPajak
         $pertamaWajib = $this->bulanPertama($tahun);
         $berikutnya = $this->bulanBerikutnya($tahun);
 
+        // Perkiraan omzet kena pajak dan PPh untuk bulan yang drafnya belum
+        // disusun. Dibaca lewat model, bukan konfigurasi(), karena tahun yang
+        // belum punya aturan pajak tidak boleh menggagalkan seluruh halaman.
+        $konfigurasi = KonfigurasiPajak::berlakuUntukTahun($tahun);
+        $batasBebas = $konfigurasi === null ? null : (int) $konfigurasi->ambang_bebas;
+        $tarif = $konfigurasi === null ? null : (float) $konfigurasi->tarif_final;
+
         $akumulasi = 0;
         $baris = [];
 
@@ -127,13 +134,23 @@ class PerhitunganPajak
             // tiap baris perlu tahu berapa draf yang akan terbawa.
             $ikut = $draf->keys()->map(fn ($b): int => (int) $b)->filter(fn (int $b): bool => $b >= $bulan);
 
+            // Bulan yang drafnya sudah tersusun memakai angka bekunya; sisanya
+            // perkiraan dari data penghasilan yang ada sekarang.
+            $omzet = $tersusun?->omzet_kena_pajak;
+            $pph = $tersusun?->pph_final;
+
+            if ($omzet === null && $batasBebas !== null) {
+                $omzet = $this->omzetKenaPajak($akumulasi, $bruto[$bulan], $batasBebas);
+                $pph = $this->pphFinal($omzet, $tarif);
+            }
+
             $baris[] = [
                 'bulan' => $bulan,
                 'nama' => $nama,
                 'bruto' => $bruto[$bulan],
                 'akumulasi' => $akumulasi,
-                'omzet_kena_pajak' => $tersusun?->omzet_kena_pajak,
-                'pph_final' => $tersusun?->pph_final,
+                'omzet_kena_pajak' => $omzet,
+                'pph_final' => $pph,
                 'status' => match (true) {
                     $tersusun === null => 'belum',
                     $bruto[$bulan] === 0 => 'nihil',
