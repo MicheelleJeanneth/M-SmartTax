@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\DrafBulanan;
 use App\Models\Harta;
 use App\Models\Penghasilan;
 use App\Models\Profil;
 use App\Models\Utang;
+use App\Support\PenggunaSaatIni;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
@@ -207,5 +211,56 @@ class AutentikasiTest extends TestCase
         $this->assertSame('0812 3456 7890', telepon('081234567890'));
         $this->assertSame('0813 2222 333', telepon('08132222333'));
         $this->get('/profil')->assertOk()->assertSee('0812 3456 7890');
+    }
+
+    public function test_dua_akun_dapat_menyusun_draf_masa_pajak_yang_sama(): void
+    {
+        Carbon::setTestNow('2026-10-21');
+
+        // Wajib pajak contoh sudah punya draf Januari sampai Juni 2026.
+        $this->assertTrue(DrafBulanan::where('tahun_pajak', 2026)->where('bulan', 6)->exists());
+
+        $lain = $this->akunLain();
+        $this->actingAs($lain);
+        PenggunaSaatIni::lupakan();
+
+        Penghasilan::create([
+            'id_profil' => $lain->id_profil,
+            'tanggal' => '2026-06-11',
+            'nominal' => 1_500_000,
+            'keterangan' => 'Penjualan Juni',
+            'status' => true,
+        ]);
+
+        // kode_draf dulu unik secara global, sehingga DB-2026-06 milik wajib
+        // pajak pertama menabrak milik akun ini dan penyusunannya gagal 500.
+        $this->post('/draf-bulanan', ['bulan' => 6, 'tahun' => 2026])
+            ->assertRedirect('/draf-bulanan?tahun=2026');
+
+        $this->assertSame(1, DrafBulanan::where('id_profil', $lain->id_profil)->count());
+        $this->assertSame(2, DrafBulanan::where('tahun_pajak', 2026)->where('bulan', 6)->count());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_satu_wajib_pajak_tetap_tidak_boleh_punya_dua_draf_pada_masa_yang_sama(): void
+    {
+        $draf = DrafBulanan::firstOrFail();
+
+        $this->expectException(QueryException::class);
+
+        DrafBulanan::create([
+            'kode_draf' => 'DB-GANDA',
+            'id_profil' => $draf->id_profil,
+            'id_konfigurasi' => $draf->id_konfigurasi,
+            'tahun_pajak' => $draf->tahun_pajak,
+            'bulan' => $draf->bulan,
+            'tanggal_dibuat' => now(),
+            'peredaran_bruto' => 0,
+            'akumulasi_sebelumnya' => 0,
+            'akumulasi_sekarang' => 0,
+            'omzet_kena_pajak' => 0,
+            'pph_final' => 0,
+        ]);
     }
 }

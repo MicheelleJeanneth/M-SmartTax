@@ -14,7 +14,11 @@ return new class extends Migration
     {
         Schema::create('draf_bulanan', function (Blueprint $table) {
             $table->id('id_draf_bulanan');
-            $table->string('kode_draf', 30)->unique();
+            // Label yang dibaca manusia, unik di dalam satu wajib pajak saja —
+            // bukan unik global. Dua wajib pajak sama-sama boleh punya draf
+            // masa pajak yang sama. Aturan satu draf per periode ditegakkan
+            // indeks gabungan di bawah.
+            $table->string('kode_draf', 30);
             $table->foreignId('id_profil')->constrained('profil', 'id_profil')->cascadeOnDelete();
             $table->foreignId('id_konfigurasi')->constrained('konfigurasi_pajak', 'id_konfigurasi');
             // Terisi saat draf tahunan menguncinya; kosong berarti masih dapat dibatalkan.
