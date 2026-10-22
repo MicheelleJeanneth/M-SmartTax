@@ -220,4 +220,102 @@ class SimulasiAsetTest extends TestCase
             ->assertDontSee('Hasil Simulasi')
             ->assertSee('tidak dapat diubah di halaman ini');
     }
+
+    public function test_formulir_rencana_dibuka_tanpa_angka_bawaan(): void
+    {
+        $halaman = $this->get('/simulasi')->assertOk()->getContent();
+
+        // Setiap kolom di kartu rencana masuk ke rumus dan keluarannya berupa
+        // vonis kelayakan, jadi tidak boleh ada angka yang terlihat sah tetapi
+        // bukan milik pengguna.
+        foreach (['harga_aset', 'uang_muka', 'jangka_waktu', 'suku_bunga', 'nama_aset'] as $kolom) {
+            preg_match('/<input[^>]*name="'.$kolom.'"[^>]*>/', $halaman, $cocok);
+            $this->assertNotEmpty($cocok, "Kolom {$kolom} tidak ditemukan.");
+            preg_match('/value="([^"]*)"/', $cocok[0], $isi);
+            $this->assertSame('', $isi[1] ?? '', "Kolom {$kolom} masih punya nilai bawaan.");
+        }
+
+        // Jenis aset tidak terpilih lebih dulu, hanya menawarkan pilihan kosong.
+        $this->assertStringContainsString('<option value="">Pilih jenis aset</option>', $halaman);
+
+        // Cara pembayaran tetap Kredit supaya ketiga kolom kredit terlihat.
+        $this->assertMatchesRegularExpression('/<option value="Kredit"[^>]*selected/', $halaman);
+
+        // Contoh angkanya pindah ke placeholder, yang tidak ikut terkirim.
+        $this->assertStringContainsString('placeholder="Contoh: 450.000.000"', $halaman);
+    }
+
+    public function test_rencana_kosong_ditolak_bukan_dihitung(): void
+    {
+        $this->from('/simulasi')
+            ->post('/simulasi', ['cara_pembayaran' => 'Kredit'])
+            ->assertRedirect('/simulasi')
+            ->assertSessionHasErrors(['jenis_aset', 'nama_aset', 'harga_aset', 'jangka_waktu', 'suku_bunga'])
+            // Uang muka sengaja tidak wajib: kosong berarti tanpa uang muka.
+            ->assertSessionDoesntHaveErrors('uang_muka');
+    }
+
+    public function test_uang_muka_kosong_dibaca_nol_dan_menghasilkan_angsuran_lebih_besar(): void
+    {
+        $dasar = [
+            'jenis_aset' => 'tidak-bergerak',
+            'nama_aset' => 'Ruko cabang ketiga',
+            'cara_pembayaran' => 'Kredit',
+            'harga_aset' => '450.000.000',
+            'jangka_waktu' => '60',
+            'suku_bunga' => '8,5',
+        ];
+
+        // Dikosongkan: pokok pinjamannya penuh.
+        $this->post('/simulasi', $dasar)
+            ->assertOk()
+            ->assertSessionHasNoErrors()
+            ->assertSee(rupiah(450_000_000));
+
+        // Diisi: pokoknya berkurang, jadi hasilnya lebih ringan daripada yang kosong.
+        $this->post('/simulasi', [...$dasar, 'uang_muka' => '90.000.000'])
+            ->assertOk()
+            ->assertSee(rupiah(360_000_000));
+    }
+
+    public function test_bunga_kosong_tidak_diam_diam_dibaca_nol(): void
+    {
+        // Bunga nol membuat simulasi tampak lebih ringan daripada kenyataan,
+        // jadi nol harus diketik sendiri, bukan jatuh ke sana karena lalai.
+        $this->from('/simulasi')
+            ->post('/simulasi', [
+                'jenis_aset' => 'tidak-bergerak',
+                'nama_aset' => 'Ruko cabang ketiga',
+                'cara_pembayaran' => 'Kredit',
+                'harga_aset' => '450.000.000',
+                'uang_muka' => '90.000.000',
+                'jangka_waktu' => '60',
+            ])
+            ->assertRedirect('/simulasi')
+            ->assertSessionHasErrors('suku_bunga');
+
+        // Nol yang diketik sendiri diterima.
+        $this->post('/simulasi', [
+            'jenis_aset' => 'tidak-bergerak',
+            'nama_aset' => 'Ruko cabang ketiga',
+            'cara_pembayaran' => 'Kredit',
+            'harga_aset' => '450.000.000',
+            'uang_muka' => '90.000.000',
+            'jangka_waktu' => '60',
+            'suku_bunga' => '0',
+        ])->assertOk()->assertSessionHasNoErrors();
+    }
+
+    public function test_rencana_yang_diisi_tetap_menghasilkan_vonis(): void
+    {
+        $this->post('/simulasi', [
+            'jenis_aset' => 'tidak-bergerak',
+            'nama_aset' => 'Ruko cabang ketiga',
+            'cara_pembayaran' => 'Kredit',
+            'harga_aset' => '450.000.000',
+            'uang_muka' => '90.000.000',
+            'jangka_waktu' => '60',
+            'suku_bunga' => '8,5',
+        ])->assertOk()->assertSee('Hasil Simulasi')->assertSee(rupiah(360_000_000));
+    }
 }

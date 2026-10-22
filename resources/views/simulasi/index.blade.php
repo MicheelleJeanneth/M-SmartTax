@@ -34,10 +34,12 @@
             {{-- Kumpulan data peraga ikut terbawa agar keadaan khusus tetap tampil setelah Hitung. --}}
             @if($peraga)<input type="hidden" name="peraga" value="{{ $peraga }}">@endif
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                <x-select label="Jenis Aset" name="jenis_aset" wajib :kosong="false"
+                {{-- Tidak ada jenis aset yang terpilih lebih dulu: pilihannya
+                     harus datang dari pengguna, bukan dari bawaan formulir. --}}
+                <x-select label="Jenis Aset" name="jenis_aset" wajib kosong="Pilih jenis aset"
                     :pilihan="collect(\App\Support\MockData::kategoriHarta())->map(fn ($k) => $k['nama'])"
                     :terpilih="$rencana['jenis_aset']" />
-                <x-input label="Harga Aset" name="harga_aset" wajib uang placeholder="0"
+                <x-input label="Harga Aset" name="harga_aset" wajib uang placeholder="Contoh: 450.000.000"
                     :value="$rencana['harga_aset'] ? angka($rencana['harga_aset']) : ''" />
             </div>
 
@@ -48,9 +50,11 @@
                 <x-select label="Cara Pembayaran" name="cara_pembayaran" wajib :kosong="false"
                     :pilihan="['Tunai', 'Kredit']" :terpilih="$rencana['cara_pembayaran']" x-model="bayar" />
                 <div x-show="bayar !== 'Tunai'" x-cloak>
+                    {{-- Tidak wajib: kosong berarti tanpa uang muka, dan itu
+                         membuat angsurannya lebih besar, bukan lebih ringan. --}}
                     <x-input label="Uang Muka" name="uang_muka" uang placeholder="0"
                         :value="$kredit && $rencana['uang_muka'] ? angka($rencana['uang_muka']) : ''"
-                        x-bind:required="bayar !== 'Tunai'" />
+                        bantuan="Kosongkan bila tidak ada uang muka." />
                 </div>
             </div>
 
@@ -58,15 +62,15 @@
                  sama dengan harga aset di sisi server, sehingga rumusnya satu. --}}
             <div x-show="bayar !== 'Tunai'" x-cloak>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                    <x-input label="Jangka Waktu (bulan)" name="jangka_waktu" inputmode="numeric" maxlength="3"
+                    <x-input label="Jangka Waktu (bulan)" name="jangka_waktu" wajib inputmode="numeric" maxlength="3"
                         pattern="\d{1,3}" data-digit placeholder="Contoh: 60"
-                        :value="$kredit ? $rencana['jangka_waktu'] : ''"
+                        :value="$kredit ? ($rencana['jangka_waktu'] ?: '') : ''"
                         x-bind:required="bayar !== 'Tunai'" />
-                    <x-input label="Bunga per Tahun (%)" name="suku_bunga" inputmode="decimal" placeholder="Contoh: 8,5"
+                    <x-input label="Bunga per Tahun (%)" name="suku_bunga" wajib inputmode="decimal" placeholder="Contoh: 8,5"
                         :value="$kredit ? str_replace('.', ',', (string) $rencana['suku_bunga']) : ''"
+                        bantuan="Boleh ditulis dengan koma maupun titik, misalnya 8,5."
                         x-bind:required="bayar !== 'Tunai'" />
                 </div>
-                <p class="-mt-3 mb-6 text-sm text-ink-3">Bunga boleh ditulis dengan koma maupun titik, misalnya 8,5.</p>
             </div>
 
             {{-- Tombol rata kiri, sama seperti formulir lain. --}}

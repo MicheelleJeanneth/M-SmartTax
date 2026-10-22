@@ -35,10 +35,38 @@ const koreksiTanggal = (kolom) => {
 document.addEventListener('focusout', (peristiwa) => koreksiTanggal(peristiwa.target));
 
 /*
- | Tombol kirim dimatikan selama kolom bertanda wajib di formulir yang sama
- | masih kosong atau belum sah. Hanya formulir yang memang punya kolom wajib
- | yang terpengaruh, jadi tombol seperti Hapus dan Keluar tidak ikut mati.
+ | Tombol kirim mati selama masih ada kolom wajib yang kosong, lalu menyala
+ | sendiri begitu seluruhnya terisi.
+ |
+ | Tombol mati tanpa keterangan mudah disangka rusak — pengguna mengisi empat
+ | kolom, satu kolom pilihan terlewat, dan tidak ada yang memberitahu kolom
+ | mana. Karena itu selama tombolnya mati, satu baris keterangan ditempatkan
+ | tepat di bawahnya.
  */
+const keteranganTombol = (tombol, mati) => {
+    const wadah = tombol.parentElement;
+
+    if (!wadah) {
+        return;
+    }
+
+    let baris = wadah.querySelector('[data-tombol-kunci]');
+
+    if (!baris) {
+        if (!mati) {
+            return;
+        }
+
+        baris = document.createElement('p');
+        baris.dataset.tombolKunci = '';
+        baris.className = 'w-full text-sm text-ink-3';
+        baris.textContent = 'Lengkapi kolom bertanda * terlebih dahulu.';
+        wadah.appendChild(baris);
+    }
+
+    baris.classList.toggle('hidden', !mati);
+};
+
 const perbaruiTombolKirim = () => {
     document.querySelectorAll('form').forEach((formulir) => {
         const tombol = formulir.querySelector('button[type="submit"]');
@@ -48,12 +76,12 @@ const perbaruiTombolKirim = () => {
         }
 
         tombol.disabled = formulir.querySelectorAll(':invalid').length > 0;
+        keteranganTombol(tombol, tombol.disabled);
     });
 };
 
 document.addEventListener('input', perbaruiTombolKirim);
 document.addEventListener('change', perbaruiTombolKirim);
-
 /*
  | Daftar pilihan bertanda data-isi-uraian mengisi kolom lain dengan uraian
  | resmi dari pilihan yang dipakai, misalnya kode harta 0102 mengisi kolom
@@ -120,7 +148,7 @@ const peringatkanBulanTerkunci = (kolom) => {
         : '';
 
     // setCustomValidity membuat kolom ini ikut terhitung :invalid, sehingga
-    // tombol kirim otomatis mati lewat perbaruiTombolKirim di bawah.
+    // tombol kirim otomatis mati lewat perbaruiTombolKirim di atas.
     kolom.setCustomValidity(pesan);
 
     const baris = document.getElementById(`${kolom.id}-kunci`);

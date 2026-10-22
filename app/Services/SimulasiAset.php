@@ -10,18 +10,30 @@ class SimulasiAset
 {
     /** Rasio angsuran di bawah batas ini tergolong layak. */
     /**
-     * Isian awal formulir rencana pembelian, dipakai saat halaman pertama dibuka.
+     * Isian awal formulir rencana pembelian.
+     *
+     * Sengaja kosong, kecuali cara pembayaran. Setiap kolom di sini masuk ke
+     * rumus dan keluarannya berupa vonis kelayakan, sehingga angka bawaan yang
+     * terlihat sah berbahaya: pengguna dapat menekan Hitung sambil mengira
+     * angka itu miliknya, lalu menerima penilaian atas pembelian yang tidak
+     * pernah ia rencanakan. Contoh angkanya dipindahkan ke placeholder, yang
+     * tidak ikut terkirim. Jangan diisi ulang.
+     *
+     * Cara pembayaran tetap Kredit karena pilihan itulah yang menentukan kolom
+     * mana yang tampil. Kalau bawaannya Tunai, tiga kolom kredit tersembunyi
+     * sejak awal dan pengguna tidak tahu kolom itu ada; dengan Kredit, seluruh
+     * formulir terlihat dan menguranginya menjadi tindakan sadar.
      *
      * @var array<string, mixed>
      */
     public const RENCANA_BAWAAN = [
-        'jenis_aset' => 'tidak-bergerak',
+        'jenis_aset' => '',
         'nama_aset' => '',
         'cara_pembayaran' => 'Kredit',
-        'harga_aset' => 450_000_000,
-        'uang_muka' => 90_000_000,
-        'jangka_waktu' => 60,
-        'suku_bunga' => 8.5,
+        'harga_aset' => null,
+        'uang_muka' => null,
+        'jangka_waktu' => null,
+        'suku_bunga' => null,
     ];
 
     public const BATAS_LAYAK = 30;

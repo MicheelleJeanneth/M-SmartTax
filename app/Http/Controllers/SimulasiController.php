@@ -67,6 +67,7 @@ class SimulasiController extends Controller
             'harga_aset' => $this->bilangan($request->input('harga_aset')),
             // Pembelian tunai berarti seluruh harga dibayar di muka, sehingga
             // pokok pinjamannya nol dan jangka waktu serta bunga tidak berlaku.
+            // Uang muka yang dikosongkan pada pembelian kredit dibaca nol.
             'uang_muka' => $tunai
                 ? $this->bilangan($request->input('harga_aset'))
                 : $this->bilangan($request->input('uang_muka')),
@@ -81,7 +82,15 @@ class SimulasiController extends Controller
             'nama_aset' => ['required', 'string', 'max:100'],
             'cara_pembayaran' => ['required', Rule::in(['Tunai', 'Kredit'])],
             'harga_aset' => ['required', 'integer', 'min:1'],
-            'uang_muka' => ['required', 'integer', 'min:0', 'lte:harga_aset'],
+            // Tidak wajib: kosong hanya bisa berarti satu hal, yaitu tanpa uang
+            // muka, dan itu pembelian yang lumrah. Hasilnya pun aman — pokok
+            // pinjaman jadi penuh dan angsurannya lebih besar, sehingga pengguna
+            // yang lalai mendapat gambaran yang lebih berat, bukan lebih ringan.
+            'uang_muka' => ['nullable', 'integer', 'min:0', 'lte:harga_aset'],
+            // Keduanya wajib pada pembelian kredit. Jangka waktu tidak punya
+            // nilai bawaan yang masuk akal, dan bunga yang dikosongkan akan
+            // terbaca nol sehingga simulasinya tampak lebih ringan daripada
+            // kenyataan — nol harus diketik sebagai pilihan sadar.
             'jangka_waktu' => [Rule::requiredIf(! $tunai), 'integer', $tunai ? 'min:0' : 'between:1,360'],
             'suku_bunga' => [Rule::requiredIf(! $tunai), 'numeric', 'between:0,100'],
         ], [
@@ -93,7 +102,6 @@ class SimulasiController extends Controller
             'cara_pembayaran.in' => 'Cara pembayaran tidak dikenali.',
             'harga_aset.required' => 'Harga aset wajib diisi.',
             'harga_aset.min' => 'Harga aset harus lebih besar dari nol.',
-            'uang_muka.required' => 'Uang muka wajib diisi.',
             'uang_muka.integer' => 'Uang muka hanya boleh berisi angka.',
             'uang_muka.min' => 'Uang muka tidak boleh kurang dari nol.',
             'uang_muka.lte' => 'Uang muka tidak boleh melebihi harga aset.',
@@ -110,7 +118,7 @@ class SimulasiController extends Controller
             'nama_aset' => $sah['nama_aset'],
             'cara_pembayaran' => $sah['cara_pembayaran'],
             'harga_aset' => (int) $sah['harga_aset'],
-            'uang_muka' => (int) $sah['uang_muka'],
+            'uang_muka' => (int) ($sah['uang_muka'] ?? 0),
             'jangka_waktu' => (int) $sah['jangka_waktu'],
             'suku_bunga' => (float) $sah['suku_bunga'],
         ];
