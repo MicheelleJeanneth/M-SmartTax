@@ -24,13 +24,17 @@ use Illuminate\Support\Collection;
 class Pengingat
 {
     /**
-     * Pasangan tahun dan bulan yang drafnya sudah tersusun. Dibaca sekali
-     * karena pemeriksaan 3.1 menelusuri setiap bulan dari tahun pertama
-     * sampai tahun berjalan.
+     * Pasangan tahun dan bulan yang drafnya sudah tersusun, berkunci id profil.
      *
-     * @var Collection<int, string>|null
+     * Dibaca sekali karena pemeriksaan 3.1 menelusuri setiap bulan dari tahun
+     * pertama sampai tahun berjalan. Kuncinya wajib: Laravel menyimpan instance
+     * controller pada objek Route, sehingga service ini dapat hidup lebih lama
+     * dari satu permintaan dan ingatan tanpa kunci pemilik akan menyajikan
+     * jawaban milik pengguna sebelumnya.
+     *
+     * @var array<int, Collection<int, string>>
      */
-    private ?Collection $tersusun = null;
+    private array $tersusun = [];
 
     public function __construct(
         private readonly AnalisisKeuangan $analisis,
@@ -348,11 +352,13 @@ class Pengingat
 
     private function drafTersusun(int $tahun, int $bulan): bool
     {
-        $this->tersusun ??= DrafBulanan::query()
-            ->where('id_profil', PenggunaSaatIni::id())
+        $profil = (int) PenggunaSaatIni::id();
+
+        $this->tersusun[$profil] ??= DrafBulanan::query()
+            ->where('id_profil', $profil)
             ->get(['tahun_pajak', 'bulan'])
             ->map(fn (DrafBulanan $d): string => $d->tahun_pajak.'-'.$d->bulan);
 
-        return $this->tersusun->contains($tahun.'-'.$bulan);
+        return $this->tersusun[$profil]->contains($tahun.'-'.$bulan);
     }
 }

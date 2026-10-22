@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Models\DrafBulanan;
 use App\Models\Harta;
 use App\Models\Penghasilan;
+use App\Models\Pengingat;
 use App\Models\Profil;
 use App\Models\Utang;
+use App\Services\PerhitunganPajak;
+use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
@@ -262,5 +265,57 @@ class AutentikasiTest extends TestCase
             'omzet_kena_pajak' => 0,
             'pph_final' => 0,
         ]);
+    }
+
+    public function test_ingatan_service_tidak_terbawa_antar_pengguna(): void
+    {
+        // Laravel menyimpan instance controller pada objek Route, jadi service
+        // beserta ingatannya dapat melayani dua permintaan berturut-turut.
+        // Ingatan yang tidak berkunci id profil akan menyajikan jawaban milik
+        // pengguna sebelumnya; di sini wajib pajak contoh dibuka lebih dahulu.
+        $this->get('/dashboard')->assertOk();
+        $this->get('/simulasi')->assertOk();
+
+        $lain = $this->akunLain();
+        Penghasilan::create([
+            'id_profil' => $lain->id_profil,
+            'tanggal' => MockData::TAHUN.'-04-20',
+            'nominal' => 50_000_000,
+            'keterangan' => 'Penjualan April',
+            'status' => true,
+        ]);
+
+        $this->actingAs($lain);
+        PenggunaSaatIni::lupakan();
+
+        // Wajib pajak contoh mencatat sejak Januari 2024, akun ini sejak April
+        // tahun berjalan. Jawaban keduanya tidak boleh tertukar.
+        $this->assertSame(4, app(PerhitunganPajak::class)->bulanPertama(MockData::TAHUN));
+
+        // Baris keterangannya muncul di bawah kartu Hasil Simulasi, jadi
+        // diperiksa setelah Hitung, bukan pada halaman kosong.
+        $this->post('/simulasi', [
+            'jenis_aset' => 'tidak-bergerak',
+            'nama_aset' => 'Ruko cabang ketiga',
+            'cara_pembayaran' => 'Kredit',
+            'harga_aset' => '450.000.000',
+            'uang_muka' => '90.000.000',
+            'jangka_waktu' => '60',
+            'suku_bunga' => '8,5',
+        ])
+            ->assertOk()
+            ->assertSee('Anda mulai mencatat pada April, sehingga rata-rata ini memperhitungkan bulan sebelum pencatatan dimulai.');
+
+        // Pengingat juga tidak boleh menagih bulan sebelum April.
+        $this->get('/dashboard')->assertOk();
+
+        $ditagih = Pengingat::where('id_profil', $lain->id_profil)
+            ->where('jenis', 'like', 'draf_bulanan_%')
+            ->pluck('jenis')
+            ->filter(fn (string $jenis): bool => (int) substr($jenis, -2) < 4)
+            ->values()
+            ->all();
+
+        $this->assertSame([], $ditagih, 'Bulan sebelum April bukan masa pajak akun ini.');
     }
 }

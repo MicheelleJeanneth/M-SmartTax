@@ -21,11 +21,15 @@ use Illuminate\Support\Collection;
 class PerhitunganPajak
 {
     /**
-     * Penghasilan paling awal milik pengguna, dibaca sekali per permintaan.
+     * Penghasilan paling awal, berkunci id profil.
      *
-     * @var array{0: bool, 1: Carbon|null}
+     * Kuncinya wajib: Laravel menyimpan instance controller pada objek Route,
+     * sehingga service ini dapat hidup lebih lama dari satu permintaan. Ingatan
+     * tanpa kunci pemilik akan menyajikan jawaban milik pengguna sebelumnya.
+     *
+     * @var array<int, Carbon|null>
      */
-    private array $awal = [false, null];
+    private array $awal = [];
 
     public function __construct(private AnalisisKeuangan $analisis) {}
 
@@ -92,15 +96,17 @@ class PerhitunganPajak
 
     private function awalPencatatan(): ?Carbon
     {
-        if (! $this->awal[0]) {
+        $profil = (int) PenggunaSaatIni::id();
+
+        if (! array_key_exists($profil, $this->awal)) {
             $paling = Penghasilan::query()
-                ->where('id_profil', PenggunaSaatIni::id())
+                ->where('id_profil', $profil)
                 ->min('tanggal');
 
-            $this->awal = [true, $paling === null ? null : Carbon::parse($paling)];
+            $this->awal[$profil] = $paling === null ? null : Carbon::parse($paling);
         }
 
-        return $this->awal[1];
+        return $this->awal[$profil];
     }
 
     /**

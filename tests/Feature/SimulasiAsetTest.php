@@ -2,8 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Penghasilan;
+use App\Models\Profil;
+use App\Services\AnalisisKeuangan;
 use App\Services\SimulasiAset;
 use App\Support\MockData;
+use App\Support\PenggunaSaatIni;
 use Tests\TestCase;
 
 class SimulasiAsetTest extends TestCase
@@ -317,5 +321,60 @@ class SimulasiAsetTest extends TestCase
             'jangka_waktu' => '60',
             'suku_bunga' => '8,5',
         ])->assertOk()->assertSee('Hasil Simulasi')->assertSee(rupiah(360_000_000));
+    }
+
+    public function test_rata_rata_penghasilan_menyebut_pembaginya(): void
+    {
+        // Pembaginya tetap dua belas bulan; yang ditambahkan hanya keterangannya,
+        // supaya angka di kartu dapat ditelusuri pengguna.
+        $this->get('/simulasi')
+            ->assertOk()
+            ->assertSee('Penghasilan tahun ini dibagi dua belas bulan');
+
+        $bruto = app(AnalisisKeuangan::class)->peredaranBruto(MockData::TAHUN);
+
+        $this->assertSame(
+            (int) round($bruto / 12),
+            app(SimulasiAset::class)->kondisi(MockData::TAHUN)['penghasilan_bulanan'],
+        );
+    }
+
+    public function test_pencatatan_yang_dimulai_di_tengah_tahun_diberi_keterangan(): void
+    {
+        // Wajib pajak contoh mencatat sejak Januari, jadi barisnya tidak muncul.
+        $this->post('/simulasi', $this->rencana())
+            ->assertOk()
+            ->assertDontSee('Anda mulai mencatat pada');
+
+        $lain = Profil::create([
+            'email' => 'tengah@uji.test', 'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
+            'nama' => 'Tengah Tahun', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
+            'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
+            'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',
+            'provinsi' => 'Jawa Timur', 'profil_lengkap' => true, 'status' => true,
+        ]);
+        Penghasilan::create([
+            'id_profil' => $lain->id_profil, 'tanggal' => MockData::TAHUN.'-04-20',
+            'nominal' => 548_500_000, 'keterangan' => 'uji', 'status' => true,
+        ]);
+
+        $this->actingAs($lain);
+        PenggunaSaatIni::lupakan();
+
+        $this->post('/simulasi', $this->rencana())
+            ->assertOk()
+            ->assertSee('Anda mulai mencatat pada April, sehingga rata-rata ini memperhitungkan bulan sebelum pencatatan dimulai.');
+    }
+
+    public function test_catatan_penutup_berupa_teks_polos_bukan_kotak(): void
+    {
+        $halaman = $this->post('/simulasi', $this->rencana())->assertOk()->getContent();
+
+        // Spesifikasi 4.3: teks 13 piksel warna ink-3, tanpa kotak dan latar.
+        $this->assertStringContainsString(
+            '<p class="mt-4 text-[13px] text-ink-3">',
+            $halaman,
+        );
+        $this->assertStringNotContainsString('bg-[#F5FBFD]', $halaman);
     }
 }

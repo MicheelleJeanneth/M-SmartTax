@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PerhitunganPajak;
 use App\Services\SimulasiAset;
 use App\Support\MockData;
 use Illuminate\Http\Request;
@@ -10,7 +11,10 @@ use Illuminate\View\View;
 
 class SimulasiController extends Controller
 {
-    public function __construct(private SimulasiAset $simulasi) {}
+    public function __construct(
+        private SimulasiAset $simulasi,
+        private PerhitunganPajak $pajak,
+    ) {}
 
     /**
      * Kartu kondisi keuangan dan formulir rencana, belum ada hasil.
@@ -26,6 +30,7 @@ class SimulasiController extends Controller
             'rencana' => SimulasiAset::RENCANA_BAWAAN,
             'hasil' => null,
             'dampak' => null,
+            'bulanPertama' => $this->pajak->bulanPertama(MockData::TAHUN),
         ]);
     }
 
@@ -50,6 +55,9 @@ class SimulasiController extends Controller
             'pokok' => $pokok,
             'hasil' => $this->simulasi->hitungKelayakan($kondisi, $cicilan, $pokok),
             'dampak' => $this->simulasi->dampakKonsistensi($tahun, $rencana['harga_aset'], $pokok),
+            // Dipakai hanya untuk keterangan, bukan untuk perhitungan: pembagi
+            // rata-rata penghasilan tetap dua belas bulan.
+            'bulanPertama' => $this->pajak->bulanPertama($tahun),
         ]);
     }
 

@@ -7,15 +7,18 @@
         {{-- Cicilan berjalan wajib tampil di sini: nilainya ikut membentuk rasio
              angsuran, sehingga pengguna dapat menelusuri asal persentasenya. --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {{-- Rata-rata penghasilan menyebutkan pembaginya: tanpa itu, angka
+                 yang muncul tidak dapat ditelusuri pengguna. --}}
             @foreach([
-                'Rata-rata Penghasilan per Bulan' => $kondisi['penghasilan_bulanan'],
-                'Cicilan Berjalan per Bulan' => $kondisi['cicilan_berjalan'],
-                'Total Utang' => $kondisi['total_utang'],
-                'Kekayaan Bersih' => $kondisi['kekayaan_bersih'],
-            ] as $label => $nilai)
+                ['Rata-rata Penghasilan per Bulan', $kondisi['penghasilan_bulanan'], 'Penghasilan tahun ini dibagi dua belas bulan'],
+                ['Cicilan Berjalan per Bulan', $kondisi['cicilan_berjalan'], null],
+                ['Total Utang', $kondisi['total_utang'], null],
+                ['Kekayaan Bersih', $kondisi['kekayaan_bersih'], null],
+            ] as [$label, $nilai, $catatan])
                 <div class="rounded-field bg-page px-5 py-4">
                     <p class="text-sm text-ink-2">{{ $label }}</p>
                     <p class="mt-1 text-[26px] leading-tight font-medium tracking-tight tabular-nums text-ink">{{ rupiah($nilai) }}</p>
+                    @if($catatan)<p class="mt-1 text-[13px] text-ink-3">{{ $catatan }}</p>@endif
                 </div>
             @endforeach
         </div>
@@ -127,6 +130,14 @@
             @endif
         </x-card>
 
+        {{-- Pembaginya tetap dua belas bulan. Baris ini hanya menerangkan
+             akibatnya bagi pengguna yang mulai mencatat di tengah tahun. --}}
+        @if($bulanPertama !== null && $bulanPertama > 1)
+            <p class="mt-3 text-[13px] text-ink-3">
+                Anda mulai mencatat pada {{ \App\Support\MockData::bulan()[$bulanPertama] }}, sehingga rata-rata ini memperhitungkan bulan sebelum pencatatan dimulai.
+            </p>
+        @endif
+
         <x-card judul="Dampak pada Analisis Konsistensi" class="mt-4">
             @if($dampak['dapat_dihitung'])
                 {{-- Keduanya memakai perhitungan konsistensi draf tahunan,
@@ -159,8 +170,11 @@
             @endif
         </x-card>
 
-        <x-info varian="biru-muda" class="mt-4">
+        {{-- Spesifikasi 4.3: catatan penutup berupa teks polos, tanpa kotak
+             dan tanpa latar. Palet M-SmartTax tidak punya warna biru untuk
+             kotak keterangan. --}}
+        <p class="mt-4 text-[13px] text-ink-3">
             Hasil simulasi merupakan perkiraan berdasarkan data yang tercatat pada sistem dan tidak disimpan. Keputusan pembelian tetap berada pada pengguna.
-        </x-info>
+        </p>
     @endif
 @endsection
