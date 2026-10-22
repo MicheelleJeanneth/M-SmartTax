@@ -32,10 +32,20 @@
 
     <x-card class="mt-4" padat>
         @if($penghasilan->isEmpty())
-            <x-empty judul="Belum ada penghasilan pada periode ini" tombol="Tambah Penghasilan" :href="route('penghasilan.create')"
-                class="border-0">
-                Ubah bulan atau tahun pada filter di atas, atau catat penerimaan usaha yang baru.
-            </x-empty>
+            @php $periode = $bulan > 0 ? \App\Support\MockData::bulan()[$bulan] . ' ' . $tahun : 'tahun ' . $tahun; @endphp
+
+            @if($periodeTerkunci)
+                {{-- Periodenya sudah terkunci draf, jadi menawarkan tombol tambah
+                     hanya mengantar pengguna ke formulir yang pasti menolaknya. --}}
+                <x-empty ikon="lock" :judul="'Tidak ada penghasilan pada ' . $periode" class="border-0">
+                    {{ $pesanKunci }}
+                </x-empty>
+            @else
+                <x-empty :judul="'Belum ada penghasilan pada ' . $periode" tombol="Tambah Penghasilan" :href="route('penghasilan.create')"
+                    class="border-0">
+                    Ubah bulan atau tahun pada filter di atas, atau catat penerimaan usaha yang baru.
+                </x-empty>
+            @endif
         @else
             <x-table :kepala="['No', 'Tanggal', 'Keterangan', ['teks' => 'Nominal', 'kanan' => true], 'Status', '']">
                 @foreach($penghasilan as $p)

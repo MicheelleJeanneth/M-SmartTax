@@ -277,4 +277,25 @@ class PengingatTest extends TestCase
             );
         }
     }
+
+    public function test_periode_terkunci_tidak_menawarkan_tombol_tambah_penghasilan(): void
+    {
+        Carbon::setTestNow('2026-10-21');
+        $profil = $this->akunBaru();
+        $this->catat($profil, '2026-04-20');
+        $this->post('/draf-bulanan', ['bulan' => 4, 'tahun' => 2026])->assertRedirect();
+
+        // Januari tidak punya catatan dan sudah terkunci draf April.
+        $this->get('/penghasilan?tahun=2026&bulan=1')
+            ->assertOk()
+            ->assertSee('Tidak ada penghasilan pada Januari 2026')
+            ->assertSee('karena draf pajak April 2026 sudah disusun')
+            ->assertDontSee('Tambah Penghasilan');
+
+        // Bulan yang masih terbuka tetap menawarkan tombolnya.
+        $this->get('/penghasilan?tahun=2026&bulan=8')
+            ->assertOk()
+            ->assertSee('Belum ada penghasilan pada Agustus 2026')
+            ->assertSee('Tambah Penghasilan');
+    }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -36,6 +37,16 @@ class PenghasilanController extends Controller
             ->orderByDesc('tanggal')
             ->orderByDesc('id_penghasilan');
 
+        // Periode yang seluruhnya sudah terkunci draf tidak menawarkan tombol
+        // tambah: transaksinya pasti ditolak saat disimpan. Batasnya selalu
+        // jatuh pada tanggal 1, jadi satu bulan pasti terkunci seluruhnya atau
+        // terbuka seluruhnya.
+        $akhirPeriode = $bulan > 0
+            ? Carbon::create($tahun, $bulan)->endOfMonth()
+            : Carbon::create($tahun, 12, 31);
+
+        $periodeTerkunci = $this->kunci->terkunci($akhirPeriode->toDateString());
+
         return view('penghasilan.index', [
             'penghasilan' => $kueri->clone()->paginate(self::PER_HALAMAN)->withQueryString(),
             'total' => (int) $kueri->clone()->sum('nominal'),
@@ -44,6 +55,8 @@ class PenghasilanController extends Controller
             'bulan' => $bulan,
             'cari' => $cari,
             'daftarTahun' => $daftarTahun,
+            'periodeTerkunci' => $periodeTerkunci,
+            'pesanKunci' => $periodeTerkunci ? $this->kunci->pesan($akhirPeriode->toDateString()) : null,
         ]);
     }
 
