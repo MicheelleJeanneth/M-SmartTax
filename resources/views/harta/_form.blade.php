@@ -62,10 +62,13 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-input :label="$info['label_tahun']" name="tahun" wajib inputmode="numeric" maxlength="4"
             pattern="\d{4}" data-digit placeholder="Contoh: 2026" :value="$h['tahun'] ?? ''" />
+        {{-- Keterangannya menempel pada kolomnya sendiri. Sebagai paragraf
+             selebar kartu, teksnya jatuh di bawah kolom kiri dan terbaca
+             seolah menerangkan Tahun Perolehan. --}}
         <x-input label="Tahun Pelepasan" name="tahun_pelepasan" inputmode="numeric" maxlength="4"
-            pattern="\d{4}" data-digit placeholder="Contoh: 2029" :value="$h['tahun_pelepasan'] ?? ''" />
+            pattern="\d{4}" data-digit placeholder="Contoh: 2029" :value="$h['tahun_pelepasan'] ?? ''"
+            :bantuan="$info['bantuan_pelepasan']" />
     </div>
-    <p class="-mt-3 mb-6 text-sm text-ink-3">{{ titik($info['bantuan_pelepasan']) }}</p>
 
     @if($seksi)
         {{-- Garis pemisah memakai jarak yang sama dengan antar kotak. --}}
