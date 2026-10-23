@@ -188,14 +188,15 @@ class SimulasiAset
 
     /**
      * Kalimat penjelas kesimpulan. Hanya menyebut rasio angsuran, karena
-     * hanya itu yang menentukan vonisnya.
+     * hanya itu yang menentukan vonisnya. Pembaginya disebut terang-terangan:
+     * rata-rata penghasilan bulanan, bukan penghasilan satu bulan tertentu.
      */
     private function penjelasan(string $nada, float $rasio): string
     {
         return match ($nada) {
-            'ok' => 'Seluruh kewajiban bulanan sebesar '.persen($rasio).' dari penghasilan masih di bawah batas wajar '.self::BATAS_LAYAK.'%.',
-            'warn' => 'Seluruh kewajiban bulanan sebesar '.persen($rasio).' dari penghasilan sudah melewati batas wajar '.self::BATAS_LAYAK.'%, meski belum menyentuh '.self::BATAS_PERTIMBANGAN.'%.',
-            default => 'Seluruh kewajiban bulanan sebesar '.persen($rasio).' dari penghasilan melebihi batas '.self::BATAS_PERTIMBANGAN.'% dan membebani arus kas.',
+            'ok' => 'Seluruh kewajiban bulanan sebesar '.persen($rasio).' dari rata-rata penghasilan bulanan masih di bawah batas wajar '.self::BATAS_LAYAK.'%.',
+            'warn' => 'Seluruh kewajiban bulanan sebesar '.persen($rasio).' dari rata-rata penghasilan bulanan sudah melewati batas wajar '.self::BATAS_LAYAK.'%, meski belum menyentuh '.self::BATAS_PERTIMBANGAN.'%.',
+            default => 'Seluruh kewajiban bulanan sebesar '.persen($rasio).' dari rata-rata penghasilan bulanan melebihi batas '.self::BATAS_PERTIMBANGAN.'% dan membebani arus kas.',
         };
     }
 }

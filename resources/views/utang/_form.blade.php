@@ -9,12 +9,14 @@
             :value="$u['deskripsi'] ?? ''" />
     </div>
 
+    <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
+        :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
+
+    {{-- Cicilan mengikuti saldo: besarnya angsuran baru masuk akal dibaca
+         setelah pokok utangnya diketahui. --}}
     <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
         :value="isset($u['cicilan']) ? angka($u['cicilan']) : ''"
         bantuan="Kosongkan bila utang tidak diangsur secara berkala." />
-
-    <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
-        :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
 
     {{-- Tahun diketik langsung, bukan dipilih, supaya pengguna bebas mengisi tahun berapa pun. --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">

@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\KodeUtang;
 use App\Models\Penghasilan;
 use App\Models\Profil;
+use App\Models\Utang;
 use App\Services\AnalisisKeuangan;
 use App\Services\SimulasiAset;
 use App\Support\MockData;
@@ -366,15 +368,92 @@ class SimulasiAsetTest extends TestCase
             ->assertSee('Anda mulai mencatat pada April, sehingga rata-rata ini memperhitungkan bulan sebelum pencatatan dimulai.');
     }
 
-    public function test_catatan_penutup_berupa_teks_polos_bukan_kotak(): void
+    public function test_catatan_penutup_memakai_kotak_biru_muda(): void
     {
+        $this->post('/simulasi', $this->rencana())
+            ->assertOk()
+            ->assertSee('bg-[#F5FBFD]', false)
+            ->assertSee('Hasil simulasi merupakan perkiraan berdasarkan data yang tercatat pada sistem dan tidak disimpan.');
+    }
+
+    public function test_label_rasio_menyebut_satuan_pembaginya(): void
+    {
+        // Kedua rasio memakai pembagi yang berbeda: sebulan dan setahun.
+        $this->post('/simulasi', $this->rencana())
+            ->assertOk()
+            ->assertSee('Rasio angsuran terhadap penghasilan bulanan')
+            ->assertSee('Rasio total utang terhadap penghasilan tahunan')
+            ->assertSee('dari rata-rata penghasilan bulanan');
+    }
+
+    public function test_kotak_kesimpulan_menyebut_total_utang_setelah_pembelian(): void
+    {
+        $kondisi = app(SimulasiAset::class)->kondisi(MockData::TAHUN);
+        $pokok = 450_000_000 - 90_000_000;
+
         $halaman = $this->post('/simulasi', $this->rencana())->assertOk()->getContent();
 
-        // Spesifikasi 4.3: teks 13 piksel warna ink-3, tanpa kotak dan latar.
+        // Angkanya adalah utang berjalan ditambah pokok pinjaman baru, bukan
+        // "sisa utang" — pengguna bisa saja belum punya utang sama sekali.
         $this->assertStringContainsString(
-            '<p class="mt-4 text-[13px] text-ink-3">',
+            'total utang setelah pembelian '.rupiah($kondisi['total_utang'] + $pokok),
             $halaman,
         );
-        $this->assertStringNotContainsString('bg-[#F5FBFD]', $halaman);
+        $this->assertStringNotContainsString('sisa utang', $halaman);
+    }
+
+    public function test_cicilan_utang_berjalan_ikut_membentuk_total_kewajiban(): void
+    {
+        $profil = Profil::create([
+            'email' => 'cicilan@uji.test', 'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
+            'nama' => 'Uji Cicilan', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
+            'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
+            'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',
+            'provinsi' => 'Jawa Timur', 'profil_lengkap' => true, 'status' => true,
+        ]);
+        Penghasilan::create([
+            'id_profil' => $profil->id_profil, 'tanggal' => MockData::TAHUN.'-04-20',
+            'nominal' => 548_500_000, 'keterangan' => 'uji', 'status' => true,
+        ]);
+        Utang::create([
+            'id_profil' => $profil->id_profil,
+            'id_kode_utang' => KodeUtang::where('kode', '101')->value('id_kode_utang'),
+            'deskripsi' => 'KPR Rumah', 'nama_kreditur' => 'Bank BCA',
+            'saldo' => 60_000_000,
+            // Kolom inilah yang membuat baris Cicilan berjalan tidak nol.
+            'cicilan_bulanan' => 5_000_000,
+            'tahun_peminjaman' => MockData::TAHUN,
+            'negara_kreditur' => 'Indonesia', 'status' => true,
+        ]);
+
+        $this->actingAs($profil);
+        PenggunaSaatIni::lupakan();
+
+        // Bunga nol membuat angsuran menjadi pokok dibagi jangka waktu.
+        $this->post('/simulasi', [
+            'jenis_aset' => 'tidak-bergerak', 'nama_aset' => 'Ruko Cabang ke 2',
+            'cara_pembayaran' => 'Kredit', 'harga_aset' => '160.000.000',
+            'jangka_waktu' => '10', 'suku_bunga' => '0',
+        ])
+            ->assertOk()
+            ->assertSee(rupiah(16_000_000))   // angsuran per bulan
+            ->assertSee(rupiah(5_000_000))    // cicilan berjalan
+            ->assertSee(rupiah(21_000_000))   // total kewajiban bulanan
+            ->assertSee('45,9%')
+            ->assertSee('Belum Disarankan');
+    }
+
+    public function test_cicilan_kosong_dihitung_nol(): void
+    {
+        $utang = Utang::whereNull('cicilan_bulanan')->with('kodeUtang')->first();
+
+        $this->assertNotNull($utang, 'Data contoh butuh satu utang tanpa cicilan berkala.');
+        $this->assertNull($utang->cicilan);
+
+        // Halaman rinciannya tetap terbuka dan menyebut keadaannya.
+        $this->get('/utang/'.$utang->id)
+            ->assertOk()
+            ->assertSee('Cicilan Bulanan')
+            ->assertSee('Tidak diangsur berkala');
     }
 }

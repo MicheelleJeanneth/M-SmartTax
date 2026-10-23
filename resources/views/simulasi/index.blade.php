@@ -6,19 +6,23 @@
     <x-card judul="Kondisi Keuangan {{ $tahun }}">
         {{-- Cicilan berjalan wajib tampil di sini: nilainya ikut membentuk rasio
              angsuran, sehingga pengguna dapat menelusuri asal persentasenya. --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {{-- Rata-rata penghasilan menyebutkan pembaginya: tanpa itu, angka
-                 yang muncul tidak dapat ditelusuri pengguna. --}}
+        {{-- items-start menahan kotak agar tidak ikut melar mengejar tinggi
+             tetangganya. Keterangan pembagi karena itu diletakkan di luar
+             kotak: di dalam kotak, kotak sebelahnya ikut meninggi dan bagian
+             bawahnya terlihat kosong. --}}
+        <div class="grid grid-cols-1 items-start sm:grid-cols-2 gap-4">
             @foreach([
                 ['Rata-rata Penghasilan per Bulan', $kondisi['penghasilan_bulanan'], 'Penghasilan tahun ini dibagi dua belas bulan'],
                 ['Cicilan Berjalan per Bulan', $kondisi['cicilan_berjalan'], null],
                 ['Total Utang', $kondisi['total_utang'], null],
                 ['Kekayaan Bersih', $kondisi['kekayaan_bersih'], null],
             ] as [$label, $nilai, $catatan])
-                <div class="rounded-field bg-page px-5 py-4">
-                    <p class="text-sm text-ink-2">{{ $label }}</p>
-                    <p class="mt-1 text-[26px] leading-tight font-medium tracking-tight tabular-nums text-ink">{{ rupiah($nilai) }}</p>
-                    @if($catatan)<p class="mt-1 text-[13px] text-ink-3">{{ $catatan }}</p>@endif
+                <div>
+                    <div class="rounded-field bg-page px-5 py-4">
+                        <p class="text-sm text-ink-2">{{ $label }}</p>
+                        <p class="mt-1 text-[26px] leading-tight font-medium tracking-tight tabular-nums text-ink">{{ rupiah($nilai) }}</p>
+                    </div>
+                    @if($catatan)<p class="mt-1.5 text-[13px] text-ink-3">{{ $catatan }}</p>@endif
                 </div>
             @endforeach
         </div>
@@ -102,10 +106,12 @@
                 @if($hasil['dapat_dihitung'])
                     <div class="my-3 border-t border-line-soft"></div>
 
-                    {{-- Nama kedua rasio ditulis lengkap: hanya yang pertama
-                         menentukan kesimpulan, yang kedua sekadar keterangan. --}}
-                    <x-row label="Rasio angsuran terhadap penghasilan">{{ persen($hasil['rasio']) }}</x-row>
-                    <x-row label="Rasio total utang terhadap penghasilan">{{ persen($hasil['rasio_utang']) }}</x-row>
+                    {{-- Nama kedua rasio ditulis lengkap beserta satuan pembaginya:
+                         yang pertama dibagi rata-rata penghasilan sebulan, yang kedua
+                         dibagi peredaran bruto setahun. Hanya yang pertama menentukan
+                         kesimpulan, yang kedua sekadar keterangan. --}}
+                    <x-row label="Rasio angsuran terhadap penghasilan bulanan">{{ persen($hasil['rasio']) }}</x-row>
+                    <x-row label="Rasio total utang terhadap penghasilan tahunan">{{ persen($hasil['rasio_utang']) }}</x-row>
                 @endif
             </div>
 
@@ -120,7 +126,7 @@
                     </div>
                     <p class="mt-2 text-sm leading-relaxed">{{ $hasil['penjelasan'] }}</p>
                     <p class="mt-1.5 text-sm leading-relaxed">
-                        Rasio total utang terhadap penghasilan membandingkan sisa utang {{ rupiah($hasil['utang_setelah']) }} dengan peredaran bruto {{ rupiah($kondisi['penghasilan_tahun']) }} pada tahun ini, dan tidak ikut menentukan kesimpulan di atas.
+                        Rasio total utang terhadap penghasilan tahunan membandingkan total utang setelah pembelian {{ rupiah($hasil['utang_setelah']) }} dengan peredaran bruto {{ rupiah($kondisi['penghasilan_tahun']) }} pada tahun ini, dan tidak ikut menentukan kesimpulan di atas.
                     </p>
                 </div>
             @else
@@ -128,15 +134,16 @@
                     Rasio tidak dapat dihitung karena belum ada data penghasilan pada tahun ini.
                 </div>
             @endif
-        </x-card>
 
-        {{-- Pembaginya tetap dua belas bulan. Baris ini hanya menerangkan
-             akibatnya bagi pengguna yang mulai mencatat di tengah tahun. --}}
-        @if($bulanPertama !== null && $bulanPertama > 1)
-            <p class="mt-3 text-[13px] text-ink-3">
-                Anda mulai mencatat pada {{ \App\Support\MockData::bulan()[$bulanPertama] }}, sehingga rata-rata ini memperhitungkan bulan sebelum pencatatan dimulai.
-            </p>
-        @endif
+            {{-- Pembaginya tetap dua belas bulan. Baris ini menerangkan akibatnya
+                 bagi pengguna yang mulai mencatat di tengah tahun, dan duduk di
+                 dalam kartu agar jelas menerangkan rasio di atasnya. --}}
+            @if($bulanPertama !== null && $bulanPertama > 1)
+                <p class="mt-3 text-[13px] text-ink-3">
+                    Anda mulai mencatat pada {{ \App\Support\MockData::bulan()[$bulanPertama] }}, sehingga rata-rata ini memperhitungkan bulan sebelum pencatatan dimulai.
+                </p>
+            @endif
+        </x-card>
 
         <x-card judul="Dampak pada Analisis Konsistensi" class="mt-4">
             @if($dampak['dapat_dihitung'])
@@ -170,11 +177,8 @@
             @endif
         </x-card>
 
-        {{-- Spesifikasi 4.3: catatan penutup berupa teks polos, tanpa kotak
-             dan tanpa latar. Palet M-SmartTax tidak punya warna biru untuk
-             kotak keterangan. --}}
-        <p class="mt-4 text-[13px] text-ink-3">
+        <x-info varian="biru-muda" class="mt-4">
             Hasil simulasi merupakan perkiraan berdasarkan data yang tercatat pada sistem dan tidak disimpan. Keputusan pembelian tetap berada pada pengguna.
-        </p>
+        </x-info>
     @endif
 @endsection

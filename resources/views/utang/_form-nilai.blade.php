@@ -20,12 +20,13 @@
     </div>
 
     {{-- Dua kolom di bawah ini satu-satunya yang masih dapat diisi. --}}
+    <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0" :value="angka($utang['saldo'])"
+        bantuan="Saldo tercatat per akhir tahun pajak." />
+
+    {{-- Cicilan mengikuti saldo, sama seperti pada formulir penuh. --}}
     <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
         :value="$utang['cicilan'] ? angka($utang['cicilan']) : ''"
         bantuan="Kosongkan bila utang tidak diangsur secara berkala." />
-
-    <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0" :value="angka($utang['saldo'])"
-        bantuan="Saldo tercatat per akhir tahun pajak." />
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-kolom-baca label="Tahun Peminjaman">{{ $utang['tahun'] }}</x-kolom-baca>
