@@ -192,6 +192,9 @@ class MockData
                 'kolom' => ['Nama Bank', 'Nomor Rekening', 'Atas Nama'],
                 'contoh' => ['Contoh: Bank BCA', 'Contoh: 1234567890', 'Contoh: Budi Santoso'],
                 'bantuan_kolom' => [null, null, 'Kosongkan bagian rekening jika harta berupa uang tunai.'],
+                // Nomor rekening hanya angka. Panjangnya berbeda antar bank,
+                // jadi dibatasi rentang, bukan jumlah digit yang pasti.
+                'digit_kolom' => [null, [1, 20], null],
                 'wajib_kolom' => [false, false, false],
                 'tabel' => [
                     ['judul' => 'Kode', 'isi' => 'kode'],

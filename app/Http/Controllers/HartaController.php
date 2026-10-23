@@ -187,8 +187,27 @@ class HartaController extends Controller
             'tahun_pelepasan' => ['nullable', 'digits:4', 'integer', 'gte:tahun', 'max:'.now()->year],
         ];
 
+        $info = $this->dataKategori($kategori)['info'];
+        $pesanKhas = [];
+
+        // Kolom yang didaftarkan pada digit_kolom hanya menerima angka. Di
+        // browser pembatasnya data-digit, tetapi kiriman dapat dibuat tanpa
+        // browser, jadi aturannya ditegakkan lagi di sini.
         foreach (Harta::KOLOM_KHAS[$kategori] as $urutan => $kolom) {
-            $aturan['khas_'.$urutan] = ['nullable', 'string', 'max:255'];
+            $digit = $info['digit_kolom'][$urutan] ?? null;
+
+            if ($digit === null) {
+                $aturan['khas_'.$urutan] = ['nullable', 'string', 'max:255'];
+
+                continue;
+            }
+
+            [$min, $maks] = is_array($digit) ? $digit : [$digit, $digit];
+
+            $aturan['khas_'.$urutan] = ['nullable', 'string', 'regex:/^\d{'.$min.','.$maks.'}$/'];
+            $pesanKhas['khas_'.$urutan.'.regex'] = $min === $maks
+                ? $info['kolom'][$urutan].' harus terdiri dari '.$maks.' angka.'
+                : $info['kolom'][$urutan].' hanya boleh berisi angka, maksimal '.$maks.' digit.';
         }
 
         $sah = $request->validate($aturan, [
@@ -199,6 +218,7 @@ class HartaController extends Controller
             'tahun.digits' => 'Tahun perolehan ditulis empat angka.',
             'tahun_pelepasan.gte' => 'Tahun pelepasan tidak boleh sebelum tahun perolehan.',
             'tahun_pelepasan.digits' => 'Tahun pelepasan ditulis empat angka.',
+            ...$pesanKhas,
         ]);
 
         $this->tolakTahunBerdraf($sah);
