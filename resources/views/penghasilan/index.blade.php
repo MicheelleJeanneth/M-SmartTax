@@ -17,7 +17,7 @@
     {{-- Lebar mengikuti Figma: kolom cari mengisi sisa baris, kedua dropdown sama lebar. --}}
     <form method="GET" class="mt-4 flex flex-wrap items-center gap-3">
         <div class="w-full min-w-0 sm:flex-1">
-            <x-input name="cari" rapat :value="$cari" placeholder="Cari keterangan" />
+            <x-input name="cari" rapat :value="$cari" placeholder="Cari keterangan" data-cari-langsung />
         </div>
         <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
             <x-select name="bulan" rapat kosong="Semua bulan" :pilihan="\App\Support\MockData::bulan()"

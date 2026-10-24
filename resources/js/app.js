@@ -208,3 +208,36 @@ document.addEventListener('input', (peristiwa) => {
 document.addEventListener('submit', (peristiwa) => {
     peristiwa.target.querySelectorAll?.('input[type="date"]').forEach(koreksiTanggal);
 }, true);
+
+/*
+ | Kolom bertanda data-cari-langsung mengirim formulirnya sendiri sesaat setelah
+ | pengetikan berhenti, sehingga hasilnya muncul tanpa menekan Enter.
+ |
+ | Penyaringannya tetap di server, bukan menyembunyikan baris di browser: tabel
+ | ini bernomor halaman, jadi baris yang cocok bisa saja berada di halaman lain
+ | dan tidak pernah ada di dokumen yang sedang terbuka.
+ |
+ | Jedanya menunggu pengetikan selesai supaya satu kata tidak memicu lima
+ | permintaan. Formulirnya memuat penyaring lain, yang karena itu ikut terbawa.
+ */
+const JEDA_CARI = 400;
+
+document.querySelectorAll('input[data-cari-langsung]').forEach((kolom) => {
+    let jeda;
+
+    kolom.addEventListener('input', () => {
+        clearTimeout(jeda);
+        jeda = setTimeout(() => kolom.form?.submit(), JEDA_CARI);
+    });
+
+    // Enter mengirim lebih dulu; jeda yang masih berjalan dibatalkan agar
+    // formulirnya tidak terkirim dua kali.
+    kolom.form?.addEventListener('submit', () => clearTimeout(jeda));
+
+    // Setiap pencarian memuat ulang halaman, jadi fokus dan kursor dikembalikan
+    // ke ujung teks supaya pengetikan dapat diteruskan tanpa mengklik lagi.
+    if (kolom.value !== '') {
+        kolom.focus();
+        kolom.setSelectionRange(kolom.value.length, kolom.value.length);
+    }
+});

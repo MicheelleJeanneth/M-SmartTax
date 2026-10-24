@@ -16,7 +16,7 @@
     {{-- Pencarian dan filter dikirim lewat query string agar tautan halaman tetap membawanya. --}}
     <form method="GET" class="mt-4 flex flex-wrap items-center gap-3">
         <div class="w-full min-w-0 sm:flex-1">
-            <x-input name="cari" rapat :value="$cari" placeholder="Cari deskripsi atau nama kreditur" />
+            <x-input name="cari" rapat :value="$cari" placeholder="Cari deskripsi atau nama kreditur" data-cari-langsung />
         </div>
         <div class="w-[calc(50%-0.375rem)] shrink-0 sm:w-52">
             <x-select name="kode" rapat kosong="Semua kode" :pilihan="\App\Models\KodeUtang::daftarSingkat()"
