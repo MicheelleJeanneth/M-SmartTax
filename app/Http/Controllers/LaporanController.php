@@ -194,6 +194,9 @@ class LaporanController extends Controller
             'judul' => self::JUDUL[$jenis],
             'profil' => PenggunaSaatIni::profil(),
             'tanggalCetak' => now(),
+            // Lampiran harta memuat sampai dua belas kolom, jadi tabelnya
+            // dirapatkan agar tetap muat pada A4 tegak.
+            'padat' => $jenis === 'harta',
             ...$filter,
         ];
 
@@ -206,8 +209,14 @@ class LaporanController extends Controller
             )],
             'harta' => [
                 ...$dasar,
+                // Kolom laporan berbeda dari kolom layar: lampiran SPT memuat
+                // seluruh rincian, termasuk yang di layar disembunyikan.
                 'kategori' => collect(MockData::kategoriHarta())
-                    ->map(fn (array $info, string $kunci): array => [...$info, 'baris' => $this->harta($kunci, $filter['tahun'])]),
+                    ->map(fn (array $info, string $kunci): array => [
+                        ...$info,
+                        'laporan' => MockData::kolomLaporanHarta()[$kunci],
+                        'baris' => $this->harta($kunci, $filter['tahun']),
+                    ]),
             ],
             'utang' => [
                 ...$dasar,

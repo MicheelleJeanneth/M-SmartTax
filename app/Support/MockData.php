@@ -410,6 +410,88 @@ class MockData
      *
      * @return array<string, string>
      */
+    /**
+     * Susunan kolom laporan harta, satu daftar per kategori.
+     *
+     * Berbeda dari 'tabel' yang dipakai di layar: laporan mencetak seluruh
+     * kolom resmi lampiran SPT, termasuk yang di layar disembunyikan karena
+     * kesempitan. 'isi' memakai penamaan yang sama — kode, deskripsi,
+     * keterangan, tahun, nilai, nilai_kini, negara, dan khas:N untuk kolom
+     * khas kategori itu.
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    public static function kolomLaporanHarta(): array
+    {
+        return [
+            'kas' => [
+                ['judul' => 'Kode', 'isi' => 'kode'],
+                ['judul' => 'Nomor Rekening', 'isi' => 'khas:1'],
+                ['judul' => 'Atas Nama', 'isi' => 'khas:2'],
+                ['judul' => 'Nama Bank', 'isi' => 'khas:0'],
+                ['judul' => 'Lokasi/Negara Harta', 'isi' => 'negara'],
+                ['judul' => 'Tahun Perolehan', 'isi' => 'tahun'],
+                ['judul' => 'Saldo', 'isi' => 'nilai', 'kanan' => true],
+                ['judul' => 'Keterangan', 'isi' => 'keterangan'],
+            ],
+            // Piutang tidak punya rekening maupun bank; penggantinya adalah
+            // identitas penerima pinjaman.
+            'piutang' => [
+                ['judul' => 'Kode', 'isi' => 'kode'],
+                ['judul' => 'Nomor Identitas Penerima', 'isi' => 'khas:1'],
+                ['judul' => 'Nama Penerima', 'isi' => 'khas:0'],
+                ['judul' => 'Lokasi/Negara Harta', 'isi' => 'negara'],
+                ['judul' => 'Tahun Perolehan', 'isi' => 'tahun'],
+                ['judul' => 'Nilai Piutang', 'isi' => 'nilai', 'kanan' => true],
+                ['judul' => 'Saldo Saat Ini', 'isi' => 'nilai_kini', 'kanan' => true],
+                ['judul' => 'Keterangan', 'isi' => 'keterangan'],
+            ],
+            'investasi' => [
+                ['judul' => 'Kode', 'isi' => 'kode'],
+                ['judul' => 'Lokasi/Negara Harta', 'isi' => 'negara'],
+                ['judul' => 'Nomor Identitas Penerbit', 'isi' => 'khas:2'],
+                ['judul' => 'Nama Bank/Penerbit', 'isi' => 'khas:0'],
+                ['judul' => 'Bukti Kepemilikan/Nomor Akun', 'isi' => 'khas:1'],
+                ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
+                ['judul' => 'Tahun Perolehan', 'isi' => 'tahun'],
+                ['judul' => 'Nilai Saat Ini', 'isi' => 'nilai_kini', 'kanan' => true],
+                ['judul' => 'Keterangan', 'isi' => 'keterangan'],
+            ],
+            'bergerak' => [
+                ['judul' => 'Kode', 'isi' => 'kode'],
+                ['judul' => 'Deskripsi', 'isi' => 'deskripsi'],
+                ['judul' => 'Nomor Polisi/Registrasi', 'isi' => 'khas:0'],
+                ['judul' => 'Kepemilikan', 'isi' => 'khas:1'],
+                ['judul' => 'Tahun Perolehan', 'isi' => 'tahun'],
+                ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
+                ['judul' => 'Nilai Saat Ini', 'isi' => 'nilai_kini', 'kanan' => true],
+                ['judul' => 'Keterangan', 'isi' => 'keterangan'],
+            ],
+            'tidak-bergerak' => [
+                ['judul' => 'Kode', 'isi' => 'kode'],
+                ['judul' => 'Deskripsi', 'isi' => 'deskripsi'],
+                ['judul' => 'Lokasi Harta', 'isi' => 'khas:0'],
+                ['judul' => 'Ukuran Tanah', 'isi' => 'khas:1'],
+                ['judul' => 'Ukuran Bangunan', 'isi' => 'khas:2'],
+                ['judul' => 'Sumber Kepemilikan', 'isi' => 'khas:3'],
+                ['judul' => 'Nomor Sertifikat', 'isi' => 'khas:4'],
+                ['judul' => 'Tahun Perolehan', 'isi' => 'tahun'],
+                ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
+                ['judul' => 'Nilai Saat Ini', 'isi' => 'nilai_kini', 'kanan' => true],
+                ['judul' => 'Keterangan', 'isi' => 'keterangan'],
+            ],
+            'lainnya' => [
+                ['judul' => 'Kode', 'isi' => 'kode'],
+                ['judul' => 'Deskripsi', 'isi' => 'deskripsi'],
+                ['judul' => 'Tahun Perolehan', 'isi' => 'tahun'],
+                ['judul' => 'Nomor Kepemilikan', 'isi' => 'khas:0'],
+                ['judul' => 'Harga Perolehan', 'isi' => 'nilai', 'kanan' => true],
+                ['judul' => 'Nilai Saat Ini', 'isi' => 'nilai_kini', 'kanan' => true],
+                ['judul' => 'Keterangan', 'isi' => 'keterangan'],
+            ],
+        ];
+    }
+
     public static function kodeUtang(): array
     {
         return [

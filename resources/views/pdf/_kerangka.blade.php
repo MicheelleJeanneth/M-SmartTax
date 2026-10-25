@@ -28,6 +28,10 @@
         .data td { padding: 5px 6px; border-bottom: 1px solid #E5E3DC; font-size: 8.5pt; }
         .data .r { white-space: nowrap; }
         .data tfoot td { font-weight: bold; border-top: 1px solid #D3D1C7; border-bottom: 0; }
+        /* Tabel padat untuk lampiran berkolom banyak, misalnya harta tidak
+           bergerak dengan dua belas kolom. Hurufnya diperkecil dan jarak
+           dalam selnya dirapatkan supaya tetap muat pada A4 tegak. */
+        .data.padat th, .data.padat td { font-size: 7pt; padding: 4px 3px; }
         .r, .data .r { text-align: right; }
         .hasil { background: #CBF2FF; padding: 10px 12px; margin-top: 10px; }
         .hasil .angka { font-size: 14pt; font-weight: bold; color: #083845; }
