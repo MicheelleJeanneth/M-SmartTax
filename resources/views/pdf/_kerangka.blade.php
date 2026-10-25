@@ -60,6 +60,12 @@
     <div class="pernyataan">
         Dokumen ini adalah draf yang disusun oleh M-SmartTax berdasarkan data yang dimasukkan oleh wajib pajak.
         Dokumen ini bukan bukti setor maupun bukti lapor. Penyetoran dan pelaporan dilakukan melalui saluran resmi Direktorat Jenderal Pajak.
+        <br><br>
+        {{-- Dokumen inilah yang paling mungkin beredar keluar dari sistem,
+             karena itu penafiannya ikut tercetak, bukan hanya tampil di layar. --}}
+        <strong>Disclaimer:</strong> M-SmartTax merupakan sistem simulasi untuk keperluan Ujian Skripsi
+        Mahasiswa Universitas Ciputra, tidak terafiliasi dengan Direktorat Jenderal Pajak (DJP) atau instansi
+        pemerintah mana pun.
     </div>
 
     <table class="ttd">

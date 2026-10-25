@@ -31,4 +31,5 @@
         Belum punya akun?
         <a href="{{ route('register') }}" class="rounded text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Daftar sekarang</a>
     </p>
+@include('partials.disclaimer')
 @endsection

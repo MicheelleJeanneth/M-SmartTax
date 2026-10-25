@@ -23,4 +23,5 @@
         Sudah punya akun?
         <a href="{{ route('login') }}" class="rounded text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Masuk</a>
     </p>
+@include('partials.disclaimer')
 @endsection

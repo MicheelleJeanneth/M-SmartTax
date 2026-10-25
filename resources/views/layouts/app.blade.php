@@ -50,6 +50,14 @@
             @include('partials.flash')
 
             @yield('isi')
+
+            {{-- Penafian ikut tampil sesudah masuk: pengguna tidak melewati
+                 halaman Masuk lagi setelah sesinya berjalan. --}}
+            <p class="mt-4 border-t border-line-soft pt-4 text-[13px] leading-relaxed text-ink-3">
+                M-SmartTax merupakan sistem simulasi untuk keperluan Ujian Skripsi Mahasiswa
+                Universitas Ciputra, tidak terafiliasi dengan Direktorat Jenderal Pajak (DJP) atau instansi
+                pemerintah mana pun.
+            </p>
             </div>
         </main>
     </div>
