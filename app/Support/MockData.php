@@ -97,7 +97,7 @@ class MockData
                 '0105' => 'Uang Elektronik',
                 '0106' => 'Cek',
                 '0107' => 'Wessel',
-                '0108' => 'Kertas Komersial',
+                '0108' => 'Kertas Komersial (Saham)',
                 '0109' => 'Setara Kas Lainnya',
             ],
             'piutang' => [
