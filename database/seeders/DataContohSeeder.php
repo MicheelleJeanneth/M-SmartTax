@@ -103,6 +103,7 @@ class DataContohSeeder extends Seeder
         $p = MockData::profil();
 
         return Profil::create([
+            'username' => $p['username'],
             'email' => $p['email'],
             'password' => 'rahasia123',
             'nik' => $p['nik'],

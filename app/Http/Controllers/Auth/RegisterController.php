@@ -23,13 +23,27 @@ class RegisterController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $request->merge(['username' => Profil::bakukanUsername($request->input('username'))]);
+
+        // Username dan email dibandingkan dengan seluruh baris, termasuk akun
+        // yang dinonaktifkan, karena kedua kolomnya unik di basis data.
         $sah = $request->validate([
-            // Email dibandingkan dengan seluruh baris, termasuk akun yang
-            // dinonaktifkan, karena kolomnya unik di basis data.
-            'email' => ['required', 'email', 'max:255', Rule::unique('profil', 'email')],
+            'username' => [
+                'required',
+                'string',
+                'between:3,20',
+                'regex:'.Profil::POLA_USERNAME,
+                Rule::unique('profil', 'username'),
+            ],
+            // Email tidak wajib: tidak semua wajib pajak memilikinya, dan
+            // sistem tidak pernah mengirim surel ke alamat tersebut.
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('profil', 'email')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
-            'email.required' => 'Email wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.between' => 'Username terdiri dari 3 sampai 20 karakter.',
+            'username.regex' => 'Username diawali huruf, diakhiri huruf atau angka, dan hanya boleh berisi huruf, angka, titik, serta garis bawah.',
+            'username.unique' => 'Username ini sudah dipakai. Silakan pilih yang lain.',
             'email.email' => 'Format email tidak sah.',
             'email.unique' => 'Email ini sudah terdaftar. Silakan masuk.',
             'password.required' => 'Kata sandi wajib diisi.',
@@ -38,7 +52,10 @@ class RegisterController extends Controller
         ]);
 
         Profil::create([
-            'email' => $sah['email'],
+            'username' => $sah['username'],
+            // Kolom email unik, jadi yang dikosongkan harus tersimpan sebagai
+            // null dan bukan sebagai untaian kosong.
+            'email' => $sah['email'] ?? null,
             // Cast 'hashed' pada model yang mengacaknya, bukan controller ini.
             'password' => $sah['password'],
             'profil_lengkap' => false,

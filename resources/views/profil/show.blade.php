@@ -29,7 +29,8 @@
             'Jenis Kelamin' => $profil['jenis_kelamin'],
             'Kewarganegaraan' => \App\Support\MockData::kewarganegaraanTampil(),
             'Nomor Handphone' => telepon($profil['nomor_handphone']),
-            'Email' => $profil['email'],
+            'Username' => $profil['username'],
+            'Email' => $profil['email'] ?: 'Belum diisi',
         ];
 
         $alamat = [

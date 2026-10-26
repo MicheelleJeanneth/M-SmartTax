@@ -15,8 +15,11 @@ return new class extends Migration
         Schema::create('profil', function (Blueprint $table) {
             $table->id('id_profil');
 
-            // Identitas akun.
-            $table->string('email')->unique();
+            // Identitas akun. Username dipakai untuk masuk; email hanya
+            // pelengkap dan boleh kosong, karena tidak semua wajib pajak
+            // memilikinya dan sistem tidak pernah mengirim surel.
+            $table->string('username', 20)->unique();
+            $table->string('email')->nullable()->unique();
             $table->string('password');
 
             // Identitas wajib pajak. NIK berfungsi sebagai NPWP sejak 2024.

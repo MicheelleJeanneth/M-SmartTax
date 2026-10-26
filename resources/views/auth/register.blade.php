@@ -10,7 +10,11 @@
 
     <form method="POST" action="{{ route('register') }}" class="mt-8">
         @csrf
-        <x-input label="Email" name="email" type="email" wajib autocomplete="email" placeholder="nama@email.com" />
+        <x-input label="Username" name="username" wajib autocomplete="username"
+            maxlength="20" placeholder="Contoh: budi.santoso"
+            bantuan="3 sampai 20 karakter, diawali huruf. Username dipakai untuk masuk dan tidak dapat diubah." />
+        <x-input label="Email" name="email" type="email" autocomplete="email" placeholder="nama@email.com"
+            bantuan="Boleh dikosongkan. Diisi hanya bila Anda memilikinya." />
         <x-input-password label="Kata Sandi" name="password" autocomplete="new-password"
             placeholder="Minimal 8 karakter" bantuan="Gunakan kombinasi huruf dan angka" />
         <x-input-password label="Ulangi Kata Sandi" name="password_confirmation" autocomplete="new-password"

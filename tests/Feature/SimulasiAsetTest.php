@@ -349,7 +349,8 @@ class SimulasiAsetTest extends TestCase
             ->assertDontSee('Anda mulai mencatat pada');
 
         $lain = Profil::create([
-            'email' => 'tengah@uji.test', 'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
+            'username' => 'tengah.tahun', 'email' => 'tengah@uji.test',
+            'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
             'nama' => 'Tengah Tahun', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
             'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
             'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',
@@ -405,7 +406,8 @@ class SimulasiAsetTest extends TestCase
     public function test_cicilan_utang_berjalan_ikut_membentuk_total_kewajiban(): void
     {
         $profil = Profil::create([
-            'email' => 'cicilan@uji.test', 'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
+            'username' => 'uji.cicilan', 'email' => 'cicilan@uji.test',
+            'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
             'nama' => 'Uji Cicilan', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
             'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
             'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',

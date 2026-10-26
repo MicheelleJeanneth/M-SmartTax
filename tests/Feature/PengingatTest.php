@@ -29,6 +29,7 @@ class PengingatTest extends TestCase
     private function akunBaru(): Profil
     {
         $profil = Profil::create([
+            'username' => 'uji.baru',
             'email' => 'uji.baru@gmail.com',
             'password' => 'rahasia-uji-8',
             'nik' => '3578011708950007',

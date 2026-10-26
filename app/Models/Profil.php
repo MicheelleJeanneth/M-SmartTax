@@ -23,6 +23,12 @@ class Profil extends Authenticatable
 
     protected $guarded = ['id_profil'];
 
+    /**
+     * Susunan username yang diterima: huruf kecil, angka, titik, dan garis
+     * bawah; diawali huruf dan diakhiri huruf atau angka.
+     */
+    public const POLA_USERNAME = '/^[a-z][a-z0-9._]*[a-z0-9]$/';
+
     protected function casts(): array
     {
         return [
@@ -31,6 +37,15 @@ class Profil extends Authenticatable
             'status' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Username selalu disimpan dan dibandingkan dalam huruf kecil, supaya
+     * "Budi" dan "budi" tidak pernah menjadi dua akun yang berbeda.
+     */
+    public static function bakukanUsername(?string $username): string
+    {
+        return mb_strtolower(trim((string) $username));
     }
 
     /**

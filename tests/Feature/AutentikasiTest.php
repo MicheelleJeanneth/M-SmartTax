@@ -29,6 +29,7 @@ class AutentikasiTest extends TestCase
     private function akunLain(): Profil
     {
         return Profil::create([
+            'username' => 'siti.aminah',
             'email' => 'siti.aminah@gmail.com',
             'password' => 'rahasia-siti-8',
             'nik' => '3578014503920003',
@@ -101,11 +102,29 @@ class AutentikasiTest extends TestCase
         Auth::logout();
 
         $this->from('/login')
-            ->post('/login', ['email' => $profil->email, 'password' => 'rahasia123'])
+            ->post('/login', ['username' => $profil->username, 'password' => 'rahasia123'])
             ->assertRedirect('/login')
-            ->assertSessionHasErrors('email');
+            ->assertSessionHasErrors('username');
 
         $this->assertGuest();
+    }
+
+    public function test_username_yang_sudah_dipakai_ditolak(): void
+    {
+        $username = Profil::query()->value('username');
+
+        Auth::logout();
+
+        $this->from('/register')
+            ->post('/register', [
+                'username' => $username,
+                'password' => 'rahasia-lain-8',
+                'password_confirmation' => 'rahasia-lain-8',
+            ])
+            ->assertRedirect('/register')
+            ->assertSessionHasErrors('username');
+
+        $this->assertSame(1, Profil::where('username', $username)->count());
     }
 
     public function test_email_yang_sudah_terdaftar_ditolak(): void
@@ -116,6 +135,7 @@ class AutentikasiTest extends TestCase
 
         $this->from('/register')
             ->post('/register', [
+                'username' => 'calon.baru',
                 'email' => $email,
                 'password' => 'rahasia-lain-8',
                 'password_confirmation' => 'rahasia-lain-8',
@@ -124,6 +144,130 @@ class AutentikasiTest extends TestCase
             ->assertSessionHasErrors('email');
 
         $this->assertSame(1, Profil::where('email', $email)->count());
+        $this->assertFalse(Profil::where('username', 'calon.baru')->exists());
+    }
+
+    /**
+     * Pendaftaran tanpa email adalah alasan utama perpindahan dari email ke
+     * username: tidak semua pelaku UMKM memilikinya.
+     */
+    public function test_dapat_mendaftar_tanpa_email(): void
+    {
+        Auth::logout();
+
+        $this->post('/register', [
+            'username' => 'tanpa.email',
+            'email' => '',
+            'password' => 'rahasia-baru-8',
+            'password_confirmation' => 'rahasia-baru-8',
+        ])->assertRedirect('/login')->assertSessionHasNoErrors();
+
+        $baru = Profil::where('username', 'tanpa.email')->firstOrFail();
+
+        // Kolom email unik, jadi yang dikosongkan wajib tersimpan sebagai null:
+        // untaian kosong akan menabrak akun berikutnya yang juga tanpa email.
+        $this->assertNull($baru->email);
+
+        $this->post('/login', ['username' => 'tanpa.email', 'password' => 'rahasia-baru-8'])
+            ->assertRedirect('/profil/lengkapi');
+        $this->assertAuthenticatedAs($baru);
+    }
+
+    public function test_akun_kedua_tanpa_email_tidak_menabrak_yang_pertama(): void
+    {
+        Auth::logout();
+
+        foreach (['tanpa.satu', 'tanpa.dua'] as $username) {
+            $this->post('/register', [
+                'username' => $username,
+                'password' => 'rahasia-baru-8',
+                'password_confirmation' => 'rahasia-baru-8',
+            ])->assertRedirect('/login')->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame(2, Profil::whereNull('email')->count());
+    }
+
+    /**
+     * Username disimpan dalam huruf kecil supaya "Budi" dan "budi" tidak
+     * pernah menjadi dua akun yang berbeda.
+     */
+    public function test_username_dibakukan_menjadi_huruf_kecil(): void
+    {
+        Auth::logout();
+
+        $this->post('/register', [
+            'username' => '  Wajib.Pajak  ',
+            'password' => 'rahasia-baru-8',
+            'password_confirmation' => 'rahasia-baru-8',
+        ])->assertRedirect('/login')->assertSessionHasNoErrors();
+
+        $this->assertTrue(Profil::where('username', 'wajib.pajak')->exists());
+
+        // Ditulis dengan huruf besar pun tetap masuk ke akun yang sama.
+        $this->post('/login', ['username' => 'WAJIB.PAJAK', 'password' => 'rahasia-baru-8'])
+            ->assertRedirect('/profil/lengkapi');
+        $this->assertAuthenticated();
+    }
+
+    public function test_username_dengan_susunan_terlarang_ditolak(): void
+    {
+        Auth::logout();
+
+        foreach (['ab', '1budi', 'budi santoso', 'budi-santoso', 'budi.', 'budi@mail'] as $username) {
+            $this->from('/register')
+                ->post('/register', [
+                    'username' => $username,
+                    'password' => 'rahasia-baru-8',
+                    'password_confirmation' => 'rahasia-baru-8',
+                ])
+                ->assertRedirect('/register')
+                ->assertSessionHasErrors('username');
+
+            $this->assertFalse(
+                Profil::query()->whereRaw('LOWER(username) = ?', [mb_strtolower(trim($username))])->exists(),
+                "Username \"{$username}\" seharusnya ditolak."
+            );
+        }
+    }
+
+    /**
+     * Email boleh ditambahkan belakangan lewat Ubah Profil, dan Lengkapi
+     * Profil tidak boleh ikut mengosongkannya.
+     */
+    public function test_email_dapat_diisi_dan_dikosongkan_lewat_ubah_profil(): void
+    {
+        $profil = Profil::query()->firstOrFail();
+
+        $isian = fn (?string $email): array => [
+            'email' => $email,
+            'nik' => $profil->nik,
+            'nama' => 'Budi Santoso',
+            'tempat_lahir' => 'Surabaya',
+            'tanggal_lahir' => '1980-09-25',
+            'jenis_kelamin' => 'Pria',
+            'nomor_handphone' => '081234567890',
+            'alamat' => 'Jl. Rungkut Asri Timur 12',
+            'rt' => '004',
+            'rw' => '007',
+            'kelurahan' => 'Kalirungkut',
+            'kecamatan' => 'Rungkut',
+            'kota' => 'Surabaya',
+            'provinsi' => 'Jawa Timur',
+        ];
+
+        $this->put('/profil', $isian('budi.baru@gmail.com'))
+            ->assertRedirect('/profil')->assertSessionHasNoErrors();
+        $this->assertSame('budi.baru@gmail.com', $profil->fresh()->email);
+
+        $this->put('/profil', $isian(''))->assertRedirect('/profil')->assertSessionHasNoErrors();
+        $this->assertNull($profil->fresh()->email);
+
+        // Email akun lain tetap tidak boleh dipakai.
+        $lain = $this->akunLain();
+        $this->from('/profil/ubah')->put('/profil', $isian($lain->email))
+            ->assertRedirect('/profil/ubah')
+            ->assertSessionHasErrors('email');
     }
 
     public function test_ubah_profil_benar_benar_tersimpan(): void
@@ -151,6 +295,20 @@ class AutentikasiTest extends TestCase
         $this->assertSame('Malang', $profil->tempat_lahir);
         $this->assertSame('Jl. Kenjeran 44', $profil->alamat);
         $this->assertSame('Kalijudan', $profil->kelurahan);
+    }
+
+    /**
+     * Kolom bertipe date hanya menerima bentuk Y-m-d. Cast 'date' pada model
+     * menghasilkan "1980-09-25 00:00:00", yang ditolak peramban sehingga
+     * kolomnya tampil kosong dan tombol Simpan tertahan terus-menerus.
+     */
+    public function test_tanggal_lahir_terisi_pada_formulir_ubah_profil(): void
+    {
+        $profil = Profil::query()->firstOrFail();
+
+        $this->get('/profil/ubah')
+            ->assertOk()
+            ->assertSee('name="tanggal_lahir" type="date" value="'.$profil->tanggal_lahir->format('Y-m-d').'"', false);
     }
 
     public function test_nik_tidak_dapat_memakai_nik_akun_lain(): void

@@ -43,7 +43,7 @@ class ProfilController extends Controller
     {
         $profil = $request->user();
 
-        $profil->update($this->sahkan($request, $profil));
+        $profil->update($this->sahkan($request, $profil, denganEmail: true));
 
         return redirect()->route('profil.show')->with('sukses', 'Perubahan profil tersimpan.');
     }
@@ -84,15 +84,29 @@ class ProfilController extends Controller
      * ini menggantikan penguncian: salah ketik tertangkap lebih awal, dan
      * yang terlanjur salah tetap dapat diperbaiki.
      *
+     * Email hanya diperiksa bila $denganEmail bernilai benar, yaitu pada Ubah
+     * Profil, satu-satunya halaman yang memuat kolomnya. Tanpa pemisahan ini
+     * Lengkapi Profil akan mengosongkan email yang sudah diisi saat mendaftar.
+     *
      * @return array<string, mixed>
      */
-    private function sahkan(Request $request, Profil $profil): array
+    private function sahkan(Request $request, Profil $profil, bool $denganEmail = false): array
     {
         // Nomor yang ditempel dari kontak boleh berisi spasi, tanda hubung,
         // atau awalan +62. Semuanya diseragamkan dulu, baru diperiksa.
         $request->merge(['nomor_handphone' => telepon_angka($request->input('nomor_handphone'))]);
 
+        $aturanEmail = $denganEmail ? [
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('profil', 'email')->ignore($profil->id_profil, 'id_profil'),
+            ],
+        ] : [];
+
         $sah = $request->validate([
+            ...$aturanEmail,
             'nik' => [
                 'required',
                 'digits:16',
@@ -116,6 +130,8 @@ class ProfilController extends Controller
             'kota' => ['required', 'string', 'max:255'],
             'provinsi' => ['required', 'string', 'max:255'],
         ], [
+            'email.email' => 'Format email tidak sah.',
+            'email.unique' => 'Email ini sudah terdaftar pada akun lain.',
             'nik.required' => 'NIK wajib diisi.',
             'nik.digits' => 'NIK harus terdiri dari 16 angka.',
             'nik.unique' => 'NIK ini sudah terdaftar pada akun lain.',
@@ -140,11 +156,19 @@ class ProfilController extends Controller
         // Kewarganegaraan dan negara tidak diambil dari kiriman pengguna:
         // aplikasi ini hanya melayani wajib pajak WNI dalam negeri, dan kedua
         // kolomnya tampil terkunci pada formulir.
-        return [
+        $hasil = [
             ...$sah,
             'kewarganegaraan' => MockData::KEWARGANEGARAAN,
             'negara' => 'Indonesia',
         ];
+
+        // Kolom email unik, jadi yang dikosongkan harus tersimpan sebagai null
+        // dan bukan sebagai untaian kosong.
+        if ($denganEmail) {
+            $hasil['email'] = $sah['email'] ?? null;
+        }
+
+        return $hasil;
     }
 
     private function profil(): Profil

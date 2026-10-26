@@ -86,11 +86,11 @@ class HalamanAplikasiTest extends TestCase
     public function test_kata_sandi_salah_tidak_dapat_masuk(): void
     {
         Auth::logout();
-        $email = Profil::query()->value('email');
+        $username = Profil::query()->value('username');
 
-        $this->from('/login')->post('/login', ['email' => $email, 'password' => 'salah-sekali'])
+        $this->from('/login')->post('/login', ['username' => $username, 'password' => 'salah-sekali'])
             ->assertRedirect('/login')
-            ->assertSessionHasErrors('email');
+            ->assertSessionHasErrors('username');
 
         $this->assertGuest();
     }
@@ -349,14 +349,14 @@ class HalamanAplikasiTest extends TestCase
     {
         Auth::logout();
 
-        $akun = ['email' => 'wajibpajak.baru@gmail.com', 'password' => 'rahasia-baru-8'];
+        $akun = ['username' => 'wajibpajak.baru', 'password' => 'rahasia-baru-8'];
 
         $this->post('/register', [...$akun, 'password_confirmation' => 'rahasia-baru-8'])
             ->assertRedirect('/login')
             ->assertSessionHasNoErrors();
 
         // Akunnya benar-benar tersimpan, dengan profil yang belum lengkap.
-        $baru = Profil::where('email', $akun['email'])->firstOrFail();
+        $baru = Profil::where('username', $akun['username'])->firstOrFail();
         $this->assertFalse($baru->profil_lengkap);
         $this->assertTrue(Hash::check('rahasia-baru-8', $baru->password));
 
@@ -575,8 +575,8 @@ class HalamanAplikasiTest extends TestCase
         $this->get('/profil/ubah')
             ->assertOk()
             ->assertSee('Ya, Ubah NIK')
-            // Hanya email yang tersisa terkunci pada formulir ini.
-            ->assertSee('Email tidak dapat diubah karena digunakan untuk masuk ke sistem.', false);
+            // Hanya username yang tersisa terkunci pada formulir ini.
+            ->assertSee('Username tidak dapat diubah karena digunakan untuk masuk ke sistem.', false);
     }
 
     public function test_filter_tahun_dashboard(): void

@@ -386,7 +386,8 @@ class Panduan
                         'warna' => 'subjudul',
                         'tanya' => [
                             ['tanya' => 'Apakah NIK dapat diperbaiki bila salah ketik?', 'jawab' => 'Bisa, melalui menu Ubah Profil. Sistem memeriksa NIK terhadap tanggal lahir dan jenis kelamin Anda, sehingga salah ketik biasanya tertangkap sejak awal. Dokumen laporan yang sudah diunduh sebelumnya tidak ikut berubah.'],
-                            ['tanya' => 'Mengapa email tidak dapat diubah?', 'jawab' => 'Email digunakan untuk masuk ke sistem, sehingga dikunci agar akun Anda tetap dapat diakses.'],
+                            ['tanya' => 'Mengapa username tidak dapat diubah?', 'jawab' => 'Username digunakan untuk masuk ke sistem, sehingga dikunci agar akun Anda tetap dapat diakses. Email di sebelahnya boleh Anda isi, ganti, atau kosongkan kapan saja.'],
+                            ['tanya' => 'Apakah saya wajib punya email untuk mendaftar?', 'jawab' => 'Tidak. Pendaftaran hanya memerlukan username dan kata sandi. Email bersifat pilihan dan tidak pernah digunakan untuk mengirim apa pun.'],
                             ['tanya' => 'Mengapa sebagian data tidak dapat diubah atau dihapus?', 'jawab' => 'Data yang sudah masuk ke dalam draf akan terkunci agar perhitungan tetap tepat. Batalkan draf yang menguncinya jika Anda perlu memperbaiki data tersebut.'],
                             ['tanya' => 'Apakah data saya dapat dilihat orang lain?', 'jawab' => 'Tidak. Setiap akun hanya dapat mengakses datanya sendiri. Jangan membagikan kata sandi Anda kepada siapa pun.'],
                         ],

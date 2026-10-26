@@ -1,5 +1,6 @@
 {{-- Dipakai bersama oleh Lengkapi Profil dan Ubah Profil. $profil kosong = semua kolom kosong.
-     $terkunci menandai halaman Ubah Profil: email sudah terpasang dan tidak dapat diubah. --}}
+     $terkunci menandai halaman Ubah Profil: username sudah terpasang dan tidak dapat diubah,
+     sedangkan email boleh diisi, diganti, atau dikosongkan kapan saja. --}}
 @php
     $p = $profil ?? [];
     $terkunci = $terkunci ?? false;
@@ -21,7 +22,11 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
         <x-input label="Tempat Lahir" name="tempat_lahir" wajib placeholder="Contoh: Surabaya" :value="$p['tempat_lahir'] ?? ''" />
-        <x-input label="Tanggal Lahir" name="tanggal_lahir" type="date" wajib :value="$p['tanggal_lahir'] ?? ''" />
+        {{-- Kolomnya bertipe date, jadi nilainya harus berbentuk Y-m-d. Cast
+             'date' pada model menghasilkan "1980-09-25 00:00:00" yang ditolak
+             peramban, sehingga kolomnya tampil kosong dan tombol Simpan
+             tertahan karena kolom wajib dianggap belum terisi. --}}
+        <x-input label="Tanggal Lahir" name="tanggal_lahir" type="date" wajib :value="tanggal_isian($p['tanggal_lahir'] ?? null)" />
     </div>
 
     <x-radio label="Jenis Kelamin" name="jenis_kelamin" wajib :pilihan="['Pria', 'Wanita']" :terpilih="$p['jenis_kelamin'] ?? null" />
@@ -41,8 +46,13 @@
     </div>
 
     @if($terkunci)
-        <x-input-locked label="Email" name="email" :value="$p['email'] ?? ''"
-            bantuan="Email tidak dapat diubah karena digunakan untuk masuk ke sistem. NIK masih dapat diperbaiki, dan akan diperiksa terhadap tanggal lahir Anda." />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+            <x-input-locked label="Username" name="username" :value="$p['username'] ?? ''"
+                bantuan="Username tidak dapat diubah karena digunakan untuk masuk ke sistem." />
+            <x-input label="Email" name="email" type="email" :value="$p['email'] ?? ''"
+                placeholder="nama@email.com"
+                bantuan="Boleh dikosongkan. Email tidak dipakai untuk masuk dan tidak tercetak pada dokumen laporan." />
+        </div>
     @endif
 </x-card>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Profil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,12 +25,13 @@ class LoginController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $request->merge(['username' => Profil::bakukanUsername($request->input('username'))]);
+
         $sah = $request->validate([
-            'email' => ['required', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak sah.',
+            'username.required' => 'Username wajib diisi.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
@@ -37,9 +39,9 @@ class LoginController extends Controller
         // pada model Profil, jadi tidak perlu diperiksa lagi di sini.
         if (! Auth::attempt($sah, $request->boolean('remember'))) {
             // Pesannya tidak menyebut bagian mana yang salah, supaya tidak
-            // membocorkan email mana yang terdaftar.
+            // membocorkan username mana yang terdaftar.
             throw ValidationException::withMessages([
-                'email' => 'Email atau kata sandi tidak sesuai.',
+                'username' => 'Username atau kata sandi tidak sesuai.',
             ]);
         }
 
