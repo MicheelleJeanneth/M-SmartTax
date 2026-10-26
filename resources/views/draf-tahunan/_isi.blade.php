@@ -39,18 +39,18 @@
 </x-card>
 
 <x-card judul="Lampiran Utang per 31 Desember {{ $tahun }}" class="mt-4" padat>
-    <x-table :kepala="['Kode', 'Deskripsi', 'Kreditur', ['teks' => 'Saldo', 'kanan' => true]]">
+    <x-table :kepala="['Kode Utang', ['teks' => 'Jumlah', 'kanan' => true], ['teks' => 'Saldo', 'kanan' => true]]">
         @foreach($utang as $u)
             <tr>
-                <td class="tabular-nums text-ink-2">{{ $u['kode'] }}</td>
-                <td>{{ $u['deskripsi'] }}</td>
-                <td class="text-ink-2">{{ $u['kreditur'] }}</td>
+                <td>{{ $u['nama'] }}</td>
+                <td class="text-right tabular-nums">{{ $u['jumlah'] }}</td>
                 <td class="text-right tabular-nums">{{ rupiah($u['saldo']) }}</td>
             </tr>
         @endforeach
         <x-slot:kaki>
             <tr>
-                <td colspan="3">Total Utang</td>
+                <td>Total Utang</td>
+                <td class="text-right tabular-nums">{{ collect($utang)->sum('jumlah') }}</td>
                 <td class="text-right tabular-nums">{{ rupiah($totalUtang) }}</td>
             </tr>
         </x-slot:kaki>

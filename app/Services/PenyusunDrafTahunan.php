@@ -7,6 +7,7 @@ use App\Models\DrafTahunan;
 use App\Models\DrafTahunanHarta;
 use App\Models\DrafTahunanUtang;
 use App\Models\Harta;
+use App\Models\KodeUtang;
 use App\Models\Utang;
 use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
@@ -222,6 +223,15 @@ class PenyusunDrafTahunan
             'nilai' => (int) ($perKategori->get($kunci)?->sum('nilai') ?? 0),
         ]);
 
+        // Utang direkap per kode, sejajar dengan harta yang direkap per
+        // kategori. Rincian tiap krediturnya ada di Laporan Data Utang.
+        $perKode = $utang->groupBy('kode');
+        $ringkasanUtang = KodeUtang::daftarSingkat()->map(fn (string $nama, string $kode): array => [
+            'nama' => $nama,
+            'jumlah' => $perKode->get($kode)?->count() ?? 0,
+            'saldo' => (int) ($perKode->get($kode)?->sum('saldo') ?? 0),
+        ]);
+
         $totalHarta = (int) $harta->sum('nilai');
         $totalUtang = (int) $utang->sum('saldo');
         $bersih = $totalHarta - $totalUtang;
@@ -245,7 +255,7 @@ class PenyusunDrafTahunan
             'bruto' => $bruto,
             'pph' => $pph,
             'harta' => $ringkasanHarta,
-            'utang' => $utang,
+            'utang' => $ringkasanUtang,
             'totalHarta' => $totalHarta,
             'totalUtang' => $totalUtang,
             'kekayaanBersih' => $bersih,
