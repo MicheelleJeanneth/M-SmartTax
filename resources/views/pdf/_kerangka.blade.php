@@ -22,7 +22,8 @@
         .cetak { text-align: right; color: #5F5E5A; font-size: 8.5pt; }
         h1 { font-size: 13pt; margin: 0 0 12px; text-align: center; }
         .identitas td { padding: 2px 0; }
-        .identitas td.l { width: 90px; color: #5F5E5A; }
+        /* Cukup lebar untuk "Nomor M-SmartTax" dalam satu baris. */
+        .identitas td.l { width: 135px; color: #5F5E5A; }
         h2 { font-size: 10pt; margin: 18px 0 6px; color: #0E5F73; }
         .data th { text-align: left; font-weight: bold; color: #5F5E5A; border-bottom: 1px solid #D3D1C7; padding: 5px 6px; font-size: 8.5pt; }
         .data td { padding: 5px 6px; border-bottom: 1px solid #E5E3DC; font-size: 8.5pt; }
@@ -54,7 +55,8 @@
 
     <table class="identitas">
         <tr><td class="l">Nama</td><td>: {{ $profil['nama'] }}</td></tr>
-        <tr><td class="l">NIK</td><td>: {{ $profil['nik'] }}</td></tr>
+        {{-- Penanda dari sistem ini, bukan NPWP. M-SmartTax tidak mengumpulkan NIK. --}}
+        <tr><td class="l">Nomor M-SmartTax</td><td>: {{ $profil['nomor_msmarttax'] }}</td></tr>
         <tr><td class="l">Alamat</td><td>: {{ $profil['alamat'] }}, {{ $profil['kelurahan'] }}, {{ $profil['kecamatan'] }}, {{ $profil['kota'] }}</td></tr>
         <tr><td class="l">Periode</td><td>: @yield('periode')</td></tr>
     </table>

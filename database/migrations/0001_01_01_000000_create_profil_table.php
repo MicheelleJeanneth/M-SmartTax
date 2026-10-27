@@ -19,11 +19,14 @@ return new class extends Migration
             // pelengkap dan boleh kosong, karena tidak semua wajib pajak
             // memilikinya dan sistem tidak pernah mengirim surel.
             $table->string('username', 20)->unique();
+            // Penanda milik sistem sendiri, menggantikan NIK pada kop dokumen.
+            $table->string('nomor_msmarttax', 10)->unique();
             $table->string('email')->nullable()->unique();
             $table->string('password');
 
-            // Identitas wajib pajak. NIK berfungsi sebagai NPWP sejak 2024.
-            $table->string('nik', 16)->unique()->nullable();
+            // Identitas wajib pajak. NIK sengaja tidak dikumpulkan: tidak
+            // dipakai satu pun perhitungan, dan dokumen sistem simulasi ini
+            // memakai nomor_msmarttax di atas sebagai gantinya.
             $table->string('nama')->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();

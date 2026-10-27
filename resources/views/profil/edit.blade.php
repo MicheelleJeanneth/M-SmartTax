@@ -7,13 +7,7 @@
 @endsection
 
 @section('isi')
-    {{-- NIK tercetak pada setiap dokumen laporan, jadi perubahannya ditegaskan
-         lebih dulu lewat dialog. Kolomnya sendiri tidak dikunci supaya salah
-         ketik tetap dapat diperbaiki. --}}
-    <form id="form-profil" method="POST" action="{{ route('profil.update') }}"
-        x-data="{ nikAwal: '{{ $profil['nik'] }}', ditegaskan: false }"
-        @submit="if (! ditegaskan && $refs.nik.value !== nikAwal) { $event.preventDefault(); $dispatch('buka-dialog', 'ubah-nik'); }"
-        @nik-ditegaskan.window="ditegaskan = true; $el.requestSubmit()">
+    <form id="form-profil" method="POST" action="{{ route('profil.update') }}">
         @csrf
         @method('PUT')
 
@@ -29,14 +23,4 @@
             <x-button varian="secondary" :href="route('profil.show')" class="w-full sm:w-auto sm:min-w-48">Batal</x-button>
         </div>
     </form>
-
-    <x-dialog id="ubah-nik" judul="Ubah NIK?">
-        <p>NIK tercetak pada seluruh dokumen laporan dan menjadi penanda data Anda di Direktorat Jenderal Pajak.</p>
-        <div class="mt-4 rounded-field bg-warn-bg px-4 py-3.5 text-sm text-warn-ink">
-            <p>Pastikan NIK yang baru sesuai kartu tanda penduduk. Dokumen laporan yang sudah diunduh sebelumnya tidak ikut berubah.</p>
-        </div>
-        <x-slot:aksi>
-            <x-button @click="buka = false; $dispatch('nik-ditegaskan')">Ya, Ubah NIK</x-button>
-        </x-slot:aksi>
-    </x-dialog>
 @endsection

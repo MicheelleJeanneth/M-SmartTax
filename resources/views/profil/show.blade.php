@@ -13,7 +13,7 @@
                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[15px] font-medium text-primary-ink">{{ $profil['inisial'] }}</span>
                 <div class="min-w-0">
                     <p class="text-base font-medium text-ink">{{ $profil['nama'] }}</p>
-                    <p class="mt-0.5 text-sm text-ink-2">{{ $profil['peran'] }} &middot; {{ $profil['nik'] }}</p>
+                    <p class="mt-0.5 text-sm text-ink-2">{{ $profil['peran'] }} &middot; {{ $profil['nomor_msmarttax'] }}</p>
                 </div>
             </div>
             <x-badge status="lengkap" />
@@ -23,7 +23,7 @@
     {{-- Label berdiri pada kolom tetap agar nilainya rata satu garis. --}}
     @php
         $dataDiri = [
-            'NIK' => $profil['nik'],
+            'Nomor M-SmartTax' => $profil['nomor_msmarttax'],
             'Nama Lengkap' => $profil['nama'],
             'Tempat, Tanggal Lahir' => $profil['tempat_lahir'].', '.tanggal_id($profil['tanggal_lahir']),
             'Jenis Kelamin' => $profil['jenis_kelamin'],
@@ -68,6 +68,7 @@
     </x-card>
 
     <x-info varian="biru-muda" class="mt-4">
-        NIK dan alamat tercetak pada seluruh dokumen laporan. Pastikan keduanya sesuai dengan data yang terdaftar di Direktorat Jenderal Pajak.
+        Nama, nomor M-SmartTax, dan alamat tercetak pada seluruh dokumen laporan. Nomor M-SmartTax adalah penanda
+        dari sistem ini, bukan NPWP; isilah NPWP Anda sendiri saat melapor melalui saluran resmi Direktorat Jenderal Pajak.
     </x-info>
 @endsection

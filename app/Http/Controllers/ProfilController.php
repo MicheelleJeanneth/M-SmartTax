@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profil;
-use App\Rules\NikCocokKelahiran;
 use App\Support\MockData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,11 +78,6 @@ class ProfilController extends Controller
      * Memeriksa isian data diri dan alamat, dipakai bersama oleh Lengkapi
      * Profil dan Ubah Profil.
      *
-     * NIK tercetak pada setiap dokumen laporan, karena itu diperiksa silang
-     * dengan tanggal lahir dan jenis kelamin sebelum tersimpan. Pemeriksaan
-     * ini menggantikan penguncian: salah ketik tertangkap lebih awal, dan
-     * yang terlanjur salah tetap dapat diperbaiki.
-     *
      * Email hanya diperiksa bila $denganEmail bernilai benar, yaitu pada Ubah
      * Profil, satu-satunya halaman yang memuat kolomnya. Tanpa pemisahan ini
      * Lengkapi Profil akan mengosongkan email yang sudah diisi saat mendaftar.
@@ -107,15 +101,6 @@ class ProfilController extends Controller
 
         $sah = $request->validate([
             ...$aturanEmail,
-            'nik' => [
-                'required',
-                'digits:16',
-                Rule::unique('profil', 'nik')->ignore($profil->id_profil, 'id_profil'),
-                new NikCocokKelahiran(
-                    $request->input('tanggal_lahir'),
-                    $request->input('jenis_kelamin'),
-                ),
-            ],
             'nama' => ['required', 'string', 'max:255'],
             'tempat_lahir' => ['required', 'string', 'max:255'],
             'tanggal_lahir' => ['required', 'date', 'before:today'],
@@ -132,9 +117,6 @@ class ProfilController extends Controller
         ], [
             'email.email' => 'Format email tidak sah.',
             'email.unique' => 'Email ini sudah terdaftar pada akun lain.',
-            'nik.required' => 'NIK wajib diisi.',
-            'nik.digits' => 'NIK harus terdiri dari 16 angka.',
-            'nik.unique' => 'NIK ini sudah terdaftar pada akun lain.',
             'nama.required' => 'Nama lengkap wajib diisi.',
             'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
             'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',

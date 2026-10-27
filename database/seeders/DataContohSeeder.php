@@ -104,9 +104,11 @@ class DataContohSeeder extends Seeder
 
         return Profil::create([
             'username' => $p['username'],
+            // DatabaseSeeder memakai WithoutModelEvents, jadi kait 'creating'
+            // pada model tidak berjalan di sini dan nomornya diminta sendiri.
+            'nomor_msmarttax' => Profil::nomorBerikutnya(),
             'email' => $p['email'],
             'password' => 'rahasia123',
-            'nik' => $p['nik'],
             'nama' => $p['nama'],
             'tempat_lahir' => $p['tempat_lahir'],
             'tanggal_lahir' => $p['tanggal_lahir'],

@@ -57,9 +57,14 @@ const keteranganTombol = (tombol, mati) => {
             return;
         }
 
+        // Sebagian tombol berada di dalam wadah flex yang sudah berjarak
+        // sendiri; sisanya menempel langsung pada formulir, sehingga
+        // keterangannya perlu diberi jarak agar tidak dempet ke tombol.
+        const berjarak = parseFloat(getComputedStyle(wadah).rowGap) > 0;
+
         baris = document.createElement('p');
         baris.dataset.tombolKunci = '';
-        baris.className = 'w-full text-sm text-ink-3';
+        baris.className = berjarak ? 'w-full text-sm text-ink-3' : 'mt-2 w-full text-sm text-ink-3';
         baris.textContent = 'Lengkapi kolom bertanda * terlebih dahulu.';
         wadah.appendChild(baris);
     }

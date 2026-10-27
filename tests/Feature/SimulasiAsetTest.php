@@ -350,8 +350,7 @@ class SimulasiAsetTest extends TestCase
 
         $lain = Profil::create([
             'username' => 'tengah.tahun', 'email' => 'tengah@uji.test',
-            'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
-            'nama' => 'Tengah Tahun', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
+            'password' => 'rahasia-uji-8', 'nama' => 'Tengah Tahun', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
             'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
             'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',
             'provinsi' => 'Jawa Timur', 'profil_lengkap' => true, 'status' => true,
@@ -407,8 +406,7 @@ class SimulasiAsetTest extends TestCase
     {
         $profil = Profil::create([
             'username' => 'uji.cicilan', 'email' => 'cicilan@uji.test',
-            'password' => 'rahasia-uji-8', 'nik' => '3578011708950007',
-            'nama' => 'Uji Cicilan', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
+            'password' => 'rahasia-uji-8', 'nama' => 'Uji Cicilan', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
             'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
             'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',
             'provinsi' => 'Jawa Timur', 'profil_lengkap' => true, 'status' => true,

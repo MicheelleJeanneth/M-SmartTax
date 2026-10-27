@@ -7,18 +7,7 @@
 @endphp
 
 <x-card judul="Data Diri">
-    {{-- Lengkapi Profil memakai layout tengah selebar 560px, sehingga satu
-         kolomnya hanya sekitar 223px — setengah lebar kolom di Ubah Profil.
-         Baris yang punya teks petunjuk karena itu dibuat bertumpuk di sana,
-         supaya petunjuknya tidak pecah menjadi tiga baris dan membuat kolom
-         di sebelahnya menggantung. --}}
-    <div @class(['grid grid-cols-1 sm:grid-cols-2 gap-x-4' => $terkunci])>
-        <x-input label="NIK" name="nik" wajib inputmode="numeric" maxlength="16" pattern="\d{16}" data-digit
-            x-ref="nik" placeholder="16 digit sesuai kartu tanda penduduk" :value="$p['nik'] ?? ''"
-            :bantuan="$terkunci ? false : 'Enam digit tengah NIK memuat tanggal lahir Anda dan akan diperiksa terhadap kolom di bawah.'" />
-
-        <x-input label="Nama Lengkap" name="nama" wajib placeholder="Sesuai kartu tanda penduduk" :value="$p['nama'] ?? ''" />
-    </div>
+    <x-input label="Nama Lengkap" name="nama" wajib placeholder="Sesuai kartu tanda penduduk" :value="$p['nama'] ?? ''" />
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
         <x-input label="Tempat Lahir" name="tempat_lahir" wajib placeholder="Contoh: Surabaya" :value="$p['tempat_lahir'] ?? ''" />
@@ -31,13 +20,17 @@
 
     <x-radio label="Jenis Kelamin" name="jenis_kelamin" wajib :pilihan="['Pria', 'Wanita']" :terpilih="$p['jenis_kelamin'] ?? null" />
 
-    {{-- Bertumpuk di Lengkapi Profil karena alasan yang sama dengan NIK di atas. --}}
+    {{-- Lengkapi Profil memakai layout tengah selebar 560px, sehingga satu
+         kolomnya hanya sekitar 223px — setengah lebar kolom di Ubah Profil.
+         Baris yang punya teks petunjuk karena itu dibuat bertumpuk di sana,
+         supaya petunjuknya tidak pecah menjadi tiga baris dan membuat kolom
+         di sebelahnya menggantung. --}}
     <div @class(['grid grid-cols-1 sm:grid-cols-2 gap-x-4' => $terkunci])>
         {{-- M-SmartTax hanya untuk wajib pajak WNI, jadi kolom ini tetap tampil tetapi terkunci. --}}
         <x-input-locked label="Kewarganegaraan" name="kewarganegaraan"
             :value="\App\Support\MockData::KEWARGANEGARAAN"
             bantuan="Warga Negara Indonesia. M-SmartTax hanya melayani wajib pajak WNI." />
-        {{-- Hanya angka, sama seperti NIK. Spasinya dibubuhkan saat
+        {{-- Hanya angka yang boleh diketik. Spasinya dibubuhkan saat
              ditampilkan lewat telepon(), bukan saat diketik. --}}
         <x-input label="Nomor Handphone" name="nomor_handphone" type="tel" wajib
             inputmode="numeric" maxlength="13" data-digit placeholder="08xxxxxxxxxx"

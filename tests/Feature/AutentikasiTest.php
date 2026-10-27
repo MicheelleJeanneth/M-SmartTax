@@ -14,6 +14,7 @@ use App\Support\PenggunaSaatIni;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -32,7 +33,6 @@ class AutentikasiTest extends TestCase
             'username' => 'siti.aminah',
             'email' => 'siti.aminah@gmail.com',
             'password' => 'rahasia-siti-8',
-            'nik' => '3578014503920003',
             'nama' => 'Siti Aminah',
             'tempat_lahir' => 'Sidoarjo',
             'tanggal_lahir' => '1992-03-05',
@@ -241,7 +241,6 @@ class AutentikasiTest extends TestCase
 
         $isian = fn (?string $email): array => [
             'email' => $email,
-            'nik' => $profil->nik,
             'nama' => 'Budi Santoso',
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1980-09-25',
@@ -270,12 +269,78 @@ class AutentikasiTest extends TestCase
             ->assertSessionHasErrors('email');
     }
 
+    /**
+     * NIK sengaja tidak lagi dikumpulkan: ia tidak masuk satu pun perhitungan
+     * dan sistem simulasi ini tidak berhak menuntut data kependudukan.
+     */
+    public function test_kolom_nik_sudah_tidak_ada(): void
+    {
+        $this->assertFalse(Schema::hasColumn('profil', 'nik'));
+    }
+
+    public function test_nomor_msmarttax_diberikan_sendiri_saat_akun_dibuat(): void
+    {
+        Auth::logout();
+
+        $this->post('/register', [
+            'username' => 'pendatang.baru',
+            'password' => 'rahasia-baru-8',
+            'password_confirmation' => 'rahasia-baru-8',
+        ])->assertRedirect('/login')->assertSessionHasNoErrors();
+
+        $nomor = Profil::where('username', 'pendatang.baru')->value('nomor_msmarttax');
+
+        // MS + tahun pendaftaran + empat digit urut, misalnya MS20260002.
+        $this->assertMatchesRegularExpression('/^MS\d{8}$/', $nomor);
+        $this->assertSame('MS'.now()->year, substr($nomor, 0, 6));
+    }
+
+    /**
+     * Nomornya berurut dalam satu tahun, dan nomor akun yang dinonaktifkan
+     * tidak boleh dipakai ulang oleh akun sesudahnya.
+     */
+    public function test_nomor_msmarttax_berurut_dan_tidak_pernah_dipakai_ulang(): void
+    {
+        $pertama = Profil::query()->firstOrFail();
+        $this->assertSame('MS'.now()->year.'0001', $pertama->nomor_msmarttax);
+
+        $kedua = $this->akunLain();
+        $this->assertSame('MS'.now()->year.'0002', $kedua->nomor_msmarttax);
+
+        $kedua->hapus();
+
+        $ketiga = Profil::create([
+            'username' => 'akun.ketiga',
+            'password' => 'rahasia-uji-8',
+            'nama' => 'Akun Ketiga',
+            'profil_lengkap' => false,
+            'status' => true,
+        ]);
+
+        $this->assertSame('MS'.now()->year.'0003', $ketiga->nomor_msmarttax);
+    }
+
+    /**
+     * Kop dokumen memakai nomor M-SmartTax, dan tidak boleh lagi menyebut NIK
+     * supaya tidak ada yang mengira dokumennya memuat NPWP.
+     */
+    public function test_dokumen_laporan_memakai_nomor_msmarttax_bukan_nik(): void
+    {
+        $nomor = Profil::query()->value('nomor_msmarttax');
+
+        $this->get('/laporan/harta/pratinjau')
+            ->assertOk()
+            ->assertSee('Nomor M-SmartTax')
+            ->assertSee($nomor)
+            ->assertDontSee('NPWP')
+            ->assertDontSee('<td class="l">NIK</td>', false);
+    }
+
     public function test_ubah_profil_benar_benar_tersimpan(): void
     {
         $profil = Profil::query()->firstOrFail();
 
         $this->put('/profil', [
-            'nik' => $profil->nik,
             'nama' => 'Budi Santoso Wijaya',
             'tempat_lahir' => 'Malang',
             'tanggal_lahir' => '1980-09-25',
@@ -311,36 +376,11 @@ class AutentikasiTest extends TestCase
             ->assertSee('name="tanggal_lahir" type="date" value="'.$profil->tanggal_lahir->format('Y-m-d').'"', false);
     }
 
-    public function test_nik_tidak_dapat_memakai_nik_akun_lain(): void
-    {
-        $lain = $this->akunLain();
-
-        $this->from('/profil/ubah')
-            ->put('/profil', [
-                'nik' => $lain->nik,
-                'nama' => 'Budi Santoso',
-                'tempat_lahir' => 'Surabaya',
-                'tanggal_lahir' => '1992-03-05',
-                'jenis_kelamin' => 'Wanita',
-                'nomor_handphone' => '0812 3456 7890',
-                'alamat' => 'Jl. Rungkut Asri Timur 12',
-                'rt' => '004',
-                'rw' => '007',
-                'kelurahan' => 'Kalirungkut',
-                'kecamatan' => 'Rungkut',
-                'kota' => 'Surabaya',
-                'provinsi' => 'Jawa Timur',
-            ])
-            ->assertRedirect('/profil/ubah')
-            ->assertSessionHasErrors('nik');
-    }
-
     public function test_nomor_handphone_diseragamkan_dan_diperiksa(): void
     {
         $profil = Profil::query()->firstOrFail();
 
         $isian = fn (string $nomor): array => [
-            'nik' => $profil->nik,
             'nama' => 'Budi Santoso',
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1980-09-25',

@@ -60,8 +60,6 @@ class MockData
             'peran' => 'Wajib Pajak Orang Pribadi UMKM',
             'username' => 'budi.santoso',
             'email' => 'budi.santoso@gmail.com',
-            // NIK menyandikan tanggal lahir 25-09-80, cocok dengan kolom di bawah.
-            'nik' => '3578012509800001',
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1980-09-25',
             'jenis_kelamin' => 'Pria',

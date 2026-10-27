@@ -369,9 +369,7 @@ class HalamanAplikasiTest extends TestCase
         $this->get('/harta/kas')->assertRedirect('/profil/lengkapi');
         $this->get('/profil/lengkapi')->assertOk();
 
-        // NIK wajib pajak contoh sudah terpakai, jadi akun baru memakai NIK lain
-        // dengan tanggal lahir yang sama supaya tetap lolos pemeriksaan silang.
-        $this->post('/profil/lengkapi', $this->profilSah(['nik' => '3578012509800002', 'nama' => 'Siti Aminah']))
+        $this->post('/profil/lengkapi', $this->profilSah(['nama' => 'Siti Aminah']))
             ->assertRedirect('/dashboard')
             ->assertSessionHasNoErrors();
 
@@ -391,7 +389,7 @@ class HalamanAplikasiTest extends TestCase
     }
 
     /**
-     * NIK yang tanggal lahirnya cocok dengan kolom di bawahnya.
+     * Isian data diri dan alamat yang lolos seluruh pemeriksaan.
      *
      * @param  array<string, string>  $ubah
      * @return array<string, string>
@@ -399,7 +397,6 @@ class HalamanAplikasiTest extends TestCase
     private function profilSah(array $ubah = []): array
     {
         return array_merge([
-            'nik' => '3578012509800001',
             'nama' => 'Budi Santoso',
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1980-09-25',
@@ -413,26 +410,6 @@ class HalamanAplikasiTest extends TestCase
             'kota' => 'Surabaya',
             'provinsi' => 'Jawa Timur',
         ], $ubah);
-    }
-
-    public function test_nik_diperiksa_terhadap_tanggal_lahir(): void
-    {
-        // Tanggal pada NIK berbeda satu hari dari kolom Tanggal Lahir.
-        $this->from('/profil/ubah')
-            ->put('/profil', $this->profilSah(['nik' => '3578012609800001']))
-            ->assertRedirect('/profil/ubah')
-            ->assertSessionHasErrors('nik');
-
-        // NIK menunjukkan wanita (tanggal 25 + 40 = 65), pilihannya Pria.
-        $this->from('/profil/ubah')
-            ->put('/profil', $this->profilSah(['nik' => '3578016509800001']))
-            ->assertRedirect('/profil/ubah')
-            ->assertSessionHasErrors('nik');
-
-        // Pasangan yang cocok diterima, dan NIK memang masih dapat diubah.
-        $this->put('/profil', $this->profilSah(['nik' => '3578016509800001', 'jenis_kelamin' => 'Wanita']))
-            ->assertRedirect('/profil')
-            ->assertSessionHasNoErrors();
     }
 
     public function test_laporan_bulanan_tersedia_untuk_tahun_lalu_yang_sudah_tersusun(): void
@@ -570,13 +547,14 @@ class HalamanAplikasiTest extends TestCase
         $this->assertFalse(Hash::check($lama, $profil->password));
     }
 
-    public function test_nik_tidak_lagi_terkunci_pada_ubah_profil(): void
+    public function test_ubah_profil_hanya_mengunci_username(): void
     {
         $this->get('/profil/ubah')
             ->assertOk()
-            ->assertSee('Ya, Ubah NIK')
-            // Hanya username yang tersisa terkunci pada formulir ini.
-            ->assertSee('Username tidak dapat diubah karena digunakan untuk masuk ke sistem.', false);
+            ->assertSee('Username tidak dapat diubah karena digunakan untuk masuk ke sistem.', false)
+            // NIK sudah tidak dikumpulkan, jadi kolomnya pun tidak boleh ada lagi.
+            ->assertDontSee('name="nik"', false)
+            ->assertDontSee('Ya, Ubah NIK');
     }
 
     public function test_filter_tahun_dashboard(): void

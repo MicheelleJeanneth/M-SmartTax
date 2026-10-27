@@ -29,6 +29,39 @@ class Profil extends Authenticatable
      */
     public const POLA_USERNAME = '/^[a-z][a-z0-9._]*[a-z0-9]$/';
 
+    /**
+     * Nomor M-SmartTax diberikan sendiri saat akun dibuat, bukan oleh
+     * pemanggilnya, supaya tidak ada satu pun jalan pembuatan akun yang
+     * melewatkannya — termasuk penyemai dan pengujian.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $profil): void {
+            $profil->nomor_msmarttax ??= self::nomorBerikutnya();
+        });
+    }
+
+    /**
+     * MS + tahun pendaftaran + nomor urut empat digit pada tahun itu,
+     * misalnya MS20260001. Urutannya dimulai lagi dari satu setiap tahun,
+     * jadi empat digit tidak akan habis.
+     */
+    public static function nomorBerikutnya(?int $tahun = null): string
+    {
+        $tahun ??= (int) now()->year;
+        $awalan = 'MS'.$tahun;
+
+        // Akun yang dinonaktifkan ikut dihitung, supaya nomor bekasnya tidak
+        // pernah dipakai ulang oleh akun baru.
+        $terakhir = self::withoutGlobalScopes()
+            ->where('nomor_msmarttax', 'like', $awalan.'%')
+            ->max('nomor_msmarttax');
+
+        $urut = $terakhir === null ? 1 : ((int) substr($terakhir, -4)) + 1;
+
+        return $awalan.str_pad((string) $urut, 4, '0', STR_PAD_LEFT);
+    }
+
     protected function casts(): array
     {
         return [

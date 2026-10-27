@@ -51,7 +51,7 @@ class Panduan
                     [
                         'pengantar' => 'M-SmartTax membantu Anda menyusun draf perhitungan PPh Final 0,5% untuk wajib pajak orang pribadi UMKM. Draf ini disusun secara mandiri dan digunakan sebagai gambaran sebelum menyetor dan melapor melalui saluran resmi.',
                         'langkah' => [
-                            ['judul' => 'Lengkapi profil Anda', 'keterangan' => 'Isi NIK, nama, dan alamat sesuai kartu tanda penduduk. Data ini tercetak pada seluruh dokumen laporan, jadi pastikan sesuai sebelum menyimpan.'],
+                            ['judul' => 'Lengkapi profil Anda', 'keterangan' => 'Isi nama dan alamat sesuai kartu tanda penduduk. Data ini tercetak pada seluruh dokumen laporan, jadi pastikan sesuai sebelum menyimpan.'],
                             ['judul' => 'Catat penghasilan setiap bulan', 'keterangan' => 'Masukkan seluruh penerimaan usaha beserta tanggal dan keterangannya. Semakin rutin dicatat, semakin mudah menyusun draf.'],
                             ['judul' => 'Susun draf dan cetak dokumen', 'keterangan' => 'Setelah data lengkap, susun draf bulanan lalu unduh dokumennya melalui menu Laporan.'],
                         ],
@@ -385,7 +385,8 @@ class Panduan
                         'judul' => 'Data dan Akun',
                         'warna' => 'subjudul',
                         'tanya' => [
-                            ['tanya' => 'Apakah NIK dapat diperbaiki bila salah ketik?', 'jawab' => 'Bisa, melalui menu Ubah Profil. Sistem memeriksa NIK terhadap tanggal lahir dan jenis kelamin Anda, sehingga salah ketik biasanya tertangkap sejak awal. Dokumen laporan yang sudah diunduh sebelumnya tidak ikut berubah.'],
+                            ['tanya' => 'Mengapa M-SmartTax tidak meminta NIK saya?', 'jawab' => 'Karena NIK tidak dibutuhkan untuk satu pun perhitungan di sini, dan M-SmartTax adalah sistem simulasi yang tidak berhak menuntut data kependudukan Anda. Sebagai gantinya setiap akun menerima nomor M-SmartTax, misalnya MS20260001, yang tercetak pada dokumen laporan.'],
+                            ['tanya' => 'Apakah nomor M-SmartTax sama dengan NPWP?', 'jawab' => 'Bukan. Nomor itu hanya penanda akun di dalam sistem ini dan tidak dikenal Direktorat Jenderal Pajak. Saat melapor melalui saluran resmi, gunakan NPWP atau NIK Anda yang sebenarnya.'],
                             ['tanya' => 'Mengapa username tidak dapat diubah?', 'jawab' => 'Username digunakan untuk masuk ke sistem, sehingga dikunci agar akun Anda tetap dapat diakses. Email di sebelahnya boleh Anda isi, ganti, atau kosongkan kapan saja.'],
                             ['tanya' => 'Apakah saya wajib punya email untuk mendaftar?', 'jawab' => 'Tidak. Pendaftaran hanya memerlukan username dan kata sandi. Email bersifat pilihan dan tidak pernah digunakan untuk mengirim apa pun.'],
                             ['tanya' => 'Mengapa sebagian data tidak dapat diubah atau dihapus?', 'jawab' => 'Data yang sudah masuk ke dalam draf akan terkunci agar perhitungan tetap tepat. Batalkan draf yang menguncinya jika Anda perlu memperbaiki data tersebut.'],

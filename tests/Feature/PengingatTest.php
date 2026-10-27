@@ -32,7 +32,6 @@ class PengingatTest extends TestCase
             'username' => 'uji.baru',
             'email' => 'uji.baru@gmail.com',
             'password' => 'rahasia-uji-8',
-            'nik' => '3578011708950007',
             'nama' => 'Uji Baru',
             'tempat_lahir' => 'Surabaya',
             'tanggal_lahir' => '1995-08-17',
