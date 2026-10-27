@@ -30,7 +30,7 @@
 
         <x-info varian="biru-muda" class="mt-6">
             Nama dan alamat tercetak pada seluruh dokumen laporan, jadi pastikan keduanya sesuai sebelum menyimpan.
-            M-SmartTax tidak meminta NIK Anda.
+            M-SmartTax tidak meminta NIK Anda dan menggunakan nomor M-SmartTax sebagai pengganti NIK pada website ini.
         </x-info>
 
         <x-button type="submit" class="mt-6 w-full">Simpan dan Lanjutkan</x-button>
