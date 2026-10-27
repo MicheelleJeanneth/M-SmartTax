@@ -342,7 +342,7 @@ class HalamanAplikasiTest extends TestCase
     public function test_judul_halaman_dan_sapaan_dashboard_tampil(): void
     {
         $this->get('/profil')->assertSee('<h1', false)->assertSee('Profil')->assertDontSee('@yield', false);
-        $this->get('/dashboard')->assertSee('Hi, Budi Santoso')->assertDontSee('@yield', false);
+        $this->get('/dashboard')->assertSee('Halo, Budi Santoso')->assertDontSee('@yield', false);
     }
 
     public function test_alur_registrasi_sampai_dashboard(): void

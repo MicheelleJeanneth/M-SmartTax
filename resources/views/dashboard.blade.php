@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('judul', 'Dashboard')
-@section('sapaan', 'Hi, ' . $profil['nama'])
+@section('sapaan', 'Halo, ' . $profil['nama'])
 @section('keterangan', 'Ringkasan perpajakan dan keuangan')
 
 @php

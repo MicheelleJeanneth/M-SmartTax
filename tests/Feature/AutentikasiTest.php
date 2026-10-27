@@ -62,7 +62,7 @@ class AutentikasiTest extends TestCase
         $this->get('/penghasilan')->assertDontSee('Penjualan katalog');
         $this->get('/harta/kas')->assertDontSee('Bank Mandiri');
         $this->get('/utang')->assertDontSee('KPR rumah tinggal');
-        $this->get('/dashboard')->assertSee('Hi, Siti Aminah');
+        $this->get('/dashboard')->assertSee('Halo, Siti Aminah');
     }
 
     public function test_akun_lain_tidak_dapat_membuka_catatan_milik_orang_lain(): void
