@@ -380,7 +380,7 @@ class MockData
                     ['id' => 2, 'kode' => '0104', 'nama' => 'Deposito', 'keterangan' => 'Deposito berjangka, jatuh tempo setiap 12 bulan', 'tahun' => 2023, 'nilai' => 100_000_000, 'nilai_kini' => 105_000_000, 'tahun_pelepasan' => null, 'khas' => ['Bank BCA', '8720045512', 'Budi Santoso'], 'terkunci' => true],
                 ],
                 'piutang' => [
-                    ['id' => 3, 'kode' => '0201', 'nama' => 'Piutang Usaha', 'keterangan' => 'Piutang pelanggan grosir, jatuh tempo Desember', 'tahun' => 2025, 'nilai' => 15_000_000, 'nilai_kini' => 12_000_000, 'tahun_pelepasan' => null, 'khas' => ['Siti Aminah', '3578014503920003'], 'terkunci' => false],
+                    ['id' => 3, 'kode' => '0201', 'nama' => 'Piutang Usaha', 'keterangan' => 'Piutang pelanggan grosir, jatuh tempo Desember', 'tahun' => 2025, 'nilai' => 15_000_000, 'nilai_kini' => 12_000_000, 'tahun_pelepasan' => null, 'khas' => ['Siti Aminah', null], 'terkunci' => false],
                     ['id' => 4, 'kode' => '0202', 'nama' => 'Piutang Afiliasi', 'keterangan' => null, 'tahun' => 2024, 'nilai' => 5_000_000, 'nilai_kini' => 5_000_000, 'tahun_pelepasan' => null, 'khas' => ['CV Mitra Sejahtera', null], 'terkunci' => true],
                 ],
                 'investasi' => [
@@ -506,7 +506,7 @@ class MockData
         return [
             ['id' => 1, 'kode' => '101', 'deskripsi' => 'KPR rumah tinggal', 'kreditur' => 'Bank Mandiri', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2020, 'tahun_pelunasan' => null, 'saldo' => 180_000_000, 'cicilan' => 4_100_000, 'keterangan' => 'Angsuran ke-73 dari 180', 'terkunci' => true],
             ['id' => 2, 'kode' => '101', 'deskripsi' => 'Kredit kendaraan bermotor', 'kreditur' => 'Bank BCA', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2022, 'tahun_pelunasan' => null, 'saldo' => 45_000_000, 'cicilan' => 1_750_000, 'keterangan' => null, 'terkunci' => false],
-            ['id' => 3, 'kode' => '109', 'deskripsi' => 'Pinjaman modal usaha', 'kreditur' => 'Koperasi Sejahtera', 'nik_kreditur' => '3578012207800004', 'negara' => 'Indonesia', 'tahun' => 2025, 'tahun_pelunasan' => null, 'saldo' => 13_000_000, 'cicilan' => null, 'keterangan' => 'Dibayar sekaligus saat jatuh tempo', 'terkunci' => false],
+            ['id' => 3, 'kode' => '109', 'deskripsi' => 'Pinjaman modal usaha', 'kreditur' => 'Koperasi Sejahtera', 'nik_kreditur' => null, 'negara' => 'Indonesia', 'tahun' => 2025, 'tahun_pelunasan' => null, 'saldo' => 13_000_000, 'cicilan' => null, 'keterangan' => 'Dibayar sekaligus saat jatuh tempo', 'terkunci' => false],
         ];
     }
 }
