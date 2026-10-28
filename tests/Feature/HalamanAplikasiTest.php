@@ -142,7 +142,7 @@ class HalamanAplikasiTest extends TestCase
             ->assertOk()
             ->assertSee('Rp'.angka($pajak['ambang_maksimal']))
             ->assertSee('Rp'.angka($pajak['ambang_bebas']))
-            ->assertSee('tarif '.persen($pajak['tarif_final']))
+            ->assertSee('tarif PPh final '.persen($pajak['tarif_final']))
             ->assertSee($pajak['dasar_hukum']);
     }
 

@@ -48,7 +48,7 @@ class MockData
             'tarif_final' => 0.5,
             'ambang_bebas' => 500_000_000,
             'ambang_maksimal' => 4_800_000_000,
-            'dasar_hukum' => 'PP Nomor 20 Tahun 2026',
+            'dasar_hukum' => 'PP Nomor 55 Tahun 2022 sebagaimana telah diubah dengan PP Nomor 20 Tahun 2026',
         ];
     }
 

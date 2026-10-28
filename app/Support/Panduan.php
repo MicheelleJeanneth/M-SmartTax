@@ -369,8 +369,8 @@ class Panduan
                         'warna' => 'subjudul',
                         'tanya' => [
                             ['tanya' => 'Apakah M-SmartTax terhubung dengan Direktorat Jenderal Pajak?', 'jawab' => 'Tidak. M-SmartTax berdiri sendiri dan tidak terhubung dengan Coretax, e-Filing, maupun e-Billing. Seluruh penyetoran dan pelaporan tetap dilakukan melalui saluran resmi DJP.'],
-                            ['tanya' => 'Siapa yang dapat menggunakan sistem ini?', 'jawab' => 'Wajib pajak orang pribadi pelaku UMKM dengan peredaran bruto tidak melebihi '.$batasAtas.' dalam satu tahun pajak, yang memenuhi syarat PPh Final berdasarkan '.$pajak->dasar_hukum.'.'],
-                            ['tanya' => 'Apa dasar hukum perhitungannya?', 'jawab' => $pajak->dasar_hukum.' yang berlaku sejak '.tanggal_id($pajak->tanggal_berlaku).', dengan tarif '.persen($pajak->tarif_final).' dan ambang bebas pajak '.$batasBebas.' per tahun.'],
+                            ['tanya' => 'Siapa yang dapat menggunakan sistem ini?', 'jawab' => 'Wajib Pajak orang pribadi pelaku UMKM yang total peredaran bruto tahun pajak sebelumnya tidak melebihi '.$batasAtas.', dan belum pernah melewati batas tersebut atau memilih tarif umum. Penghasilan dari pekerjaan bebas (misalnya dokter, konsultan, pengajar, atau content creator) tidak dihitung dengan tarif ini. Bagi suami-istri yang pisah harta atau memilih menjalankan kewajiban pajak sendiri, peredaran bruto keduanya digabung.'],
+                            ['tanya' => 'Apa dasar hukum perhitungannya?', 'jawab' => $pajak->dasar_hukum.' (berlaku sejak '.tanggal_id($pajak->tanggal_berlaku).'), dengan tarif PPh final '.persen($pajak->tarif_final).' dari peredaran bruto. Bagian peredaran bruto sampai '.$batasBebas.' per tahun tidak dikenai pajak untuk Wajib Pajak orang pribadi, sesuai UU PPh sebagaimana diubah UU HPP. Ketentuan perpajakan dapat berubah sewaktu-waktu, jadi pastikan ketentuan terbaru melalui saluran resmi Direktorat Jenderal Pajak sebelum melapor.'],
                         ],
                     ],
                     [
