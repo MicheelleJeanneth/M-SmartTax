@@ -67,6 +67,12 @@ class HalamanAplikasiTest extends TestCase
         $this->get('/register')->assertOk();
     }
 
+    /** Akar situs tidak punya halaman sendiri; pengunjung langsung diarahkan ke Masuk. */
+    public function test_akar_situs_diarahkan_ke_halaman_masuk(): void
+    {
+        $this->get('/')->assertRedirect('/login');
+    }
+
     public function test_halaman_aplikasi_tertutup_untuk_tamu(): void
     {
         Auth::logout();
