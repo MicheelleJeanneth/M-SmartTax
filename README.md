@@ -1,58 +1,127 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# M-SmartTax
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web untuk mencatat penghasilan, harta, dan utang usaha, lalu menyusun draf Pajak
+Penghasilan Final 0,5% bagi wajib pajak orang pribadi pelaku UMKM.
 
-## About Laravel
+> **DISCLAIMER**
+> Sistem ini merupakan sistem simulasi untuk keperluan Ujian Skripsi Mahasiswa Universitas
+> Ciputra. Sistem ini **tidak terafiliasi** dengan Direktorat Jenderal Pajak (DJP) atau
+> instansi pemerintah mana pun. Dokumen yang dihasilkan adalah **draf**, bukan bukti setor
+> maupun bukti lapor. Penyetoran dan pelaporan tetap dilakukan melalui saluran resmi DJP.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tentang
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Pelaku UMKM sering kesulitan menyiapkan data sebelum melapor: catatan penjualan terpencar,
+akumulasi omzet tidak terpantau, dan daftar harta serta utang baru disusun mendadak saat
+tenggat lapor tiba.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+M-SmartTax mengumpulkan catatan itu sepanjang tahun, menghitung sendiri akumulasi omzet dan
+PPh Final terutang, lalu menyusunnya menjadi draf siap salin beserta dokumen PDF-nya.
 
-## Learning Laravel
+Ketentuan yang dipakai dalam perhitungan:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Ketentuan | Nilai |
+|---|---|
+| Tarif PPh Final | 0,5% dari peredaran bruto |
+| Ambang bebas pajak | Rp500.000.000 per tahun pajak |
+| Batas peredaran bruto | Rp4.800.000.000 per tahun pajak |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Tarif dan ambang tidak ditulis di dalam kode, melainkan disimpan sebagai konfigurasi
+bertanggal berlaku, sehingga perubahan ketentuan cukup ditambahkan sebagai data baru.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Fitur
 
-## Agentic Development
+**Pencatatan**
+- Data Penghasilan — penerimaan usaha beserta tanggal dan keterangannya
+- Data Harta — enam kategori: kas dan setara kas, piutang, investasi, harta bergerak, harta tidak bergerak, dan harta lainnya
+- Data Utang — mengikuti empat kode utang resmi
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+**Penyusunan draf**
+- Draf Pajak Penghasilan Bulanan — akumulasi omzet, omzet kena pajak, dan PPh Final per masa pajak
+- Draf Pajak Penghasilan Tahunan — rekapitulasi dua belas masa pajak beserta lampiran harta dan utang
+
+Data yang sudah masuk draf otomatis terkunci agar angka yang telanjur tersusun tidak berubah
+diam-diam. Draf tahunan menyimpan salinan beku lampirannya, sehingga laporan tahun lampau
+tetap menampilkan posisi pada tahun tersebut walaupun datanya berubah kemudian.
+
+**Laporan PDF**
+- Laporan Draf Pajak Penghasilan Bulanan dan Tahunan
+- Laporan Data Harta dan Laporan Data Utang
+
+**Analisis**
+- Dashboard — grafik penghasilan bulanan, komposisi harta, pertumbuhan dan konsistensi kekayaan
+- Simulasi Kelayakan Pembelian Aset — menimbang rencana pembelian terhadap penghasilan dan kewajiban berjalan
+
+**Pendukung**
+- Panduan Pengguna di dalam aplikasi
+- Pengingat masa pajak yang drafnya belum disusun
+
+## Teknologi
+
+| Bagian | Yang dipakai |
+|---|---|
+| Kerangka kerja | Laravel 13 |
+| Bahasa | PHP 8.3 ke atas |
+| Basis data | MySQL |
+| Antarmuka | Blade, Tailwind CSS 4, Alpine.js 3 |
+| Grafik | Chart.js 4 |
+| Dokumen PDF | barryvdh/laravel-dompdf |
+| Pembangun aset | Vite 8 |
+
+## Menjalankan di komputer sendiri
+
+Dibutuhkan PHP 8.3 ke atas, Composer, Node.js, dan MySQL.
 
 ```bash
-composer require laravel/boost --dev
+git clone https://github.com/MicheelleJeanneth/M-SmartTax.git
+cd M-SmartTax
 
-php artisan boost:install
+composer install
+npm install && npm run build
+
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Buat basis data kosong bernama `msmarttax`, lalu sesuaikan `DB_USERNAME` dan `DB_PASSWORD`
+pada berkas `.env` dengan pengguna MySQL Anda. Setelah itu:
 
-## Contributing
+```bash
+php artisan migrate --seed
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Aplikasi berjalan di `http://localhost:8000`.
 
-## Code of Conduct
+### Akun contoh
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Penyemai menyertakan satu wajib pajak contoh beserta data tiga tahun pajak.
 
-## Security Vulnerabilities
+| Username | Kata sandi |
+|---|---|
+| `budi.santoso` | `rahasia123` |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Akun baru dapat dibuat sendiri melalui halaman Daftar. Pendaftaran hanya meminta username
+dan kata sandi; email bersifat pilihan, dan NIK tidak diminta sama sekali.
 
-## License
+## Pengujian
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan test
+```
+
+Seluruh pengujian berjalan di atas SQLite dalam memori, terpisah dari basis data
+pengembangan, dan disemai dengan data contoh yang sama.
+
+## Catatan
+
+Berkas `.env` tidak disertakan dalam repositori karena memuat kunci aplikasi dan sandi basis
+data. Kerangkanya ada pada `.env.example`, dan `php artisan key:generate` akan mengisi
+`APP_KEY` secara otomatis.
+
+Folder `vendor/`, `node_modules/`, dan `public/build/` juga tidak disertakan karena dihasilkan
+oleh `composer install` serta `npm run build` pada langkah pemasangan di atas.
+
+---
+
+Disusun oleh Micheelle Jeanneth, Universitas Ciputra.
