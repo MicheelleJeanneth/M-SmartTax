@@ -209,7 +209,7 @@ class PenyusunDrafTahunan
     private function rakit(int $tahun, $harta, $utang, ?DrafTahunan $draf = null): array
     {
         $rekap = collect($this->pajak->rekapTahun($tahun))
-            ->whereIn('status', ['tersusun', 'nihil'])
+            ->where('status', 'tersusun')
             ->keyBy('bulan')
             ->all();
 

@@ -27,7 +27,7 @@
     <x-card class="mt-4" padat>
         <x-table :kepala="['Bulan', ['teks' => 'Peredaran Bruto', 'kanan' => true], ['teks' => 'Akumulasi', 'kanan' => true], ['teks' => 'Omzet Kena Pajak', 'kanan' => true], ['teks' => 'PPh Final', 'kanan' => true], 'Status', ['teks' => 'Aksi', 'kanan' => true]]">
             @foreach($draf as $d)
-                @php $sudah = in_array($d['status'], ['tersusun', 'nihil']); @endphp
+                @php $sudah = $d['status'] === 'tersusun'; @endphp
                 <tr @class(['text-ink-3' => ! $sudah && ! $d['boleh_susun']])>
                     <td class="font-medium">{{ $d['nama'] }}</td>
                     {{-- Peredaran bruto selalu ditampilkan apa adanya: angkanya

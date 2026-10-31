@@ -8,7 +8,6 @@
         'ok' => ['bg-ok-bg text-ok-ink', ''],
         'warn' => ['bg-warn-bg text-warn-ink', ''],
         'danger' => ['bg-warn-bg text-danger', ''],
-        'nihil' => ['bg-frame text-ink-2', 'Nihil'],
         'terkunci' => ['bg-frame text-ink-2', 'Terkunci'],
         default => ['bg-frame text-ink-2', ucfirst($status)],
     };

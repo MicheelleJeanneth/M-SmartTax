@@ -29,7 +29,7 @@ class DrafBulananController extends Controller
         $tahun = $this->filterTahun->pilih($request->query('tahun'), $daftarTahun);
 
         $draf = $this->pajak->rekapTahun($tahun);
-        $tersusun = collect($draf)->whereIn('status', ['tersusun', 'nihil']);
+        $tersusun = collect($draf)->where('status', 'tersusun');
 
         return view('draf-bulanan.index', [
             'tahun' => $tahun,

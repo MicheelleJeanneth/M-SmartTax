@@ -157,11 +157,10 @@ class PerhitunganPajak
                 'akumulasi' => $akumulasi,
                 'omzet_kena_pajak' => $omzet,
                 'pph_final' => $pph,
-                'status' => match (true) {
-                    $tersusun === null => 'belum',
-                    $bruto[$bulan] === 0 => 'nihil',
-                    default => 'tersusun',
-                },
+                // Hanya dua keadaan: sudah disusun atau belum. Bulan tanpa
+                // penghasilan tetap 'tersusun', karena drafnya memang sudah ada
+                // dan sah; brutonya yang nol, bukan drafnya yang setengah jadi.
+                'status' => $tersusun === null ? 'belum' : 'tersusun',
                 'terkunci_tahunan' => $tersusun?->id_draf_tahunan !== null,
                 // Bulan sebelum penghasilan pertama bukan masa pajaknya.
                 'wajib' => $pertamaWajib !== null && $bulan >= $pertamaWajib,
