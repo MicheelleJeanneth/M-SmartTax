@@ -18,7 +18,7 @@
         @csrf
         <input type="hidden" name="bulan" value="{{ $bulan }}">
         <input type="hidden" name="tahun" value="{{ $tahun }}">
-        <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">{{ $nihil ? 'Simpan Draf Nihil' : 'Simpan Draf' }}</x-button>
+        <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">Simpan Draf</x-button>
         <x-button varian="secondary" :href="route('draf-bulanan.index', ['tahun' => $tahun])" class="w-full sm:w-auto sm:min-w-39">Batal</x-button>
     </form>
 @endsection

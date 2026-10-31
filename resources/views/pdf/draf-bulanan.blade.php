@@ -9,7 +9,7 @@
             @forelse($transaksi as $t)
                 <tr><td>{{ $loop->iteration }}</td><td>{{ tanggal_id($t['tanggal']) }}</td><td>{{ $t['keterangan'] }}</td><td class="r">{{ rupiah($t['nominal']) }}</td></tr>
             @empty
-                <tr><td colspan="4" style="text-align: center; color: #7A7975;">Tidak ada penghasilan pada bulan ini (draf nihil).</td></tr>
+                <tr><td colspan="4" style="text-align: center; color: #7A7975;">Tidak ada penghasilan pada bulan ini.</td></tr>
             @endforelse
         </tbody>
         <tfoot><tr><td colspan="3">Peredaran bruto</td><td class="r">{{ rupiah($brutoBulanIni) }}</td></tr></tfoot>

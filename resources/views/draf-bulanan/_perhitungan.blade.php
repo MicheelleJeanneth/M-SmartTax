@@ -3,7 +3,7 @@
     @if($nihil)
         <div class="rounded-field bg-page px-5 py-8 text-center">
             <p class="font-medium text-ink">Tidak ada penghasilan tercatat pada {{ $namaBulan }}.</p>
-            <p class="mt-1 text-sm text-ink-2">Draf nihil tetap sah dan dihitung sebagai salah satu draf tahun ini.</p>
+            <p class="mt-1 text-sm text-ink-2">Draf bulan ini tetap sah dan dihitung sebagai salah satu draf tahun ini.</p>
         </div>
     @else
         <x-table :kepala="['Tanggal', 'Keterangan', ['teks' => 'Nominal', 'kanan' => true]]">

@@ -201,10 +201,10 @@ class Panduan
                         'tabel' => [
                             'kepala' => ['Keadaan', 'Yang terjadi'],
                             'baris' => [
-                                ['Akumulasi masih di bawah Rp500 juta', 'PPh Final nihil, draf tetap disusun'],
+                                ['Akumulasi masih di bawah Rp500 juta', 'PPh Final Rp0, draf tetap disusun'],
                                 ['Akumulasi melewati Rp500 juta', 'Hanya kelebihannya yang dikenai 0,5%'],
                                 ['Bulan setelahnya', 'Seluruh peredaran bruto dikenai 0,5%'],
-                                ['Tidak ada penghasilan pada bulan itu', 'Susun draf nihil agar catatan bulanan lengkap'],
+                                ['Tidak ada penghasilan pada bulan itu', 'Draf tetap disusun agar catatan bulanan lengkap'],
                             ],
                         ],
                     ],
@@ -241,7 +241,7 @@ class Panduan
                     [
                         'pengantar' => 'Draf tahunan merangkum seluruh draf bulanan tahun itu beserta lampiran harta dan utang pada akhir tahun. Draf ini menjadi gambaran isi SPT Tahunan Anda.',
                         'langkah' => [
-                            ['judul' => 'Pastikan seluruh draf bulanan selesai', 'keterangan' => 'Tombol Susun baru tersedia setelah seluruh bulan tersusun, termasuk bulan yang drafnya nihil. Bulan sebelum penghasilan pertama Anda tercatat tidak ikut dihitung.'],
+                            ['judul' => 'Pastikan seluruh draf bulanan selesai', 'keterangan' => 'Tombol Susun baru tersedia setelah seluruh bulan tersusun, termasuk bulan yang tidak ada penghasilannya. Bulan sebelum penghasilan pertama Anda tercatat tidak ikut dihitung.'],
                             ['judul' => 'Perbarui data harta dan utang', 'keterangan' => 'Sistem mengambil keadaan harta dan utang pada saat draf disusun. Perbarui saldo dan tambahkan harta baru sebelum melanjutkan.'],
                             ['judul' => 'Periksa rekap dan hasil analisis', 'keterangan' => 'Halaman penyusunan menampilkan rekap seluruh bulan tahun itu, lampiran harta dan utang, serta dua kartu analisis keuangan.'],
                             ['judul' => 'Simpan draf tahunan', 'keterangan' => 'Seluruh draf bulanan, data harta, dan data utang tahun tersebut akan terkunci.'],
