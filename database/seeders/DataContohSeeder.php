@@ -65,8 +65,8 @@ class DataContohSeeder extends Seeder
     ];
 
     /**
-     * Saldo tiap utang pada akhir tahun. Saldo menyusut seiring cicilan,
-     * dan inilah yang dibekukan ke lampiran draf tahunan.
+     * Saldo tiap utang pada akhir tahun. Saldo menyusut seiring angsuran
+     * yang dibayar, dan inilah yang dibekukan ke lampiran draf tahunan.
      *
      * @var array<int, array<int, int>>
      */
@@ -177,7 +177,6 @@ class DataContohSeeder extends Seeder
                 'deskripsi' => $baris['deskripsi'],
                 'keterangan' => $baris['keterangan'],
                 'saldo' => $baris['saldo'],
-                'cicilan_bulanan' => $baris['cicilan'],
                 'tahun_peminjaman' => in_array($baris['id'], self::UTANG_TAHUN_BERJALAN, true)
                     ? MockData::TAHUN
                     : $baris['tahun'],

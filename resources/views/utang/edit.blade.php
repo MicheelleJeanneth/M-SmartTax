@@ -1,8 +1,6 @@
 @extends('layouts.app')
-@section('judul', $utang['terkunci'] ? 'Perbarui Saldo Utang' : 'Ubah Utang')
-@section('keterangan', $utang['terkunci']
-    ? 'Perbarui saldo utang yang sudah masuk draf pajak tahunan'
-    : 'Perbarui data utang yang sudah tercatat')
+@section('judul', 'Perbarui Saldo Utang')
+@section('keterangan', 'Perbarui saldo utang sesuai posisi akhir tahun pajak')
 
 @section('kembali')
     <x-back :href="route('utang.index')">Kembali ke Data Utang</x-back>
@@ -12,9 +10,8 @@
     <form method="POST" action="{{ route('utang.update', $utang['id']) }}">
         @csrf
         @method('PUT')
-        {{-- Baris yang sudah masuk draf tahunan memakai formulir khusus saldo. --}}
-        @include($utang['terkunci'] ? 'utang._form-nilai' : 'utang._form', [
-            'tombol' => $utang['terkunci'] ? 'Perbarui' : 'Simpan Perubahan',
-        ])
+        {{-- Satu formulir untuk semua: terkunci draf tahunan maupun tidak,
+             yang dapat diubah hanya saldonya. --}}
+        @include('utang._form-nilai', ['tombol' => 'Perbarui'])
     </form>
 @endsection

@@ -210,10 +210,11 @@ class HalamanAplikasiTest extends TestCase
         // yang masih perlu diperbarui pada satu transaksi.
         $this->get('/penghasilan/'.$this->penghasilanTerkunci().'/edit')->assertForbidden();
 
-        // Harta dan utang terkunci membuka formulir khusus nilai, bukan
-        // formulir penuh. Aturan rincinya diuji di KunciPeriodeBerdrafTest.
+        // Harta terkunci membuka formulir khusus nilai, bukan formulir penuh.
+        // Utang tidak punya dua formulir: yang terbuka hanya saldonya, terkunci
+        // maupun tidak. Aturan rincinya diuji di KunciPeriodeBerdrafTest.
         $this->get('/harta/kas/2/ubah')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
-        $this->get('/utang/1/edit')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
+        $this->get('/utang/1/edit')->assertOk()->assertSee('Hanya saldo yang dapat diubah');
     }
 
     public function test_keterangan_penghasilan_wajib_diisi(): void

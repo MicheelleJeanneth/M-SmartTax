@@ -1,17 +1,16 @@
 {{--
-    Formulir untuk baris utang yang sudah masuk draf pajak tahunan.
+    Formulir pengubahan utang.
 
-    Saldo utang menyusut setiap tahun, jadi saldo dan cicilannya tetap dapat
-    diperbarui. Tahun pelunasan ikut terbuka supaya utang yang sudah lunas
-    dapat dicatat; mengisinya hanya berpengaruh ke tahun-tahun sesudahnya.
-    Kode, kreditur, dan tahun peminjamannya ditampilkan apa adanya karena
-    itulah yang menentukan draf tahun mana yang memuat baris ini. Susunannya
-    mengikuti halaman detail agar tidak terasa pindah tempat.
+    Hanya saldo yang dapat diubah. Jati diri dan periodenya ditetapkan sekali
+    saat utang dicatat, karena itulah yang menentukan draf tahun mana yang
+    memuat baris ini. Saldonya sendiri harus tetap terbuka: nilainya menyusut
+    tiap tahun, dan draf tahun berikutnya memakai angka yang terbaru.
+    Susunannya mengikuti halaman detail agar tidak terasa pindah tempat.
 --}}
 <x-card>
     <x-info class="mb-6">
-        Utang ini sudah masuk draf pajak tahunan, sehingga kode, kreditur, dan tahun peminjamannya tidak dapat diubah.
-        Saldo, cicilan, dan tahun pelunasannya masih dapat diisi, karena laporan tahun yang sudah tersusun memakai salinan tersendiri.
+        Hanya saldo yang dapat diubah. Saldo tercatat per akhir tahun pajak, dan laporan tahun yang drafnya sudah
+        tersusun tetap memakai salinan tersendiri sehingga tidak ikut berubah.
     </x-info>
 
     <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
@@ -21,22 +20,13 @@
         <x-kolom-baca label="Deskripsi Utang">{{ $utang['deskripsi'] }}</x-kolom-baca>
     </div>
 
-    {{-- Dua kolom di bawah ini satu-satunya yang masih dapat diisi. --}}
+    {{-- Satu-satunya kolom yang masih dapat diisi. --}}
     <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0" :value="angka($utang['saldo'])"
         bantuan="Saldo tercatat per akhir tahun pajak." />
 
-    {{-- Cicilan mengikuti saldo, sama seperti pada formulir penuh. --}}
-    <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
-        :value="$utang['cicilan'] ? angka($utang['cicilan']) : ''"
-        bantuan="Kosongkan bila utang tidak diangsur secara berkala." />
-
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-kolom-baca label="Tahun Peminjaman">{{ $utang['tahun'] }}</x-kolom-baca>
-        {{-- Satu-satunya kolom periode yang terbuka di sini. --}}
-        <x-input label="Tahun Pelunasan" name="tahun_pelunasan" inputmode="numeric" maxlength="4"
-            pattern="\d{4}" data-digit placeholder="Kosongkan bila belum lunas"
-            :value="$utang['tahun_pelunasan'] ?? ''"
-            bantuan="Isi tahun utang ini lunas. Utang tidak lagi masuk lampiran draf tahun tersebut dan sesudahnya." />
+        <x-kolom-baca label="Tahun Pelunasan">{{ $utang['tahun_pelunasan'] ?? '—' }}</x-kolom-baca>
     </div>
 
     <div class="mb-5 border-t border-line-soft"></div>

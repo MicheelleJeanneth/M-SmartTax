@@ -4,8 +4,8 @@
 
 @section('isi')
     <x-card judul="Kondisi Keuangan {{ $tahun }}">
-        {{-- Cicilan berjalan wajib tampil di sini: nilainya ikut membentuk rasio
-             angsuran, sehingga pengguna dapat menelusuri asal persentasenya. --}}
+        {{-- Total utang tampil di sini karena ikut membentuk rasio utang pada
+             hasil simulasi, sehingga pengguna dapat menelusuri asal persentasenya. --}}
         {{-- items-start menahan kotak agar tidak ikut melar mengejar tinggi
              tetangganya. Keterangan pembagi karena itu diletakkan di luar
              kotak: di dalam kotak, kotak sebelahnya ikut meninggi dan bagian
@@ -13,7 +13,7 @@
         <div class="grid grid-cols-1 items-start sm:grid-cols-2 gap-4">
             @foreach([
                 ['Rata-rata Penghasilan per Bulan', $kondisi['penghasilan_bulanan'], 'Penghasilan tahun ini dibagi dua belas bulan'],
-                ['Cicilan Berjalan per Bulan', $kondisi['cicilan_berjalan'], null],
+                ['Total Harta', $kondisi['total_harta'], null],
                 ['Total Utang', $kondisi['total_utang'], null],
                 ['Kekayaan Bersih', $kondisi['kekayaan_bersih'], null],
             ] as [$label, $nilai, $catatan])
@@ -100,8 +100,6 @@
                 @if($pokok === 0)
                     <p class="-mt-1.5 pb-2 text-sm text-ink-3">Pembelian dilakukan secara tunai.</p>
                 @endif
-                <x-row label="Cicilan berjalan">{{ rupiah($kondisi['cicilan_berjalan']) }}</x-row>
-                <x-row label="Total kewajiban bulanan">{{ rupiah($hasil['total_kewajiban']) }}</x-row>
 
                 @if($hasil['dapat_dihitung'])
                     <div class="my-3 border-t border-line-soft"></div>

@@ -78,7 +78,9 @@ class KunciPeriodeBerdrafTest extends TestCase
         $this->delete('/draf-tahunan/'.DrafTahunan::max('tahun_pajak'))->assertRedirect('/draf-tahunan');
 
         $this->assertTrue($utang->fresh()->terkunci, 'Utang ikut terbuka padahal draf tahun lama masih tersusun.');
-        $this->get("/utang/{$utang->id}/edit")->assertOk()->assertSee('sudah masuk draf pajak tahunan');
+
+        // Halaman ubah utang sama untuk semua baris: hanya saldo yang terbuka.
+        $this->get("/utang/{$utang->id}/edit")->assertOk()->assertSee('Hanya saldo yang dapat diubah');
     }
 
     public function test_harta_tidak_dapat_dicatat_mundur_ke_tahun_berdraf(): void
@@ -125,6 +127,7 @@ class KunciPeriodeBerdrafTest extends TestCase
                 'deskripsi' => 'Uji periode berdraf',
                 'saldo' => '1.000.000',
                 'tahun_peminjaman' => $berdraf,
+                'tahun_pelunasan' => $berdraf + 5,
                 'nama_kreditur' => 'Koperasi Sejahtera',
             ])
             ->assertRedirect('/utang/create')
@@ -161,76 +164,67 @@ class KunciPeriodeBerdrafTest extends TestCase
         $this->assertSame($beku, (int) DrafTahunan::orderByDesc('tahun_pajak')->value('total_harta'));
     }
 
-    public function test_utang_terkunci_hanya_dapat_memperbarui_saldo_dan_cicilannya(): void
+    /**
+     * Utang hanya dapat diperbarui saldonya, terkunci draf tahunan maupun
+     * tidak. Kolom lain yang ikut dikirim diabaikan di server.
+     */
+    public function test_utang_hanya_dapat_memperbarui_saldonya(): void
     {
-        $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci);
         $beku = DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak');
 
-        $this->get("/utang/{$utang->id}/edit")->assertOk();
+        $terkunci = Utang::get()->first(fn (Utang $u): bool => $u->terkunci);
+        $terbuka = Utang::get()->first(fn (Utang $u): bool => ! $u->terkunci);
 
-        $this->put("/utang/{$utang->id}", [
-            'saldo' => '150.000.000',
-            'cicilan_bulanan' => '4.100.000',
-            'nama_kreditur' => 'Bank Palsu',
-            'tahun_peminjaman' => 2019,
-            'kode' => '109',
-            'deskripsi' => 'diselundupkan',
-        ])->assertRedirect('/utang')->assertSessionHasNoErrors();
+        foreach ([$terkunci, $terbuka] as $utang) {
+            $this->get("/utang/{$utang->id}/edit")->assertOk();
 
-        $sesudah = $utang->fresh();
-        $this->assertSame(150_000_000, (int) $sesudah->saldo);
-        $this->assertSame($utang->nama_kreditur, $sesudah->nama_kreditur);
-        $this->assertSame((int) $utang->tahun_peminjaman, (int) $sesudah->tahun_peminjaman);
-        $this->assertSame($utang->deskripsi, $sesudah->deskripsi);
+            $this->put("/utang/{$utang->id}", [
+                'saldo' => '150.000.000',
+                'nama_kreditur' => 'Bank Palsu',
+                'tahun_peminjaman' => 2019,
+                'tahun_pelunasan' => 2099,
+                'kode' => '109',
+                'deskripsi' => 'diselundupkan',
+            ])->assertRedirect('/utang')->assertSessionHasNoErrors();
+
+            $sesudah = $utang->fresh();
+            $this->assertSame(150_000_000, (int) $sesudah->saldo);
+            $this->assertSame($utang->nama_kreditur, $sesudah->nama_kreditur);
+            $this->assertSame((int) $utang->tahun_peminjaman, (int) $sesudah->tahun_peminjaman);
+            $this->assertSame((int) $utang->tahun_pelunasan, (int) $sesudah->tahun_pelunasan);
+            $this->assertSame($utang->deskripsi, $sesudah->deskripsi);
+        }
 
         $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak')->all());
+    }
+
+    public function test_tahun_pelunasan_wajib_diisi_saat_mencatat_utang(): void
+    {
+        $jumlah = Utang::count();
+
+        $this->from('/utang/create')
+            ->post('/utang', [
+                'kode' => '109',
+                'deskripsi' => 'Tanpa tahun pelunasan',
+                'saldo' => '1.000.000',
+                'tahun_peminjaman' => (string) now()->year,
+                'nama_kreditur' => 'Koperasi Sejahtera',
+            ])
+            ->assertSessionHasErrors(['tahun_pelunasan' => 'Tahun pelunasan wajib diisi.']);
+
+        $this->assertSame($jumlah, Utang::count());
     }
 
     /**
-     * Tahun pelunasan dan tahun pelepasan bergerak ke depan: mengisinya tidak
-     * mengubah draf tahun mana pun yang sudah tersusun, karena lampiran
-     * tahun-tahun itu tetap memuat barisnya. Dulu keduanya ikut terkunci,
-     * sehingga utang yang sudah lunas dan harta yang sudah dijual tidak dapat
-     * dicatat sama sekali tanpa membatalkan seluruh draf tahunannya.
+     * Tahun pelepasan bergerak ke depan: mengisinya tidak mengubah draf tahun
+     * mana pun yang sudah tersusun, karena lampiran tahun-tahun itu tetap
+     * memuat barisnya. Dulu kolom ini ikut terkunci, sehingga harta yang sudah
+     * dijual tidak dapat dicatat sama sekali tanpa membatalkan seluruh draf
+     * tahunannya.
+     *
+     * Utang tidak lagi punya pasangan pengujian ini: tahun pelunasannya wajib
+     * diisi sejak dicatat dan tidak dapat diubah sesudahnya.
      */
-    public function test_tahun_pelunasan_utang_terkunci_dapat_diisi_ke_depan(): void
-    {
-        $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci && $u->tahun_pelunasan === null);
-        $tersusun = (int) DrafTahunan::tahunTersusun((int) $utang->id_profil)->max();
-        $beku = DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak');
-
-        $this->put("/utang/{$utang->id}", [
-            'saldo' => '0',
-            'tahun_pelunasan' => (string) ($tersusun + 1),
-        ])->assertRedirect('/utang')->assertSessionHasNoErrors();
-
-        $this->assertSame($tersusun + 1, (int) $utang->fresh()->tahun_pelunasan);
-
-        // Lampiran tahun yang sudah tersusun tidak bergeser sedikit pun.
-        $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak')->all());
-
-        // Barisnya tetap terkunci, karena draf lama masih memuatnya.
-        $this->assertTrue($utang->fresh()->terkunci);
-    }
-
-    public function test_tahun_pelunasan_yang_menarik_utang_keluar_draf_ditolak(): void
-    {
-        $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci && $u->tahun_pelunasan === null);
-        $tersusun = (int) DrafTahunan::tahunTersusun((int) $utang->id_profil)->max();
-
-        // Tahun pelunasan yang sama dengan tahun berdraf mengeluarkan utang ini
-        // dari lampiran tahun tersebut — persis yang tidak boleh terjadi.
-        $this->from("/utang/{$utang->id}/edit")
-            ->put("/utang/{$utang->id}", [
-                'saldo' => '0',
-                'tahun_pelunasan' => (string) $tersusun,
-            ])
-            ->assertRedirect("/utang/{$utang->id}/edit")
-            ->assertSessionHasErrors('tahun_pelunasan');
-
-        $this->assertNull($utang->fresh()->tahun_pelunasan);
-    }
-
     public function test_tahun_pelepasan_harta_terkunci_dapat_diisi_ke_depan(): void
     {
         $harta = Harta::with('kodeHarta')->get()

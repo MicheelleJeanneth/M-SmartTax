@@ -52,7 +52,7 @@ class BahasaPesanTest extends TestCase
             'utang' => ['post', '/utang', [
                 'kode' => ['bukan teks'], 'deskripsi' => $panjang, 'saldo' => 'abc',
                 'tahun_peminjaman' => $tahunDepan, 'nama_kreditur' => $panjang,
-                'cicilan_bulanan' => 'abc', 'keterangan' => $panjang,
+                'keterangan' => $panjang,
             ]],
             'profil' => ['put', '/profil', [
                 'nama' => $panjang, 'email' => 'bukan-email', 'tempat_lahir' => $panjang,

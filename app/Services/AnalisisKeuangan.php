@@ -53,15 +53,6 @@ class AnalisisKeuangan
         return $this->totalHarta($tahun) - $this->totalUtang($tahun);
     }
 
-    /**
-     * Jumlah cicilan bulanan utang yang masih berjalan. Utang yang dibayar
-     * sekaligus saat jatuh tempo tidak punya cicilan dan dihitung nol.
-     */
-    public function cicilanBerjalan(int $tahun): int
-    {
-        return (int) $this->utang($tahun)->sum('cicilan_bulanan');
-    }
-
     /** Peredaran bruto tahun terpilih, dijumlahkan dari transaksi penghasilan. */
     public function peredaranBruto(int $tahun): int
     {

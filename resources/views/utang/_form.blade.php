@@ -12,21 +12,16 @@
     <x-input label="Saldo Utang" name="saldo" wajib uang placeholder="0"
         :value="isset($u['saldo']) ? angka($u['saldo']) : ''" />
 
-    {{-- Cicilan mengikuti saldo: besarnya angsuran baru masuk akal dibaca
-         setelah pokok utangnya diketahui. --}}
-    <x-input label="Cicilan Bulanan" name="cicilan_bulanan" uang placeholder="0"
-        :value="isset($u['cicilan']) ? angka($u['cicilan']) : ''"
-        bantuan="Kosongkan bila utang tidak diangsur secara berkala." />
-
     {{-- Tahun diketik langsung, bukan dipilih, supaya pengguna bebas mengisi tahun berapa pun. --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-input label="Tahun Peminjaman" name="tahun_peminjaman" wajib inputmode="numeric" maxlength="4"
             pattern="\d{4}" data-digit placeholder="Contoh: 2024" :value="$u['tahun'] ?? ''" />
-        <x-input label="Tahun Pelunasan" name="tahun_pelunasan" inputmode="numeric" maxlength="4"
-            pattern="\d{4}" data-digit placeholder="Kosongkan bila belum lunas" :value="$u['tahun_pelunasan'] ?? ''" />
+        <x-input label="Tahun Pelunasan" name="tahun_pelunasan" wajib inputmode="numeric" maxlength="4"
+            pattern="\d{4}" data-digit placeholder="Contoh: 2029" :value="$u['tahun_pelunasan'] ?? ''" />
     </div>
     <p class="-mt-3 mb-6 text-sm text-ink-3">
-        Kosongkan Tahun Pelunasan bila utang masih berjalan. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal.
+        Tahun Pelunasan diisi tahun utang ini dijadwalkan lunas; utang tidak lagi masuk lampiran draf tahun tersebut
+        dan sesudahnya. Saldo tercatat per akhir tahun pajak, bukan nilai pinjaman awal.
     </p>
 
     <div class="mb-6 border-t border-line-soft"></div>

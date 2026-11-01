@@ -37,9 +37,9 @@ class SimulasiAsetTest extends TestCase
     {
         $this->get('/simulasi')
             ->assertOk()
-            // Rata-rata penghasilan bulanan, cicilan berjalan, total utang, kekayaan bersih.
+            // Rata-rata penghasilan bulanan, total harta, total utang, kekayaan bersih.
             ->assertSee('Rp 76.333.333')
-            ->assertSee('Rp 5.850.000')
+            ->assertSee('Rp 650.000.000')
             ->assertSee('Rp 238.000.000')
             ->assertSee('Rp 412.000.000');
     }
@@ -49,8 +49,7 @@ class SimulasiAsetTest extends TestCase
         $this->post('/simulasi', $this->rencana())
             ->assertOk()
             ->assertSee('Rp 7.385.951')      // angsuran per bulan
-            ->assertSee('Rp 13.235.951')     // total kewajiban bulanan
-            ->assertSee('17,3%')             // rasio angsuran terhadap penghasilan
+            ->assertSee('9,7%')              // rasio angsuran terhadap penghasilan
             ->assertSee('65,3%');            // rasio total utang terhadap penghasilan
     }
 
@@ -84,8 +83,7 @@ class SimulasiAsetTest extends TestCase
 
     public function test_rasio_angsuran_menentukan_ketiga_kesimpulan(): void
     {
-        $kondisi = ['penghasilan_bulanan' => 10_000_000, 'penghasilan_tahun' => 120_000_000,
-            'cicilan_berjalan' => 0, 'total_utang' => 0];
+        $kondisi = ['penghasilan_bulanan' => 10_000_000, 'penghasilan_tahun' => 120_000_000, 'total_utang' => 0];
         $simulasi = app(SimulasiAset::class);
 
         $this->assertSame('Layak', $simulasi->hitungKelayakan($kondisi, 2_900_000, 0)['kesimpulan']);
@@ -109,15 +107,24 @@ class SimulasiAsetTest extends TestCase
             ->assertSee('Tekan Hitung Kelayakan');
     }
 
-    public function test_cicilan_berjalan_ikut_membentuk_rasio_angsuran(): void
+    /**
+     * Rasio angsuran kini hanya menimbang angsuran aset yang disimulasikan.
+     * Cicilan utang berjalan tidak lagi dicatat, dan beban utang yang sudah
+     * ada terwakili oleh rasio utang terhadap penghasilan tahunan.
+     */
+    public function test_rasio_angsuran_hanya_menimbang_angsuran_aset_baru(): void
     {
         $kondisi = ['penghasilan_bulanan' => 10_000_000, 'penghasilan_tahun' => 120_000_000,
-            'cicilan_berjalan' => 2_000_000, 'total_utang' => 0];
+            'total_utang' => 50_000_000];
 
-        $hasil = app(SimulasiAset::class)->hitungKelayakan($kondisi, 2_000_000, 0);
+        $hasil = app(SimulasiAset::class)->hitungKelayakan($kondisi, 2_000_000, 10_000_000);
 
-        $this->assertSame(4_000_000, $hasil['total_kewajiban']);
-        $this->assertSame(40.0, $hasil['rasio']);
+        $this->assertSame(2_000_000, $hasil['total_kewajiban']);
+        $this->assertSame(20.0, $hasil['rasio']);
+
+        // Utang yang sudah berjalan tetap terhitung, lewat rasio utang.
+        $this->assertSame(60_000_000, $hasil['utang_setelah']);
+        $this->assertSame(50.0, $hasil['rasio_utang']);
     }
 
     public function test_pembelian_tunai_tidak_menimbulkan_angsuran(): void
@@ -125,21 +132,20 @@ class SimulasiAsetTest extends TestCase
         $this->post('/simulasi', $this->rencana(['cara_pembayaran' => 'Tunai']))
             ->assertOk()
             ->assertSee('Pembelian dilakukan secara tunai')
-            // Rasio dihitung dari cicilan berjalan saja: 5.850.000 dari 76.333.333.
-            ->assertSee('7,7%');
+            // Tidak ada angsuran sama sekali, jadi rasio angsurannya nol.
+            ->assertSee('0,0%');
     }
 
     public function test_penghasilan_nol_tidak_menghitung_rasio_dan_bukan_galat(): void
     {
-        $kondisi = ['penghasilan_bulanan' => 0, 'penghasilan_tahun' => 0,
-            'cicilan_berjalan' => 1_000_000, 'total_utang' => 0];
+        $kondisi = ['penghasilan_bulanan' => 0, 'penghasilan_tahun' => 0, 'total_utang' => 0];
 
         $hasil = app(SimulasiAset::class)->hitungKelayakan($kondisi, 2_000_000, 0);
 
         $this->assertFalse($hasil['dapat_dihitung']);
         $this->assertNull($hasil['rasio']);
         $this->assertNull($hasil['kesimpulan']);
-        $this->assertSame(3_000_000, $hasil['total_kewajiban']);
+        $this->assertSame(2_000_000, $hasil['total_kewajiban']);
     }
 
     public function test_dampak_konsistensi_memakai_perhitungan_draf_tahunan(): void
@@ -191,7 +197,7 @@ class SimulasiAsetTest extends TestCase
     {
         $this->post('/simulasi', $this->rencana(['peraga' => 'penghasilan-nol']))
             ->assertOk()
-            ->assertSee('Rp 13.235.951')   // total kewajiban bulanan tetap tampil
+            ->assertSee('Rp 7.385.951')    // angsuran per bulan tetap tampil
             ->assertSee('Rasio tidak dapat dihitung karena belum ada data penghasilan pada tahun ini.')
             ->assertDontSee('Rasio angsuran terhadap penghasilan')
             ->assertDontSee('Kesimpulan')
@@ -402,11 +408,16 @@ class SimulasiAsetTest extends TestCase
         $this->assertStringNotContainsString('sisa utang', $halaman);
     }
 
-    public function test_cicilan_utang_berjalan_ikut_membentuk_total_kewajiban(): void
+    /**
+     * Cicilan bulanan sudah tidak dicatat, jadi beban utang yang sedang
+     * berjalan masuk lewat rasio utang terhadap penghasilan tahunan — bukan
+     * lagi lewat angsuran bulanan.
+     */
+    public function test_utang_berjalan_terwakili_oleh_rasio_utang(): void
     {
         $profil = Profil::create([
-            'username' => 'uji.cicilan', 'email' => 'cicilan@uji.test',
-            'password' => 'rahasia-uji-8', 'nama' => 'Uji Cicilan', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
+            'username' => 'uji.utang', 'email' => 'utang@uji.test',
+            'password' => 'rahasia-uji-8', 'nama' => 'Uji Utang', 'tempat_lahir' => 'Surabaya', 'tanggal_lahir' => '1995-08-17',
             'jenis_kelamin' => 'Pria', 'nomor_handphone' => '081234567899', 'alamat' => 'Jl. Uji',
             'rt' => '001', 'rw' => '001', 'kelurahan' => 'U', 'kecamatan' => 'U', 'kota' => 'Surabaya',
             'provinsi' => 'Jawa Timur', 'profil_lengkap' => true, 'status' => true,
@@ -420,9 +431,8 @@ class SimulasiAsetTest extends TestCase
             'id_kode_utang' => KodeUtang::where('kode', '101')->value('id_kode_utang'),
             'deskripsi' => 'KPR Rumah', 'nama_kreditur' => 'Bank BCA',
             'saldo' => 60_000_000,
-            // Kolom inilah yang membuat baris Cicilan berjalan tidak nol.
-            'cicilan_bulanan' => 5_000_000,
             'tahun_peminjaman' => MockData::TAHUN,
+            'tahun_pelunasan' => MockData::TAHUN + 10,
             'negara_kreditur' => 'Indonesia', 'status' => true,
         ]);
 
@@ -437,23 +447,7 @@ class SimulasiAsetTest extends TestCase
         ])
             ->assertOk()
             ->assertSee(rupiah(16_000_000))   // angsuran per bulan
-            ->assertSee(rupiah(5_000_000))    // cicilan berjalan
-            ->assertSee(rupiah(21_000_000))   // total kewajiban bulanan
-            ->assertSee('45,9%')
-            ->assertSee('Belum Disarankan');
-    }
-
-    public function test_cicilan_kosong_dihitung_nol(): void
-    {
-        $utang = Utang::whereNull('cicilan_bulanan')->with('kodeUtang')->first();
-
-        $this->assertNotNull($utang, 'Data contoh butuh satu utang tanpa cicilan berkala.');
-        $this->assertNull($utang->cicilan);
-
-        // Halaman rinciannya tetap terbuka dan menyebut keadaannya.
-        $this->get('/utang/'.$utang->id)
-            ->assertOk()
-            ->assertSee('Cicilan Bulanan')
-            ->assertSee('Tidak diangsur berkala');
+            // Utang berjalan 60 juta ditambah pokok baru 160 juta.
+            ->assertSee('total utang setelah pembelian '.rupiah(220_000_000), false);
     }
 }

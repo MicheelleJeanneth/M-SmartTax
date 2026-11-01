@@ -69,7 +69,7 @@ class SimulasiAset
     /**
      * Kondisi keuangan tahun berjalan, terisi otomatis dari data yang tercatat.
      *
-     * @return array{penghasilan_bulanan: int, penghasilan_tahun: int, cicilan_berjalan: int, total_harta: int, total_utang: int, kekayaan_bersih: int}
+     * @return array{penghasilan_bulanan: int, penghasilan_tahun: int, total_harta: int, total_utang: int, kekayaan_bersih: int}
      */
     public function kondisi(int $tahun): array
     {
@@ -78,7 +78,6 @@ class SimulasiAset
         return [
             'penghasilan_bulanan' => (int) round($bruto / 12),
             'penghasilan_tahun' => $bruto,
-            'cicilan_berjalan' => $this->analisis->cicilanBerjalan($tahun),
             'total_harta' => $this->analisis->totalHarta($tahun),
             'total_utang' => $this->analisis->totalUtang($tahun),
             'kekayaan_bersih' => $this->analisis->kekayaanBersih($tahun),
@@ -114,12 +113,16 @@ class SimulasiAset
      * Rasio total utang mengukur posisi utang secara keseluruhan, sehingga
      * ikut ditampilkan sebagai keterangan tetapi tidak pernah memvonis.
      *
-     * @param  array{penghasilan_bulanan: int, penghasilan_tahun: int, cicilan_berjalan: int, total_utang: int}  $kondisi
+     * @param  array{penghasilan_bulanan: int, penghasilan_tahun: int, total_utang: int}  $kondisi
      * @return array{cicilan: int, total_kewajiban: int, dapat_dihitung: bool, rasio: float|null, kesimpulan: string|null, nada: string|null, penjelasan: string|null, utang_setelah: int, rasio_utang: float|null}
      */
     public function hitungKelayakan(array $kondisi, int $cicilan, int $pokok): array
     {
-        $totalKewajiban = $cicilan + $kondisi['cicilan_berjalan'];
+        // Beban utang yang sudah berjalan tidak lagi dihitung sebagai angsuran
+        // bulanan, karena cicilannya tidak lagi dicatat. Beban itu tetap
+        // terwakili oleh rasio utang di bawah, yang memakai total utang
+        // berjalan ditambah pokok yang baru.
+        $totalKewajiban = $cicilan;
         $utangSetelah = $kondisi['total_utang'] + $pokok;
 
         // Penghasilan nol membuat pembagi rasio nol. Ini bukan galat: hasilnya

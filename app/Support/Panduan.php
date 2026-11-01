@@ -181,7 +181,7 @@ class Panduan
                         ],
                     ],
                 ],
-                'catatan' => 'Perbarui saldo utang setiap akhir tahun sebelum menyusun draf tahunan, karena nilainya berkurang seiring cicilan yang Anda bayar.',
+                'catatan' => 'Perbarui saldo utang setiap akhir tahun sebelum menyusun draf tahunan, karena nilainya berkurang seiring angsuran yang Anda bayar.',
             ],
 
             'draf-bulanan' => [
@@ -318,14 +318,14 @@ class Panduan
                         'judul' => 'Simulasi Kelayakan Pembelian Aset',
                         'pengantar' => 'Simulasi membantu Anda memperkirakan kesiapan keuangan sebelum membeli aset baru, baik secara tunai maupun kredit. Hasilnya tidak disimpan dan dapat dicoba berkali-kali.',
                         'langkah' => [
-                            ['judul' => 'Periksa kondisi keuangan Anda', 'keterangan' => 'Kartu paling atas menampilkan rata-rata penghasilan bulanan, cicilan yang sedang berjalan, total utang, dan kekayaan bersih, semuanya diambil otomatis dari data Anda.'],
+                            ['judul' => 'Periksa kondisi keuangan Anda', 'keterangan' => 'Kartu paling atas menampilkan rata-rata penghasilan bulanan, total harta, total utang, dan kekayaan bersih, semuanya diambil otomatis dari data Anda.'],
                             ['judul' => 'Isi rencana pembelian', 'keterangan' => 'Masukkan nama aset, jenis aset, harga, dan cara pembayaran. Untuk pembelian kredit, isi juga uang muka, jangka waktu, dan bunga per tahun.'],
                             ['judul' => 'Tekan Hitung Kelayakan', 'keterangan' => 'Hasil muncul di bawah form. Ubah angka lalu hitung ulang untuk membandingkan beberapa kemungkinan.'],
                         ],
                     ],
                     [
                         'judul' => 'Cara membaca hasil',
-                        'keterangan' => 'Kelayakan dinilai dari perbandingan seluruh kewajiban bulanan, yaitu angsuran baru ditambah cicilan yang sedang berjalan, terhadap rata-rata penghasilan bulanan Anda.',
+                        'keterangan' => 'Kelayakan dinilai dari perbandingan angsuran aset baru terhadap rata-rata penghasilan bulanan Anda, dengan total utang setelah pembelian sebagai pertimbangan pendamping.',
                         'tabel' => [
                             'kepala' => ['Kesimpulan', 'Rasio angsuran', 'Arti'],
                             'lebar' => ['w-[26%]', 'w-[18%]', 'w-[56%]'],

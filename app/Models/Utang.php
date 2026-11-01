@@ -41,11 +41,6 @@ class Utang extends Model
         return Attribute::get(fn (): string => $this->nama_kreditur);
     }
 
-    protected function cicilan(): Attribute
-    {
-        return Attribute::get(fn (): ?int => $this->cicilan_bulanan);
-    }
-
     protected function tahun(): Attribute
     {
         return Attribute::get(fn (): int => (int) $this->tahun_peminjaman);

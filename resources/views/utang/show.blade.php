@@ -16,10 +16,6 @@
             <x-kolom-baca label="Deskripsi Utang">{{ $utang['deskripsi'] }}</x-kolom-baca>
         </div>
 
-        <x-kolom-baca label="Cicilan Bulanan">
-            {{ $utang['cicilan'] ? rupiah($utang['cicilan']) : 'Tidak diangsur berkala' }}
-        </x-kolom-baca>
-
         <x-kolom-baca label="Saldo Utang">{{ rupiah($utang['saldo']) }}</x-kolom-baca>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
