@@ -7,8 +7,24 @@
 @endsection
 
 @section('isi')
-    <form method="POST" action="{{ route('harta.store', $kategori) }}">
+    <form method="POST" action="{{ route('harta.store', $kategori) }}"
+          id="formulir-harta" data-konfirmasi="simpan-harta">
         @csrf
         @include('harta._form', ['tombol' => 'Simpan'])
     </form>
+
+    {{-- Yang diringkas hanya kode, nilai, dan tahun: ketiganya yang menentukan
+         lampiran draf tahun mana yang memuat baris ini. --}}
+    @include('partials.dialog-simpan', [
+        'id' => 'simpan-harta',
+        'form' => 'formulir-harta',
+        'judul' => 'Simpan data harta?',
+        'pesan' => 'Harta ini ikut tercantum pada lampiran draf pajak tahunan. Setelah draf tersusun, maka kode, tahun, dan rinciannya tidak dapat diubah lagi.',
+        'rincian' => array_filter([
+            'Kode Harta' => 'kode',
+            $info['label_nilai'] => 'nilai',
+            $info['label_nilai_kini'] => $info['label_nilai_kini'] ? 'nilai_kini' : null,
+            $info['label_tahun'] => 'tahun',
+        ]),
+    ])
 @endsection

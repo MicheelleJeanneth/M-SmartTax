@@ -272,6 +272,43 @@ class HalamanAplikasiTest extends TestCase
         }
     }
 
+    public function test_simpan_harta_melewati_dialog_penegasan(): void
+    {
+        // Seluruh kategori diperiksa, karena susunan kolom nilainya berbeda-beda
+        // dan ringkasan dialog disusun dari label kategorinya masing-masing.
+        foreach (array_keys(MockData::kategoriHarta()) as $kategori) {
+            $halaman = $this->get("/harta/{$kategori}/tambah")->assertOk()->getContent();
+
+            $this->assertStringContainsString('data-konfirmasi="simpan-harta"', $halaman, $kategori);
+            $this->assertStringContainsString('id="simpan-harta"', $halaman, $kategori);
+            $this->assertStringContainsString('data-kirim="formulir-harta"', $halaman, $kategori);
+            $this->assertStringContainsString('Simpan data harta?', $halaman, $kategori);
+
+            foreach (['kode', 'nilai', 'tahun'] as $kolom) {
+                $this->assertStringContainsString('data-ringkas="'.$kolom.'"', $halaman, $kategori);
+            }
+        }
+
+        $harta = $this->hartaTerbuka();
+        $this->get("/harta/{$harta->kodeHarta->kategori}/{$harta->id}/ubah")
+            ->assertOk()
+            ->assertSee('Simpan perubahan data harta?')
+            ->assertSee('data-konfirmasi="simpan-harta"', false);
+    }
+
+    public function test_perbarui_nilai_harta_terkunci_hanya_meringkas_nilainya(): void
+    {
+        $halaman = $this->get('/harta/kas/2/ubah')->assertOk()->getContent();
+
+        $this->assertStringContainsString('Perbarui nilai harta?', $halaman);
+        $this->assertStringContainsString('data-ringkas="nilai"', $halaman);
+
+        // Kode dan tahun tidak dapat diubah pada baris terkunci, jadi tidak
+        // ikut diringkas — ringkasan hanya memuat yang benar-benar akan berganti.
+        $this->assertStringNotContainsString('data-ringkas="kode"', $halaman);
+        $this->assertStringNotContainsString('data-ringkas="tahun"', $halaman);
+    }
+
     public function test_peringatan_dini_memakai_kalimat_dari_server(): void
     {
         $kunci = app(KunciPencatatan::class);
