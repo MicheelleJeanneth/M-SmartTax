@@ -14,7 +14,7 @@
         @method('PUT')
         {{-- Baris yang sudah masuk draf tahunan memakai formulir khusus saldo. --}}
         @include($utang['terkunci'] ? 'utang._form-nilai' : 'utang._form', [
-            'tombol' => $utang['terkunci'] ? 'Perbarui Saldo' : 'Simpan Perubahan',
+            'tombol' => $utang['terkunci'] ? 'Perbarui' : 'Simpan Perubahan',
         ])
     </form>
 @endsection

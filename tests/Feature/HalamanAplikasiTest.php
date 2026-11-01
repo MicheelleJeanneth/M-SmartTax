@@ -568,15 +568,29 @@ class HalamanAplikasiTest extends TestCase
             ->assertDontSee('belum tersusun');
     }
 
-    public function test_tahun_tanpa_penghasilan_tidak_menawarkan_tombol_menyusun(): void
+    public function test_laporan_hanya_menawarkan_tahun_pajak(): void
     {
-        // 2021 tidak punya penghasilan sama sekali: tidak ada yang bisa disusun.
-        $this->get('/laporan/draf-bulanan?tahun=2021')
-            ->assertOk()
-            ->assertSee('Tidak ada draf bulanan untuk tahun 2021')
-            ->assertDontSee('Buka Draf Bulanan');
+        $pertama = min(app(FilterTahun::class)->daftarPenghasilan());
 
-        // Bulan yang belum disusun pada tahun berpenghasilan tetap menawarkan tombol.
+        // Harta dan utang Budi berawal jauh sebelum penghasilan pertamanya,
+        // dan tahun-tahun itu dulu ikut masuk daftar. Laporan pajak untuk
+        // tahun yang belum jadi kewajiban pajak tidak punya arti apa pun.
+        foreach (['draf-bulanan', 'draf-tahunan', 'harta', 'utang'] as $jenis) {
+            $halaman = $this->get("/laporan/{$jenis}")->assertOk()->getContent();
+
+            $this->assertStringNotContainsString('<option value="'.($pertama - 1).'"', $halaman, $jenis);
+            $this->assertStringContainsString('<option value="'.$pertama.'"', $halaman, $jenis);
+        }
+
+        // Tahun di luar rentang itu jatuh kembali ke tahun berjalan, bukan
+        // menampilkan laporan untuk tahun yang tidak ditawarkan.
+        $this->get('/laporan/utang?tahun='.($pertama - 1))
+            ->assertOk()
+            ->assertSee('value="'.MockData::TAHUN.'" selected', false);
+    }
+
+    public function test_bulan_yang_belum_disusun_menawarkan_tombol_menyusun(): void
+    {
         $this->get('/laporan/draf-bulanan?tahun='.MockData::TAHUN.'&bulan=12')
             ->assertOk()
             ->assertSee('belum tersusun')

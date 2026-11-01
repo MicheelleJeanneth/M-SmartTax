@@ -116,16 +116,21 @@ class PenyusunDrafTahunan
             foreach ($harta as $h) {
                 DrafTahunanHarta::create([
                     'id_draf_tahunan' => $draf->id_draf_tahunan,
+                    // Penanda baris aslinya, supaya Laporan Data Harta tahun
+                    // ini dapat mengambil angkanya dari salinan ini.
+                    'id_harta' => $h->id_harta,
                     'kategori' => $h->kodeHarta->kategori,
                     'kode' => $h->kodeHarta->kode,
                     'deskripsi' => $h->deskripsi,
                     'nilai' => $h->nilai,
+                    'nilai_kini' => $h->nilai_saat_ini,
                 ]);
             }
 
             foreach ($utang as $u) {
                 DrafTahunanUtang::create([
                     'id_draf_tahunan' => $draf->id_draf_tahunan,
+                    'id_utang' => $u->id_utang,
                     'kode' => $u->kodeUtang->kode,
                     'deskripsi' => $u->deskripsi,
                     'nama_kreditur' => $u->nama_kreditur,

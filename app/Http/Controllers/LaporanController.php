@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\DrafBulanan;
 use App\Models\DrafTahunan;
+use App\Models\DrafTahunanHarta;
+use App\Models\DrafTahunanUtang;
 use App\Models\Harta;
 use App\Models\KodeUtang;
 use App\Models\Utang;
@@ -14,6 +16,7 @@ use App\Services\PerhitunganPajak;
 use App\Support\MockData;
 use App\Support\PenggunaSaatIni;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
@@ -31,6 +34,14 @@ class LaporanController extends Controller
         'utang' => 'Laporan Data Utang',
     ];
 
+    /**
+     * Draf tahunan yang lampirannya sedang dipakai, berkunci tahun pajak;
+     * false bila tahun itu belum berdraf.
+     *
+     * @var array<int, DrafTahunan|false>
+     */
+    private array $drafBeku = [];
+
     public function __construct(
         private FilterTahun $filterTahun,
         private AnalisisKeuangan $analisis,
@@ -46,7 +57,7 @@ class LaporanController extends Controller
             'jenis' => $jenis,
             'judul' => self::JUDUL[$jenis],
             ...$filter,
-            'daftarTahun' => $this->filterTahun->daftar(),
+            'daftarTahun' => $this->filterTahun->daftarPenghasilan(),
             'tersedia' => $this->tersedia($jenis, $filter),
             'tanpaPenghasilan' => $this->tanpaPenghasilan($filter['tahun']),
             'diluarMasaPajak' => $this->diluarMasaPajak($jenis, $filter),
@@ -85,8 +96,13 @@ class LaporanController extends Controller
      */
     private function filter(Request $request, string $jenis): array
     {
+        // Seluruh laporan di sini adalah laporan pajak, jadi yang ditawarkan
+        // hanya tahun pajak. Dulu daftarnya ikut memuat tahun perolehan harta
+        // dan tahun peminjaman utang, sehingga tahun sebelum penghasilan
+        // pertama pun dapat dipilih — lalu laporannya mencetak "Posisi 31
+        // Desember" untuk tahun yang tidak pernah punya kewajiban pajak.
         $tahun = $request->filled('tahun')
-            ? $this->filterTahun->pilih($request->query('tahun'))
+            ? $this->filterTahun->pilih($request->query('tahun'), $this->filterTahun->daftarPenghasilan())
             : $this->tahunBawaan($jenis);
 
         return [
@@ -242,7 +258,7 @@ class LaporanController extends Controller
      */
     private function harta(string $kategori, int $tahun): Collection
     {
-        return Harta::query()
+        $harta = Harta::query()
             ->where('id_profil', PenggunaSaatIni::id())
             ->kategori($kategori)
             ->dimilikiPadaTahun($tahun)
@@ -250,6 +266,17 @@ class LaporanController extends Controller
             ->orderBy('tahun_perolehan')
             ->orderBy('id_harta')
             ->get();
+
+        $beku = $this->salinanBeku($tahun, 'lampiranHarta', 'id_harta');
+
+        return $harta->each(function (Harta $h) use ($beku): void {
+            $salinan = $beku->get($h->id_harta);
+
+            if ($salinan !== null) {
+                $h->nilai = $salinan->nilai;
+                $h->nilai_saat_ini = $salinan->nilai_kini;
+            }
+        });
     }
 
     /**
@@ -259,12 +286,56 @@ class LaporanController extends Controller
      */
     private function utang(int $tahun): Collection
     {
-        return Utang::query()
+        $utang = Utang::query()
             ->where('id_profil', PenggunaSaatIni::id())
             ->berlakuPadaTahun($tahun)
             ->with('kodeUtang')
             ->orderBy('tahun_peminjaman')
             ->orderBy('id_utang')
             ->get();
+
+        $beku = $this->salinanBeku($tahun, 'lampiranUtang', 'id_utang');
+
+        return $utang->each(function (Utang $u) use ($beku): void {
+            $salinan = $beku->get($u->id_utang);
+
+            if ($salinan !== null) {
+                $u->saldo = $salinan->saldo;
+            }
+        });
+    }
+
+    /**
+     * Salinan beku lampiran draf tahunan, berkunci penanda baris aslinya.
+     *
+     * Tahun yang sudah berdraf memakai angka dari salinan ini, bukan angka
+     * sekarang. Tanpa itu, memperbarui saldo utang tahun berjalan ikut
+     * mengubah Laporan Data Utang tahun-tahun sebelumnya — padahal saldo
+     * memang harus diperbarui agar draf tahun berikutnya benar.
+     *
+     * Hanya kolom uangnya yang diambil dari salinan. Jati diri dan periodenya
+     * tetap dari baris asli, karena kolom itu terkunci begitu drafnya disusun
+     * sehingga tidak mungkin berbeda.
+     *
+     * Kosong berarti tahun itu belum berdraf, atau drafnya disusun sebelum
+     * penanda barisnya ada; keduanya jatuh ke angka sekarang seperti semula.
+     *
+     * @param  string  $lampiran  Nama relasi lampirannya.
+     * @param  string  $penanda  Kolom penanda baris aslinya.
+     * @return Collection<int, DrafTahunanHarta|DrafTahunanUtang>
+     */
+    private function salinanBeku(int $tahun, string $lampiran, string $penanda): Collection
+    {
+        // Laporan harta memanggil ini sekali per kategori, jadi drafnya dicari
+        // dan lampirannya dimuat satu kali saja per tahun.
+        $this->drafBeku[$tahun] ??= $this->drafTahunan($tahun)?->load(['lampiranHarta', 'lampiranUtang']) ?? false;
+
+        if ($this->drafBeku[$tahun] === false) {
+            return collect();
+        }
+
+        return $this->drafBeku[$tahun]->{$lampiran}
+            ->filter(fn (Model $baris): bool => $baris->{$penanda} !== null)
+            ->keyBy($penanda);
     }
 }

@@ -9,11 +9,21 @@
 @section('isi')
     @include('draf-tahunan._isi')
 
+    {{-- Urutannya menentukan: draf menyalin angka yang ada saat ia disimpan,
+         jadi saldo dan nilai harus diperbarui lebih dulu. Kalau terbalik,
+         satu-satunya jalan memperbaiki adalah membatalkan drafnya. --}}
+    <x-info varian="kuning" class="mt-4">
+        Pastikan saldo utang dan nilai harta sudah sesuai posisi 31 Desember {{ $tahun }} sebelum menyimpan.
+        Draf menyalin angka yang ada saat ini, dan salinan itu yang dipakai seluruh laporan tahun {{ $tahun }} seterusnya.
+    </x-info>
+
     <x-info varian="kuning" class="mt-4">
         @if($statusKonsistensi !== 'normal')
             Konsistensi harta perlu diperhatikan. Pastikan harta yang diperoleh dari hibah, warisan, atau penghasilan di luar usaha sudah dicatat.
         @endif
-        Batas lapor 31 Maret {{ $tahun + 1 }}. Setelah draf disimpan, draf bulanan, data harta, dan data utang tahun {{ $tahun }} tidak dapat diubah kecuali draf dibatalkan.
+        Batas lapor 31 Maret {{ $tahun + 1 }}. Setelah draf disimpan, draf bulanan tahun {{ $tahun }} terkunci,
+        dan data harta serta utang tidak dapat lagi berganti kode, tahun, maupun rinciannya kecuali draf dibatalkan.
+        Nilai dan saldonya tetap dapat diperbarui untuk keperluan tahun berikutnya, tanpa mengubah laporan tahun {{ $tahun }}.
     </x-info>
 
     {{-- Tombol rata kiri, sama seperti formulir lain. --}}
