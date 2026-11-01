@@ -3,7 +3,7 @@
     <button @click="$dispatch('buka-dialog', 'hapus-3')">…</button>
     <x-dialog id="hapus-3" judul="…"> … <x-slot:aksi>…</x-slot:aksi></x-dialog>
 --}}
-@props(['id', 'judul'])
+@props(['id', 'judul', 'batal' => 'Batal'])
 {{-- id dipasang pada akarnya supaya app.js dapat mengisi ringkasan di dalamnya sebelum dibuka. --}}
 <div id="{{ $id }}" x-data="{ buka: false }"
      x-on:buka-dialog.window="if ($event.detail === '{{ $id }}') buka = true"
@@ -14,9 +14,13 @@
     <div x-show="buka" x-transition @click.outside="buka = false"
          class="w-full max-w-[520px] rounded-card bg-white p-6 shadow-xl">
         <h2 id="{{ $id }}-judul" class="text-lg font-medium text-ink">{{ $judul }}</h2>
-        <div class="mt-3 text-[15px] leading-relaxed text-ink-2">{{ $slot }}</div>
+        @if(trim($slot) !== '')
+            <div class="mt-3 text-[15px] leading-relaxed text-ink-2">{{ $slot }}</div>
+        @endif
         <div class="mt-6 flex justify-end gap-3">
-            <x-button varian="secondary" @click="buka = false">Batal</x-button>
+            {{-- Labelnya dapat diganti: pada dialog yang menegaskan pembatalan,
+                 tombol "Batal" justru terbaca sama dengan tindakan di sebelahnya. --}}
+            <x-button varian="secondary" @click="buka = false">{{ $batal }}</x-button>
             {{ $aksi ?? '' }}
         </div>
     </div>

@@ -272,6 +272,25 @@ class HalamanAplikasiTest extends TestCase
         }
     }
 
+    public function test_batal_penghasilan_menanyakan_dulu(): void
+    {
+        foreach (['/penghasilan/create', '/penghasilan/'.$this->penghasilanTerbuka().'/edit'] as $uri) {
+            $halaman = $this->get($uri)->assertOk()->getContent();
+
+            $this->assertStringContainsString("buka-dialog', 'batal-penghasilan'", $halaman, $uri);
+            $this->assertStringContainsString('id="batal-penghasilan"', $halaman, $uri);
+            $this->assertStringContainsString('Batalkan pengisian?', $halaman, $uri);
+
+            // Tombol kiri dialog tidak boleh berbunyi "Batal": pada dialog ini
+            // artinya justru tetap di formulir, berlawanan dengan tombol kanannya.
+            $this->assertStringContainsString('Lanjut Mengisi', $halaman, $uri);
+
+            // Dulu tombol penegasannya ikut terbaca "Simpan", karena @include
+            // di dalam _form mewarisi $tombol milik formulir.
+            $this->assertStringContainsString('Ya, Batalkan', $halaman, $uri);
+        }
+    }
+
     public function test_pesan_validasi_berbahasa_indonesia(): void
     {
         $harta = $this->hartaTerbuka();
