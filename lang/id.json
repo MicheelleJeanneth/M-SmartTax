@@ -1,0 +1,11 @@
+{
+    "Unauthorized": "Tidak Memiliki Akses",
+    "Payment Required": "Pembayaran Diperlukan",
+    "Forbidden": "Akses Ditolak",
+    "Not Found": "Halaman Tidak Ditemukan",
+    "Method Not Allowed": "Metode Tidak Diizinkan",
+    "Page Expired": "Halaman Kedaluwarsa",
+    "Too Many Requests": "Terlalu Banyak Permintaan",
+    "Server Error": "Terjadi Kesalahan pada Server",
+    "Service Unavailable": "Layanan Sedang Tidak Tersedia"
+}

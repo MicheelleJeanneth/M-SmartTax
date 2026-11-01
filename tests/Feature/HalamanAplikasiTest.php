@@ -272,6 +272,35 @@ class HalamanAplikasiTest extends TestCase
         }
     }
 
+    public function test_pesan_validasi_berbahasa_indonesia(): void
+    {
+        $harta = $this->hartaTerbuka();
+        $kategori = $harta->kodeHarta->kategori;
+
+        // Tahun melewati tahun berjalan: pesannya disusun pengendalinya sendiri
+        // supaya menyebut "Tahun perolehan", bukan "Tahun" saja.
+        $this->from("/harta/{$kategori}/tambah")
+            ->post("/harta/{$kategori}", [
+                'kode' => $harta->kodeHarta->kode,
+                'nilai' => '5.000.000',
+                'tahun' => (string) (now()->year + 1),
+            ])
+            ->assertSessionHasErrors(['tahun' => 'Tahun perolehan tidak boleh melebihi tahun berjalan.']);
+
+        // Kolom tanpa pesan khusus jatuh ke lang/id/validation.php, bukan ke
+        // kalimat bawaan Laravel yang berbahasa Inggris.
+        $this->from("/harta/{$kategori}/tambah")
+            ->post("/harta/{$kategori}", [
+                'kode' => $harta->kodeHarta->kode,
+                'nilai' => '5.000.000',
+                'tahun' => '2026',
+                'keterangan' => str_repeat('a', 300),
+            ])
+            ->assertSessionHasErrors(['keterangan' => 'Keterangan tidak boleh lebih dari 255 karakter.']);
+
+        $this->assertSame('id', app()->getLocale());
+    }
+
     public function test_simpan_harta_melewati_dialog_penegasan(): void
     {
         // Seluruh kategori diperiksa, karena susunan kolom nilainya berbeda-beda

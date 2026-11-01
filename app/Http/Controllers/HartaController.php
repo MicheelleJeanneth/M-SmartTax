@@ -216,8 +216,14 @@ class HartaController extends Controller
             'nilai.min' => 'Nilai harus lebih besar dari nol.',
             'tahun.required' => 'Tahun perolehan wajib diisi.',
             'tahun.digits' => 'Tahun perolehan ditulis empat angka.',
+            // Kolom ini bernama 'tahun', jadi pesan bawaan menyebutnya "Tahun"
+            // saja. Di formulir labelnya "Tahun Perolehan", sejajar dengan
+            // pesan di atasnya.
+            'tahun.min' => 'Tahun perolehan tidak boleh sebelum 1900.',
+            'tahun.max' => 'Tahun perolehan tidak boleh melebihi tahun berjalan.',
             'tahun_pelepasan.gte' => 'Tahun pelepasan tidak boleh sebelum tahun perolehan.',
             'tahun_pelepasan.digits' => 'Tahun pelepasan ditulis empat angka.',
+            'tahun_pelepasan.max' => 'Tahun pelepasan tidak boleh melebihi tahun berjalan.',
             ...$pesanKhas,
         ]);
 
