@@ -186,6 +186,99 @@ class KunciPeriodeBerdrafTest extends TestCase
         $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak')->all());
     }
 
+    /**
+     * Tahun pelunasan dan tahun pelepasan bergerak ke depan: mengisinya tidak
+     * mengubah draf tahun mana pun yang sudah tersusun, karena lampiran
+     * tahun-tahun itu tetap memuat barisnya. Dulu keduanya ikut terkunci,
+     * sehingga utang yang sudah lunas dan harta yang sudah dijual tidak dapat
+     * dicatat sama sekali tanpa membatalkan seluruh draf tahunannya.
+     */
+    public function test_tahun_pelunasan_utang_terkunci_dapat_diisi_ke_depan(): void
+    {
+        $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci && $u->tahun_pelunasan === null);
+        $tersusun = (int) DrafTahunan::tahunTersusun((int) $utang->id_profil)->max();
+        $beku = DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak');
+
+        $this->put("/utang/{$utang->id}", [
+            'saldo' => '0',
+            'tahun_pelunasan' => (string) ($tersusun + 1),
+        ])->assertRedirect('/utang')->assertSessionHasNoErrors();
+
+        $this->assertSame($tersusun + 1, (int) $utang->fresh()->tahun_pelunasan);
+
+        // Lampiran tahun yang sudah tersusun tidak bergeser sedikit pun.
+        $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak')->all());
+
+        // Barisnya tetap terkunci, karena draf lama masih memuatnya.
+        $this->assertTrue($utang->fresh()->terkunci);
+    }
+
+    public function test_tahun_pelunasan_yang_menarik_utang_keluar_draf_ditolak(): void
+    {
+        $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci && $u->tahun_pelunasan === null);
+        $tersusun = (int) DrafTahunan::tahunTersusun((int) $utang->id_profil)->max();
+
+        // Tahun pelunasan yang sama dengan tahun berdraf mengeluarkan utang ini
+        // dari lampiran tahun tersebut — persis yang tidak boleh terjadi.
+        $this->from("/utang/{$utang->id}/edit")
+            ->put("/utang/{$utang->id}", [
+                'saldo' => '0',
+                'tahun_pelunasan' => (string) $tersusun,
+            ])
+            ->assertRedirect("/utang/{$utang->id}/edit")
+            ->assertSessionHasErrors('tahun_pelunasan');
+
+        $this->assertNull($utang->fresh()->tahun_pelunasan);
+    }
+
+    public function test_tahun_pelepasan_harta_terkunci_dapat_diisi_ke_depan(): void
+    {
+        $harta = Harta::with('kodeHarta')->get()
+            ->first(fn (Harta $h): bool => $h->terkunci && $h->tahun_pelepasan === null);
+        $kategori = $harta->kodeHarta->kategori;
+        $tersusun = (int) DrafTahunan::tahunTersusun((int) $harta->id_profil)->max();
+        $beku = DrafTahunan::orderBy('tahun_pajak')->pluck('total_harta', 'tahun_pajak');
+
+        $this->put("/harta/{$kategori}/{$harta->id}", [
+            'nilai' => angka($harta->nilai),
+            'tahun_pelepasan' => (string) ($tersusun + 1),
+        ])->assertRedirect("/harta/{$kategori}")->assertSessionHasNoErrors();
+
+        $this->assertSame($tersusun + 1, (int) $harta->fresh()->tahun_pelepasan);
+        $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_harta', 'tahun_pajak')->all());
+
+        // Dikosongkan lagi juga boleh: rentangnya memanjang ke depan, bukan mundur.
+        $this->put("/harta/{$kategori}/{$harta->id}", [
+            'nilai' => angka($harta->nilai),
+            'tahun_pelepasan' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull($harta->fresh()->tahun_pelepasan);
+    }
+
+    public function test_tahun_pelepasan_yang_menarik_harta_keluar_draf_ditolak(): void
+    {
+        $harta = Harta::with('kodeHarta')->get()
+            ->first(fn (Harta $h): bool => $h->terkunci && $h->tahun_pelepasan === null);
+        $kategori = $harta->kodeHarta->kategori;
+        $tersusun = (int) DrafTahunan::tahunTersusun((int) $harta->id_profil)->max();
+
+        $this->from("/harta/{$kategori}/{$harta->id}/ubah")
+            ->put("/harta/{$kategori}/{$harta->id}", [
+                'nilai' => angka($harta->nilai),
+                'tahun_pelepasan' => (string) $tersusun,
+            ])
+            ->assertSessionHasErrors('tahun_pelepasan');
+
+        $this->assertNull($harta->fresh()->tahun_pelepasan);
+
+        // Tahun sebelum perolehannya juga tetap ditolak.
+        $this->put("/harta/{$kategori}/{$harta->id}", [
+            'nilai' => angka($harta->nilai),
+            'tahun_pelepasan' => (string) ((int) $harta->tahun_perolehan - 1),
+        ])->assertSessionHasErrors('tahun_pelepasan');
+    }
+
     public function test_baris_terkunci_tetap_tidak_dapat_dihapus(): void
     {
         $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci);

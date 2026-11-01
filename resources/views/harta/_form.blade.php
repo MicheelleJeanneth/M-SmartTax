@@ -82,6 +82,10 @@
     {{-- Tombol berada di dalam kartu dan rata kiri, sama seperti formulir Penghasilan dan Utang. --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">{{ $tombol }}</x-button>
-        <x-button varian="secondary" :href="route('harta.index', $kategori)" class="w-full sm:w-auto sm:min-w-39">Batal</x-button>
+        {{-- Tetap berupa tautan, bukan tombol biasa: bila Alpine gagal dimuat,
+             Batal masih membawa pengguna kembali ke daftar. x-data kosong
+             karena Alpine hanya memproses @click bila ada cakupan di atasnya. --}}
+        <x-button varian="secondary" :href="route('harta.index', $kategori)" class="w-full sm:w-auto sm:min-w-39"
+            x-data @click.prevent="$dispatch('buka-dialog', 'batal-harta')">Batal</x-button>
     </div>
 </x-card>

@@ -21,6 +21,17 @@
 
     {{-- Baris terkunci hanya dapat mengubah nilainya, jadi ringkasannya pun
          hanya memuat kolom yang benar-benar dapat diisi. --}}
+    {{-- Dialognya di tingkat halaman, bukan di dalam _form: @include mewarisi
+         cakupan pemanggilnya, dan di sana $tombol sudah dipakai formulir. --}}
+    @include('partials.dialog-batal', [
+        'id' => 'batal-harta',
+        'href' => route('harta.index', $kategori),
+        'judul' => 'Batalkan pengisian?',
+        'pesan' => '',
+        'tombol' => 'Ya, Batalkan',
+        'lanjut' => 'Lanjut Mengisi',
+    ])
+
     @include('partials.dialog-simpan', [
         'id' => 'simpan-harta',
         'form' => 'formulir-harta',
@@ -33,6 +44,8 @@
             $info['label_nilai'] => 'nilai',
             $info['label_nilai_kini'] => $info['label_nilai_kini'] ? 'nilai_kini' : null,
             $info['label_tahun'] => $item['terkunci'] ? null : 'tahun',
+            // Pada baris terkunci kolom ini ikut terbuka, jadi ikut diringkas.
+            'Tahun Pelepasan' => 'tahun_pelepasan',
         ]),
         'tombol' => $item['terkunci'] ? 'Perbarui Nilai' : 'Simpan',
     ])

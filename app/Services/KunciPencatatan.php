@@ -138,6 +138,36 @@ class KunciPencatatan
     }
 
     /**
+     * Tahun berdraf pertama yang ikut berubah bila ujung masa satu baris
+     * digeser dari $lama ke $baru, atau null bila tidak ada yang tersentuh.
+     *
+     * Harta dan utang berlaku pada tahun [mulai, berakhir). Menggeser ujung
+     * belakangnya hanya memengaruhi tahun di antara nilai lama dan nilai
+     * barunya; tahun sebelum keduanya tetap memuat baris itu seperti semula.
+     * Karena itu mengisi tahun pelepasan atau pelunasan ke depan aman, dan
+     * yang perlu ditolak hanya geseran yang menarik baris keluar dari draf
+     * yang sudah tersusun.
+     *
+     * @param  int|null  $lama  Tahun pelepasan atau pelunasan yang tersimpan.
+     * @param  int|null  $baru  Tahun yang baru diisi; null berarti tak berujung.
+     */
+    public function geseranTahunTerkunci(?int $lama, ?int $baru): ?int
+    {
+        if ($lama === $baru) {
+            return null;
+        }
+
+        // Salah satunya null berarti rentangnya memanjang sampai tak berujung,
+        // jadi yang diperiksa seluruh tahun mulai dari ujung yang terisi.
+        $takBerujung = $lama === null || $baru === null;
+
+        return $this->tahunTerkunci(
+            $takBerujung ? ($lama ?? $baru) : min($lama, $baru),
+            $takBerujung ? null : max($lama, $baru),
+        );
+    }
+
+    /**
      * Pesan untuk periode tahunan yang sudah berdraf.
      */
     public function pesanTahun(int $tahun): string

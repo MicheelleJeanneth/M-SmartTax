@@ -291,6 +291,30 @@ class HalamanAplikasiTest extends TestCase
         }
     }
 
+    public function test_batal_harta_menanyakan_dulu(): void
+    {
+        $uri = array_map(
+            fn (string $kategori): string => "/harta/{$kategori}/tambah",
+            array_keys(MockData::kategoriHarta()),
+        );
+
+        $harta = $this->hartaTerbuka();
+        $uri[] = "/harta/{$harta->kodeHarta->kategori}/{$harta->id}/ubah";
+
+        // Baris terkunci memakai _form-nilai, yang punya tombol Batal sendiri.
+        $uri[] = '/harta/kas/2/ubah';
+
+        foreach ($uri as $halaman) {
+            $isi = $this->get($halaman)->assertOk()->getContent();
+
+            $this->assertStringContainsString("buka-dialog', 'batal-harta'", $isi, $halaman);
+            $this->assertStringContainsString('id="batal-harta"', $isi, $halaman);
+            $this->assertStringContainsString('Batalkan pengisian?', $isi, $halaman);
+            $this->assertStringContainsString('Lanjut Mengisi', $isi, $halaman);
+            $this->assertStringContainsString('Ya, Batalkan', $isi, $halaman);
+        }
+    }
+
     public function test_pesan_validasi_berbahasa_indonesia(): void
     {
         $harta = $this->hartaTerbuka();

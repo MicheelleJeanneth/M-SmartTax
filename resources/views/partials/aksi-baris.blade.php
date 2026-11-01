@@ -14,7 +14,7 @@
     @endif
     @if($terkunci)
         @if($ubahNilai)
-            <a href="{{ $ubah }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Perbarui nilai" title="Perbarui nilai">
+            <a href="{{ $ubah }}" class="rounded-field p-2 text-ink-3 hover:bg-page hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Ubah" title="Ubah">
                 <x-icon name="pencil" :size="18" />
             </a>
         @endif

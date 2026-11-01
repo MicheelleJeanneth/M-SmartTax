@@ -79,7 +79,7 @@ class UtangController extends Controller
         // dan tahunnya terkunci karena menentukan draf tahun mana yang
         // memuatnya.
         if ($utang->terkunci) {
-            $utang->update($this->sahkanNilai($request));
+            $utang->update($this->sahkanNilai($request, $utang));
 
             return redirect()->route('utang.index')->with('sukses', 'Saldo utang diperbarui.');
         }
@@ -108,15 +108,22 @@ class UtangController extends Controller
      * @throws ValidationException
      */
     /**
-     * Memeriksa isian untuk baris terkunci, yang hanya boleh mengubah saldo
-     * dan cicilannya.
+     * Memeriksa isian untuk baris terkunci, yang hanya boleh mengubah saldo,
+     * cicilan, dan tahun pelunasannya.
      *
      * Laporan tahun yang sudah tersusun membaca salinan bekunya sendiri,
      * sehingga memperbarui saldo sekarang tidak mengubah angka di laporan itu.
      *
+     * Tahun pelunasan ikut dibuka karena utang yang sudah lunas harus dapat
+     * dicatat pelunasannya. Mengisinya ke depan tidak menyentuh satu pun draf
+     * yang sudah tersusun — lampiran tahun-tahun itu tetap memuat utang ini.
+     * Yang ditolak hanya tahun yang justru menariknya keluar dari draf lama.
+     *
      * @return array<string, mixed>
+     *
+     * @throws ValidationException
      */
-    private function sahkanNilai(Request $request): array
+    private function sahkanNilai(Request $request, Utang $utang): array
     {
         $request->merge([
             'saldo' => $this->bilangan($request->input('saldo')),
@@ -126,13 +133,30 @@ class UtangController extends Controller
         $sah = $request->validate([
             'saldo' => ['required', 'integer', 'min:0'],
             'cicilan_bulanan' => ['nullable', 'integer', 'min:0'],
+            // Tahun peminjamannya tidak ikut dikirim karena terkunci, jadi
+            // batas bawahnya dibaca dari baris yang sedang diubah.
+            'tahun_pelunasan' => ['nullable', 'digits:4', 'integer', 'min:'.(int) $utang->tahun_peminjaman],
         ], [
             'saldo.required' => 'Saldo wajib diisi.',
+            'tahun_pelunasan.digits' => 'Tahun pelunasan ditulis empat angka.',
+            'tahun_pelunasan.min' => 'Tahun pelunasan tidak boleh sebelum tahun peminjaman.',
         ]);
+
+        $pelunasan = isset($sah['tahun_pelunasan']) ? (int) $sah['tahun_pelunasan'] : null;
+
+        $geser = $this->kunci->geseranTahunTerkunci(
+            $utang->tahun_pelunasan === null ? null : (int) $utang->tahun_pelunasan,
+            $pelunasan,
+        );
+
+        if ($geser !== null) {
+            throw ValidationException::withMessages(['tahun_pelunasan' => $this->kunci->pesanTahun($geser)]);
+        }
 
         return [
             'saldo' => $sah['saldo'],
             'cicilan_bulanan' => $sah['cicilan_bulanan'] ?? null,
+            'tahun_pelunasan' => $pelunasan,
         ];
     }
 

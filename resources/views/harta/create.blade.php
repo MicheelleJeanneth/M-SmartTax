@@ -15,6 +15,17 @@
 
     {{-- Yang diringkas hanya kode, nilai, dan tahun: ketiganya yang menentukan
          lampiran draf tahun mana yang memuat baris ini. --}}
+    {{-- Dialognya di tingkat halaman, bukan di dalam _form: @include mewarisi
+         cakupan pemanggilnya, dan di sana $tombol sudah dipakai formulir. --}}
+    @include('partials.dialog-batal', [
+        'id' => 'batal-harta',
+        'href' => route('harta.index', $kategori),
+        'judul' => 'Batalkan pengisian?',
+        'pesan' => '',
+        'tombol' => 'Ya, Batalkan',
+        'lanjut' => 'Lanjut Mengisi',
+    ])
+
     @include('partials.dialog-simpan', [
         'id' => 'simpan-harta',
         'form' => 'formulir-harta',

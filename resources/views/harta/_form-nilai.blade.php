@@ -1,10 +1,12 @@
 {{--
     Formulir untuk baris harta yang sudah masuk draf pajak tahunan.
 
-    Hanya kolom nilai yang dapat diubah. Kode, tahun, dan rinciannya ditampilkan
-    apa adanya karena itulah yang menentukan draf tahun mana yang memuat baris
-    ini; mengubahnya berarti memindahkan baris keluar atau masuk periode yang
-    sudah berdraf. Susunannya mengikuti halaman detail agar tidak terasa pindah
+    Kolom nilai dapat diubah, begitu juga tahun pelepasan, supaya harta yang
+    sudah dilepas dapat dicatat; mengisinya hanya berpengaruh ke tahun-tahun
+    sesudahnya. Kode, tahun perolehan, dan rinciannya ditampilkan apa adanya
+    karena itulah yang menentukan draf tahun mana yang memuat baris ini;
+    mengubahnya berarti memindahkan baris keluar atau masuk periode yang sudah
+    berdraf. Susunannya mengikuti halaman detail agar tidak terasa pindah
     tempat.
 --}}
 @php
@@ -14,8 +16,8 @@
 @endphp
 <x-card>
     <x-info class="mb-6">
-        Data ini sudah masuk draf pajak tahunan, sehingga kode, tahun, dan rinciannya tidak dapat diubah.
-        Yang masih dapat diperbarui hanya nilainya, karena laporan tahun yang sudah tersusun memakai salinan tersendiri.
+        Data ini sudah masuk draf pajak tahunan, sehingga kode, tahun perolehan, dan rinciannya tidak dapat diubah.
+        Nilai dan tahun pelepasannya masih dapat diisi, karena laporan tahun yang sudah tersusun memakai salinan tersendiri.
     </x-info>
 
     @if($seksi)
@@ -47,7 +49,11 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-kolom-baca :label="$info['label_tahun']">{{ $item['tahun'] }}</x-kolom-baca>
-        <x-kolom-baca label="Tahun Pelepasan">{{ $item['tahun_pelepasan'] ?? '—' }}</x-kolom-baca>
+        {{-- Satu-satunya kolom periode yang terbuka di sini. --}}
+        <x-input label="Tahun Pelepasan" name="tahun_pelepasan" inputmode="numeric" maxlength="4"
+            pattern="\d{4}" data-digit placeholder="Contoh: 2029"
+            :value="$item['tahun_pelepasan'] ?? ''"
+            bantuan="Isi tahun harta ini dilepas. Harta tidak lagi masuk lampiran draf tahun tersebut dan sesudahnya." />
     </div>
 
     @if($seksi)
@@ -60,6 +66,10 @@
 
     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">{{ $tombol }}</x-button>
-        <x-button varian="secondary" :href="route('harta.index', $kategori)" class="w-full sm:w-auto sm:min-w-39">Batal</x-button>
+        {{-- Tetap berupa tautan, bukan tombol biasa: bila Alpine gagal dimuat,
+             Batal masih membawa pengguna kembali ke daftar. x-data kosong
+             karena Alpine hanya memproses @click bila ada cakupan di atasnya. --}}
+        <x-button varian="secondary" :href="route('harta.index', $kategori)" class="w-full sm:w-auto sm:min-w-39"
+            x-data @click.prevent="$dispatch('buka-dialog', 'batal-harta')">Batal</x-button>
     </div>
 </x-card>

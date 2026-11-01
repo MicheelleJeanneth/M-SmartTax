@@ -2,14 +2,16 @@
     Formulir untuk baris utang yang sudah masuk draf pajak tahunan.
 
     Saldo utang menyusut setiap tahun, jadi saldo dan cicilannya tetap dapat
-    diperbarui. Kode, kreditur, dan tahunnya ditampilkan apa adanya karena
+    diperbarui. Tahun pelunasan ikut terbuka supaya utang yang sudah lunas
+    dapat dicatat; mengisinya hanya berpengaruh ke tahun-tahun sesudahnya.
+    Kode, kreditur, dan tahun peminjamannya ditampilkan apa adanya karena
     itulah yang menentukan draf tahun mana yang memuat baris ini. Susunannya
     mengikuti halaman detail agar tidak terasa pindah tempat.
 --}}
 <x-card>
     <x-info class="mb-6">
-        Utang ini sudah masuk draf pajak tahunan, sehingga kode, kreditur, dan tahunnya tidak dapat diubah.
-        Saldo dan cicilannya masih dapat diperbarui, karena laporan tahun yang sudah tersusun memakai salinan tersendiri.
+        Utang ini sudah masuk draf pajak tahunan, sehingga kode, kreditur, dan tahun peminjamannya tidak dapat diubah.
+        Saldo, cicilan, dan tahun pelunasannya masih dapat diisi, karena laporan tahun yang sudah tersusun memakai salinan tersendiri.
     </x-info>
 
     <h2 class="mb-4 text-base font-medium text-subjudul">Data Utang</h2>
@@ -30,7 +32,11 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
         <x-kolom-baca label="Tahun Peminjaman">{{ $utang['tahun'] }}</x-kolom-baca>
-        <x-kolom-baca label="Tahun Pelunasan">{{ $utang['tahun_pelunasan'] ?? '—' }}</x-kolom-baca>
+        {{-- Satu-satunya kolom periode yang terbuka di sini. --}}
+        <x-input label="Tahun Pelunasan" name="tahun_pelunasan" inputmode="numeric" maxlength="4"
+            pattern="\d{4}" data-digit placeholder="Kosongkan bila belum lunas"
+            :value="$utang['tahun_pelunasan'] ?? ''"
+            bantuan="Isi tahun utang ini lunas. Utang tidak lagi masuk lampiran draf tahun tersebut dan sesudahnya." />
     </div>
 
     <div class="mb-5 border-t border-line-soft"></div>

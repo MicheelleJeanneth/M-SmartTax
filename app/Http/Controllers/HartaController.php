@@ -111,7 +111,7 @@ class HartaController extends Controller
         // Kode, tahun, dan rinciannya tetap terkunci karena itulah yang
         // menentukan draf tahun mana yang memuat baris ini.
         if ($harta->terkunci) {
-            $harta->update($this->sahkanNilai($request));
+            $harta->update($this->sahkanNilai($request, $harta));
 
             return redirect()->route('harta.index', $kategori)->with('sukses', 'Nilai harta diperbarui.');
         }
@@ -138,14 +138,22 @@ class HartaController extends Controller
     }
 
     /**
-     * Memeriksa isian untuk baris terkunci, yang hanya boleh mengubah nilai.
+     * Memeriksa isian untuk baris terkunci, yang hanya boleh mengubah nilai
+     * dan tahun pelepasannya.
      *
      * Laporan tahun yang sudah tersusun membaca salinan bekunya sendiri,
      * sehingga memperbarui nilai sekarang tidak mengubah angka di laporan itu.
      *
+     * Tahun pelepasan ikut dibuka karena harta yang sudah dijual harus dapat
+     * dicatat penjualannya. Mengisinya ke depan tidak menyentuh satu pun draf
+     * yang sudah tersusun — lampiran tahun-tahun itu tetap memuat harta ini.
+     * Yang ditolak hanya tahun yang justru menariknya keluar dari draf lama.
+     *
      * @return array<string, mixed>
+     *
+     * @throws ValidationException
      */
-    private function sahkanNilai(Request $request): array
+    private function sahkanNilai(Request $request, Harta $harta): array
     {
         $request->merge([
             'nilai' => $this->bilangan($request->input('nilai')),
@@ -155,14 +163,31 @@ class HartaController extends Controller
         $sah = $request->validate([
             'nilai' => ['required', 'integer', 'min:1'],
             'nilai_kini' => ['nullable', 'integer', 'min:0'],
+            // Tahun perolehannya tidak ikut dikirim karena terkunci, jadi
+            // batas bawahnya dibaca dari baris yang sedang diubah.
+            'tahun_pelepasan' => ['nullable', 'digits:4', 'integer', 'min:'.(int) $harta->tahun_perolehan],
         ], [
             'nilai.required' => 'Nilai wajib diisi.',
             'nilai.min' => 'Nilai harus lebih besar dari nol.',
+            'tahun_pelepasan.digits' => 'Tahun pelepasan ditulis empat angka.',
+            'tahun_pelepasan.min' => 'Tahun pelepasan tidak boleh sebelum tahun perolehan.',
         ]);
+
+        $pelepasan = isset($sah['tahun_pelepasan']) ? (int) $sah['tahun_pelepasan'] : null;
+
+        $geser = $this->kunci->geseranTahunTerkunci(
+            $harta->tahun_pelepasan === null ? null : (int) $harta->tahun_pelepasan,
+            $pelepasan,
+        );
+
+        if ($geser !== null) {
+            throw ValidationException::withMessages(['tahun_pelepasan' => $this->kunci->pesanTahun($geser)]);
+        }
 
         return [
             'nilai' => $sah['nilai'],
             'nilai_saat_ini' => $sah['nilai_kini'] ?? null,
+            'tahun_pelepasan' => $pelepasan,
         ];
     }
 
