@@ -4,7 +4,8 @@
     <x-dialog id="hapus-3" judul="…"> … <x-slot:aksi>…</x-slot:aksi></x-dialog>
 --}}
 @props(['id', 'judul'])
-<div x-data="{ buka: false }"
+{{-- id dipasang pada akarnya supaya app.js dapat mengisi ringkasan di dalamnya sebelum dibuka. --}}
+<div id="{{ $id }}" x-data="{ buka: false }"
      x-on:buka-dialog.window="if ($event.detail === '{{ $id }}') buka = true"
      x-on:keydown.escape.window="buka = false"
      x-show="buka" x-cloak

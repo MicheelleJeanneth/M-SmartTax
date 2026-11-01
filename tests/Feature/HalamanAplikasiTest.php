@@ -242,6 +242,29 @@ class HalamanAplikasiTest extends TestCase
         );
     }
 
+    public function test_simpan_penghasilan_melewati_dialog_penegasan(): void
+    {
+        $halaman = $this->get('/penghasilan/create')->assertOk()->getContent();
+
+        // Formulirnya menunjuk dialog, dan dialog itu benar-benar ada di halaman.
+        $this->assertStringContainsString('data-konfirmasi="simpan-penghasilan"', $halaman);
+        $this->assertStringContainsString('id="simpan-penghasilan"', $halaman);
+        $this->assertStringContainsString('Simpan data penghasilan?', $halaman);
+
+        // Tombol penegasannya mengirim formulir yang sama, bukan formulir lain.
+        $this->assertStringContainsString('id="formulir-penghasilan"', $halaman);
+        $this->assertStringContainsString('data-kirim="formulir-penghasilan"', $halaman);
+
+        // Ketiga kolomnya diringkas di dalam dialog sebelum pengguna menegaskan.
+        foreach (['tanggal', 'nominal', 'keterangan'] as $kolom) {
+            $this->assertStringContainsString('data-ringkas="'.$kolom.'"', $halaman);
+        }
+
+        // Tombol simpan tetap type=submit, supaya pemeriksaan kolom wajib bawaan
+        // browser berjalan lebih dulu dan dialognya tidak membuka formulir setengah isi.
+        $this->assertStringContainsString('type="submit"', $halaman);
+    }
+
     public function test_peringatan_dini_memakai_kalimat_dari_server(): void
     {
         $kunci = app(KunciPencatatan::class);

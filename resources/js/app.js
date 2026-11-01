@@ -215,6 +215,89 @@ document.addEventListener('submit', (peristiwa) => {
 }, true);
 
 /*
+ | Formulir bertanda data-konfirmasi tidak langsung terkirim: tombol simpannya
+ | membuka dialog ringkasan dulu, sejajar dengan dialog hapus. Isian yang
+ | sudah tersimpan ikut terhitung pada draf masa pajaknya dan tidak dapat
+ | diubah lagi setelah drafnya disusun, jadi salah angka lebih mahal daripada
+ | satu klik tambahan.
+ |
+ | Pemeriksaan bawaan browser tetap berjalan lebih dulu, karena peristiwa
+ | submit baru menyala setelah seluruh kolom wajib terisi sah. Koreksi tanggal
+ | di atas juga sudah selesai, karena pendengarnya dipasang pada tahap capture.
+ */
+const nilaiTerbaca = (kolom) => {
+    if (kolom instanceof HTMLSelectElement) {
+        return kolom.selectedOptions[0]?.textContent.trim() || '—';
+    }
+
+    if (kolom.value === '') {
+        return '—';
+    }
+
+    if (kolom.dataset?.uang !== undefined) {
+        // Pemisah ribuannya sudah dibubuhkan sambil mengetik; "Rp" awalan tetap di luar kotak.
+        return `Rp${kolom.value}`;
+    }
+
+    if (kolom.type === 'date') {
+        return new Date(`${kolom.value}T00:00:00`).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
+    }
+
+    return kolom.value;
+};
+
+const ringkasFormulir = (formulir, dialog) => {
+    dialog.querySelectorAll('[data-ringkas]').forEach((baris) => {
+        const kolom = formulir.elements[baris.dataset.ringkas];
+
+        baris.textContent = kolom ? nilaiTerbaca(kolom) : '—';
+
+        // Nilai yang panjang terpotong elipsis, jadi teks utuhnya jadi tooltip.
+        baris.title = baris.textContent;
+    });
+};
+
+document.querySelectorAll('form[data-konfirmasi]').forEach((formulir) => {
+    formulir.addEventListener('submit', (peristiwa) => {
+        if (formulir.dataset.terkonfirmasi !== undefined) {
+            return;
+        }
+
+        const dialog = document.getElementById(formulir.dataset.konfirmasi);
+
+        // Dialognya tidak ditemukan: formulirnya dibiarkan terkirim seperti
+        // biasa, karena tombol simpan yang diam lebih buruk daripada simpan
+        // tanpa penegasan.
+        if (!dialog) {
+            return;
+        }
+
+        peristiwa.preventDefault();
+        ringkasFormulir(formulir, dialog);
+        window.dispatchEvent(new CustomEvent('buka-dialog', { detail: formulir.dataset.konfirmasi }));
+    });
+});
+
+// Tombol penegasan di dalam dialog meneruskan pengiriman formulirnya.
+document.addEventListener('click', (peristiwa) => {
+    const tombol = peristiwa.target.closest('[data-kirim]');
+    const formulir = tombol ? document.getElementById(tombol.dataset.kirim) : null;
+
+    if (!formulir) {
+        return;
+    }
+
+    // Dimatikan supaya klik kedua pada jaringan lambat tidak mengirim dua kali.
+    tombol.disabled = true;
+    formulir.dataset.terkonfirmasi = '';
+    formulir.requestSubmit();
+});
+
+/*
  | Kolom bertanda data-cari-langsung mengirim formulirnya sendiri sesaat setelah
  | pengetikan berhenti, sehingga hasilnya muncul tanpa menekan Enter.
  |
