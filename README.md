@@ -50,7 +50,7 @@ tetap menampilkan posisi pada tahun tersebut walaupun datanya berubah kemudian.
 
 **Analisis**
 - Dashboard — grafik penghasilan bulanan, komposisi harta, pertumbuhan dan konsistensi kekayaan
-- Simulasi Kelayakan Pembelian Aset — menimbang rencana pembelian terhadap penghasilan dan kewajiban berjalan
+- Simulasi Kelayakan Pembelian Aset — menimbang angsuran rencana pembelian terhadap penghasilan, dengan total utang setelah pembelian sebagai pertimbangan pendamping
 
 **Pendukung**
 - Panduan Pengguna di dalam aplikasi
