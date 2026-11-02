@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\KodeUtang;
 use App\Models\Profil;
 use App\Models\Utang;
+use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
 use App\Support\PenggunaSaatIni;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,10 @@ use Illuminate\View\View;
 
 class UtangController extends Controller
 {
-    public function __construct(private readonly KunciPencatatan $kunci) {}
+    public function __construct(
+        private readonly KunciPencatatan $kunci,
+        private readonly FilterTahun $filterTahun,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -74,9 +78,10 @@ class UtangController extends Controller
     {
         $utang = $this->cari($id);
 
-        // Hanya saldo yang dapat diubah, terkunci draf tahunan maupun tidak.
-        // Jati diri dan periodenya ditetapkan sekali saat utang dicatat.
-        $utang->update($this->sahkanNilai($request));
+        // Saldo dan tahun pelunasan yang dapat diubah, terkunci draf tahunan
+        // maupun tidak. Jati diri dan tahun peminjamannya ditetapkan sekali
+        // saat utang dicatat.
+        $utang->update($this->sahkanNilai($request, $utang));
 
         return redirect()->route('utang.index')->with('sukses', 'Saldo utang diperbarui.');
     }
@@ -100,66 +105,96 @@ class UtangController extends Controller
      * @throws ValidationException
      */
     /**
-     * Memeriksa isian pengubahan, yang hanya boleh mengganti saldo.
+     * Memeriksa isian pengubahan: saldo dan tahun pelunasan.
      *
-     * Jati diri dan periode utang ditetapkan sekali saat dicatat. Saldonya
-     * sendiri harus tetap dapat diperbarui, karena menyusut tiap tahun dan
-     * draf tahun berikutnya memakai angka yang terbaru. Laporan tahun yang
-     * sudah tersusun membaca salinan bekunya sendiri, sehingga pembaruan ini
-     * tidak pernah mengubah angka di laporan itu.
+     * Jati diri dan tahun peminjaman ditetapkan sekali saat utang dicatat.
+     * Saldo harus tetap dapat diperbarui karena menyusut tiap tahun dan draf
+     * tahun berikutnya memakai angka yang terbaru; tahun pelunasan karena
+     * jadwal lunas dapat bergeser. Laporan tahun yang sudah tersusun membaca
+     * salinan bekunya sendiri, sehingga pembaruan ini tidak pernah mengubah
+     * angka di laporan itu.
      *
      * @return array<string, mixed>
      *
      * @throws ValidationException
      */
-    private function sahkanNilai(Request $request): array
+    private function sahkanNilai(Request $request, Utang $utang): array
     {
         $request->merge(['saldo' => $this->bilangan($request->input('saldo'))]);
 
-        $sah = $request->validate(
-            ['saldo' => ['required', 'integer', 'min:0']],
-            ['saldo.required' => 'Saldo wajib diisi.'],
+        $berjalan = $this->filterTahun->tahunBerjalan();
+
+        $sah = $request->validate([
+            'saldo' => ['required', 'integer', 'min:0'],
+            // Batas yang sama dengan pencatatan: boleh tahun ini, tidak boleh
+            // mundur. Tahun peminjaman tidak perlu diperiksa lagi karena selalu
+            // tidak lebih besar dari tahun berjalan.
+            'tahun_pelunasan' => ['required', 'digits:4', 'integer', 'min:'.$berjalan],
+        ], [
+            'saldo.required' => 'Saldo wajib diisi.',
+            'tahun_pelunasan.required' => 'Tahun pelunasan wajib diisi.',
+            'tahun_pelunasan.digits' => 'Tahun pelunasan ditulis empat angka.',
+            'tahun_pelunasan.min' => 'Tahun pelunasan paling awal '.$berjalan.'.',
+        ]);
+
+        $pelunasan = (int) $sah['tahun_pelunasan'];
+
+        // Menggesernya ke depan aman: lampiran tahun yang sudah tersusun tetap
+        // memuat utang ini. Yang ditolak hanya geseran yang justru menariknya
+        // keluar dari draf yang sudah jadi.
+        $geser = $this->kunci->geseranTahunTerkunci(
+            $utang->tahun_pelunasan === null ? null : (int) $utang->tahun_pelunasan,
+            $pelunasan,
         );
 
-        return ['saldo' => $sah['saldo']];
+        if ($geser !== null) {
+            throw ValidationException::withMessages(['tahun_pelunasan' => $this->kunci->pesanTahun($geser)]);
+        }
+
+        return [
+            'saldo' => $sah['saldo'],
+            'tahun_pelunasan' => $pelunasan,
+        ];
     }
 
     private function sahkan(Request $request): array
     {
         $request->merge(['saldo' => $this->bilangan($request->input('saldo'))]);
 
+        // Utang selalu dicatat pada tahun berjalan: pencatatan mundur tidak
+        // dilayani, jadi tahun peminjamannya tidak diminta dari pengguna dan
+        // tidak dibaca dari kiriman.
+        $berjalan = $this->filterTahun->tahunBerjalan();
+
         $sah = $request->validate([
             'kode' => ['required', 'string'],
             'deskripsi' => ['required', 'string', 'max:255'],
             'keterangan' => ['nullable', 'string', 'max:255'],
             'saldo' => ['required', 'integer', 'min:0'],
-            'tahun_peminjaman' => ['required', 'digits:4', 'integer', 'min:1900', 'max:'.now()->year],
             // Wajib: jangka waktu utang ditetapkan sejak awal, dan tahun inilah
             // yang menentukan sampai draf tahun mana utang ini ikut terlampir.
-            'tahun_pelunasan' => ['required', 'digits:4', 'integer', 'gte:tahun_peminjaman'],
+            // Boleh sama dengan tahun berjalan, yaitu utang yang lunas tahun ini.
+            'tahun_pelunasan' => ['required', 'digits:4', 'integer', 'min:'.$berjalan],
             'nama_kreditur' => ['required', 'string', 'max:255'],
             'nik_kreditur' => ['nullable', 'digits:16'],
         ], [
             'kode.required' => 'Kode utang wajib dipilih.',
             'deskripsi.required' => 'Deskripsi wajib diisi.',
             'saldo.required' => 'Saldo wajib diisi.',
-            'tahun_peminjaman.required' => 'Tahun peminjaman wajib diisi.',
-            'tahun_peminjaman.digits' => 'Tahun peminjaman ditulis empat angka.',
             'tahun_pelunasan.required' => 'Tahun pelunasan wajib diisi.',
             'tahun_pelunasan.digits' => 'Tahun pelunasan ditulis empat angka.',
-            'tahun_pelunasan.gte' => 'Tahun pelunasan tidak boleh sebelum tahun peminjaman.',
+            'tahun_pelunasan.min' => 'Tahun pelunasan paling awal '.$berjalan.'.',
             'nama_kreditur.required' => 'Nama kreditur wajib diisi.',
             'nik_kreditur.digits' => 'NIK kreditur terdiri dari 16 angka.',
         ]);
 
-        $terkunci = $this->kunci->tahunTerkunci(
-            (int) $sah['tahun_peminjaman'],
-            (int) $sah['tahun_pelunasan'],
-        );
+        $terkunci = $this->kunci->tahunTerkunci($berjalan, (int) $sah['tahun_pelunasan']);
 
         // Utang yang berlaku pada tahun berdraf ikut lampiran draf tahunan itu.
+        // Pesannya menempel pada tahun pelunasan, satu-satunya kolom tahun
+        // yang masih dapat diperbaiki pengguna.
         if ($terkunci !== null) {
-            throw ValidationException::withMessages(['tahun_peminjaman' => $this->kunci->pesanTahun($terkunci)]);
+            throw ValidationException::withMessages(['tahun_pelunasan' => $this->kunci->pesanTahun($terkunci)]);
         }
 
         $kode = KodeUtang::where('kode', $sah['kode'])->firstOr(
@@ -171,7 +206,7 @@ class UtangController extends Controller
             'deskripsi' => $sah['deskripsi'],
             'keterangan' => $sah['keterangan'] ?? null,
             'saldo' => $sah['saldo'],
-            'tahun_peminjaman' => $sah['tahun_peminjaman'],
+            'tahun_peminjaman' => $berjalan,
             'tahun_pelunasan' => $sah['tahun_pelunasan'],
             'nama_kreditur' => $sah['nama_kreditur'],
             'nik_kreditur' => $sah['nik_kreditur'] ?? null,

@@ -11,6 +11,7 @@ use App\Models\Profil;
 use App\Models\Utang;
 use App\Services\FilterTahun;
 use App\Services\KunciPencatatan;
+use App\Services\PerhitunganPajak;
 use App\Support\MockData;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -211,10 +212,11 @@ class HalamanAplikasiTest extends TestCase
         $this->get('/penghasilan/'.$this->penghasilanTerkunci().'/edit')->assertForbidden();
 
         // Harta terkunci membuka formulir khusus nilai, bukan formulir penuh.
-        // Utang tidak punya dua formulir: yang terbuka hanya saldonya, terkunci
-        // maupun tidak. Aturan rincinya diuji di KunciPeriodeBerdrafTest.
+        // Utang tidak punya dua formulir: yang terbuka hanya saldo dan tahun
+        // pelunasannya, terkunci maupun tidak. Aturan rincinya diuji di
+        // KunciPeriodeBerdrafTest.
         $this->get('/harta/kas/2/ubah')->assertOk()->assertSee('sudah masuk draf pajak tahunan');
-        $this->get('/utang/1/edit')->assertOk()->assertSee('Hanya saldo yang dapat diubah');
+        $this->get('/utang/1/edit')->assertOk()->assertSee('Yang dapat diubah hanya saldo dan tahun pelunasan');
     }
 
     public function test_keterangan_penghasilan_wajib_diisi(): void
@@ -290,6 +292,101 @@ class HalamanAplikasiTest extends TestCase
             // di dalam _form mewarisi $tombol milik formulir.
             $this->assertStringContainsString('Ya, Batalkan', $halaman, $uri);
         }
+    }
+
+    public function test_simpan_dan_batal_profil_menanyakan_dulu(): void
+    {
+        $halaman = $this->get('/profil/ubah')->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-konfirmasi="simpan-profil"', $halaman);
+        $this->assertStringContainsString('Simpan perubahan profil?', $halaman);
+        $this->assertStringContainsString('data-kirim="form-profil"', $halaman);
+        $this->assertStringContainsString("buka-dialog', 'batal-profil'", $halaman);
+
+        foreach (['nama', 'nomor_handphone', 'email', 'alamat', 'kota'] as $kolom) {
+            $this->assertStringContainsString('data-ringkas="'.$kolom.'"', $halaman);
+        }
+    }
+
+    public function test_ubah_kata_sandi_menanyakan_dulu_tanpa_menampilkan_sandinya(): void
+    {
+        $halaman = $this->get('/profil/kata-sandi')->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-konfirmasi="simpan-kata-sandi"', $halaman);
+        $this->assertStringContainsString('Ubah kata sandi?', $halaman);
+        $this->assertStringContainsString('data-kirim="form-kata-sandi"', $halaman);
+        $this->assertStringContainsString("buka-dialog', 'batal-profil'", $halaman);
+
+        // Kata sandi tidak boleh ikut diringkas, sekalipun hanya di dalam
+        // dialog penegasan yang terlihat sekejap.
+        foreach (['kata_sandi', 'kata_sandi_lama', 'kata_sandi_confirmation'] as $kolom) {
+            $this->assertStringNotContainsString('data-ringkas="'.$kolom.'"', $halaman);
+        }
+    }
+
+    public function test_susun_draf_bulanan_menanyakan_dulu(): void
+    {
+        $tahun = MockData::TAHUN;
+        $bulan = app(PerhitunganPajak::class)->bulanBerikutnya($tahun);
+        $this->assertNotNull($bulan, 'Pengujian ini butuh satu bulan yang drafnya belum tersusun.');
+
+        $this->get("/draf-bulanan/susun?bulan={$bulan}&tahun={$tahun}")
+            ->assertOk()
+            ->assertSee('data-konfirmasi="simpan-draf-bulanan"', false)
+            ->assertSee('id="simpan-draf-bulanan"', false)
+            ->assertSee('data-kirim="formulir-draf-bulanan"', false)
+            ->assertSee('Simpan draf '.MockData::bulan()[$bulan].' '.$tahun.'?')
+            // Angkanya dihitung server, jadi tercetak langsung di dalam dialog.
+            ->assertSee('Peredaran Bruto')
+            ->assertSee('PPh Final Terutang')
+            ->assertSee('Batas Setor')
+            // Batal juga menanyakan dulu. Di sini tidak ada isian yang hilang,
+            // jadi kalimatnya menyebut penyusunannya, bukan pengisiannya.
+            ->assertSee("buka-dialog', 'batal-susun'", false)
+            ->assertSee('id="batal-susun"', false)
+            ->assertSee('Batalkan penyusunan draf?')
+            ->assertSee('Lanjut Memeriksa');
+    }
+
+    public function test_simpan_dan_batal_utang_menanyakan_dulu(): void
+    {
+        $utang = Utang::query()->value('id_utang');
+
+        $judul = [
+            '/utang/create' => 'Simpan data utang?',
+            "/utang/{$utang}/edit" => 'Perbarui saldo utang?',
+        ];
+
+        foreach ($judul as $uri => $pertanyaan) {
+            $halaman = $this->get($uri)->assertOk()->getContent();
+
+            $this->assertStringContainsString('data-konfirmasi="simpan-utang"', $halaman, $uri);
+            $this->assertStringContainsString('id="simpan-utang"', $halaman, $uri);
+            $this->assertStringContainsString('data-kirim="formulir-utang"', $halaman, $uri);
+            $this->assertStringContainsString($pertanyaan, $halaman, $uri);
+
+            // Saldo selalu diringkas; di halaman tambah ikut kolom lain yang
+            // menentukan isi lampiran draf tahunan.
+            $this->assertStringContainsString('data-ringkas="saldo"', $halaman, $uri);
+
+            $this->assertStringContainsString("buka-dialog', 'batal-utang'", $halaman, $uri);
+            $this->assertStringContainsString('id="batal-utang"', $halaman, $uri);
+            $this->assertStringContainsString('Ya, Batalkan', $halaman, $uri);
+        }
+
+        // Halaman tambah meringkas kreditur dan tahun peminjamannya juga;
+        // halaman perbarui tidak, karena kolom itu tidak dapat lagi berganti.
+        $tambah = $this->get('/utang/create')->getContent();
+        $perbarui = $this->get("/utang/{$utang}/edit")->getContent();
+
+        foreach (['kode', 'nama_kreditur', 'tahun_peminjaman'] as $kolom) {
+            $this->assertStringContainsString('data-ringkas="'.$kolom.'"', $tambah);
+            $this->assertStringNotContainsString('data-ringkas="'.$kolom.'"', $perbarui);
+        }
+
+        // Tahun pelunasan diringkas di kedua halaman: di sini pun ia berganti.
+        $this->assertStringContainsString('data-ringkas="tahun_pelunasan"', $tambah);
+        $this->assertStringContainsString('data-ringkas="tahun_pelunasan"', $perbarui);
     }
 
     public function test_batal_harta_menanyakan_dulu(): void
@@ -437,11 +534,8 @@ class HalamanAplikasiTest extends TestCase
         ])->assertRedirect("/harta/{$kategori}");
         $utang = $this->utangTerbuka();
         $this->put('/utang/'.$utang->id, [
-            'kode' => $utang->kodeUtang->kode,
-            'deskripsi' => $utang->deskripsi,
             'saldo' => '13.000.000',
-            'tahun_peminjaman' => $utang->tahun,
-            'nama_kreditur' => $utang->kreditur,
+            'tahun_pelunasan' => $utang->tahun_pelunasan,
         ])->assertRedirect('/utang');
         $this->put('/penghasilan/'.$this->penghasilanTerbuka(), ['tanggal' => '2026-07-05', 'nominal' => '1.000.000', 'keterangan' => 'uji'])
             ->assertRedirect('/penghasilan');

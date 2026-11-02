@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\DrafTahunan;
 use App\Models\Harta;
 use App\Models\Utang;
+use App\Services\FilterTahun;
 use Tests\TestCase;
 
 /**
@@ -79,8 +80,8 @@ class KunciPeriodeBerdrafTest extends TestCase
 
         $this->assertTrue($utang->fresh()->terkunci, 'Utang ikut terbuka padahal draf tahun lama masih tersusun.');
 
-        // Halaman ubah utang sama untuk semua baris: hanya saldo yang terbuka.
-        $this->get("/utang/{$utang->id}/edit")->assertOk()->assertSee('Hanya saldo yang dapat diubah');
+        // Halaman ubah utang sama untuk semua baris: saldo dan tahun pelunasan.
+        $this->get("/utang/{$utang->id}/edit")->assertOk()->assertSee('Yang dapat diubah hanya saldo dan tahun pelunasan');
     }
 
     public function test_harta_tidak_dapat_dicatat_mundur_ke_tahun_berdraf(): void
@@ -116,24 +117,57 @@ class KunciPeriodeBerdrafTest extends TestCase
         ])->assertRedirect('/harta/kas')->assertSessionHasNoErrors();
     }
 
-    public function test_utang_tidak_dapat_dicatat_mundur_ke_tahun_berdraf(): void
+    /**
+     * Utang tidak lagi dapat dicatat mundur sama sekali: tahun peminjamannya
+     * ditetapkan server dari tahun berjalan, bukan dibaca dari kiriman. Itu
+     * sekaligus menutup pencatatan mundur ke tahun yang drafnya sudah
+     * tersusun, yang dulu perlu dijaga aturan kunci periode.
+     */
+    public function test_tahun_peminjaman_selalu_tahun_berjalan(): void
     {
+        $berjalan = app(FilterTahun::class)->tahunBerjalan();
         $berdraf = (int) DrafTahunan::max('tahun_pajak');
+        $this->assertLessThan($berjalan, $berdraf, 'Pengujian ini butuh tahun berjalan yang belum berdraf.');
+
+        $this->post('/utang', [
+            'kode' => '109',
+            'deskripsi' => 'Uji tahun peminjaman',
+            'saldo' => '1.000.000',
+            // Sengaja dikirim mundur ke tahun yang drafnya sudah tersusun.
+            'tahun_peminjaman' => $berdraf,
+            'tahun_pelunasan' => $berjalan + 5,
+            'nama_kreditur' => 'Koperasi Sejahtera',
+        ])->assertRedirect('/utang')->assertSessionHasNoErrors();
+
+        $this->assertSame($berjalan, (int) Utang::where('deskripsi', 'Uji tahun peminjaman')->value('tahun_peminjaman'));
+    }
+
+    public function test_tahun_pelunasan_tidak_boleh_sebelum_tahun_berjalan(): void
+    {
+        $berjalan = app(FilterTahun::class)->tahunBerjalan();
         $jumlah = Utang::count();
 
         $this->from('/utang/create')
             ->post('/utang', [
                 'kode' => '109',
-                'deskripsi' => 'Uji periode berdraf',
+                'deskripsi' => 'Uji tahun pelunasan',
                 'saldo' => '1.000.000',
-                'tahun_peminjaman' => $berdraf,
-                'tahun_pelunasan' => $berdraf + 5,
+                'tahun_pelunasan' => $berjalan - 1,
                 'nama_kreditur' => 'Koperasi Sejahtera',
             ])
             ->assertRedirect('/utang/create')
-            ->assertSessionHasErrors('tahun_peminjaman');
+            ->assertSessionHasErrors(['tahun_pelunasan' => 'Tahun pelunasan paling awal '.$berjalan.'.']);
 
         $this->assertSame($jumlah, Utang::count());
+
+        // Sama dengan tahun berjalan tetap boleh: utang yang lunas tahun ini.
+        $this->post('/utang', [
+            'kode' => '109',
+            'deskripsi' => 'Lunas tahun ini',
+            'saldo' => '0',
+            'tahun_pelunasan' => $berjalan,
+            'nama_kreditur' => 'Koperasi Sejahtera',
+        ])->assertRedirect('/utang')->assertSessionHasNoErrors();
     }
 
     public function test_harta_terkunci_hanya_dapat_memperbarui_nilainya(): void
@@ -165,10 +199,10 @@ class KunciPeriodeBerdrafTest extends TestCase
     }
 
     /**
-     * Utang hanya dapat diperbarui saldonya, terkunci draf tahunan maupun
-     * tidak. Kolom lain yang ikut dikirim diabaikan di server.
+     * Utang hanya dapat diperbarui saldo dan tahun pelunasannya, terkunci draf
+     * tahunan maupun tidak. Kolom lain yang ikut dikirim diabaikan di server.
      */
-    public function test_utang_hanya_dapat_memperbarui_saldonya(): void
+    public function test_utang_hanya_dapat_memperbarui_saldo_dan_tahun_pelunasannya(): void
     {
         $beku = DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak');
 
@@ -191,8 +225,10 @@ class KunciPeriodeBerdrafTest extends TestCase
             $this->assertSame(150_000_000, (int) $sesudah->saldo);
             $this->assertSame($utang->nama_kreditur, $sesudah->nama_kreditur);
             $this->assertSame((int) $utang->tahun_peminjaman, (int) $sesudah->tahun_peminjaman);
-            $this->assertSame((int) $utang->tahun_pelunasan, (int) $sesudah->tahun_pelunasan);
             $this->assertSame($utang->deskripsi, $sesudah->deskripsi);
+
+            // Tahun pelunasan justru memang ikut tersimpan.
+            $this->assertSame(2099, (int) $sesudah->tahun_pelunasan);
         }
 
         $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak')->all());
@@ -271,6 +307,40 @@ class KunciPeriodeBerdrafTest extends TestCase
             'nilai' => angka($harta->nilai),
             'tahun_pelepasan' => (string) ((int) $harta->tahun_perolehan - 1),
         ])->assertSessionHasErrors('tahun_pelepasan');
+    }
+
+    /**
+     * Tahun pelunasan dapat diperbaiki setelah utang dicatat, dengan dua
+     * batas: tidak boleh mundur ke belakang tahun berjalan, dan tidak boleh
+     * menarik utang keluar dari draf tahunan yang sudah tersusun.
+     */
+    public function test_tahun_pelunasan_utang_dapat_diperbaiki_dengan_batas(): void
+    {
+        $berjalan = app(FilterTahun::class)->tahunBerjalan();
+        $utang = Utang::get()->first(fn (Utang $u): bool => $u->terkunci);
+        $semula = (int) $utang->tahun_pelunasan;
+
+        // Mundur melewati tahun berjalan: ditolak.
+        $this->from("/utang/{$utang->id}/edit")
+            ->put("/utang/{$utang->id}", ['saldo' => '1.000.000', 'tahun_pelunasan' => $berjalan - 1])
+            ->assertSessionHasErrors(['tahun_pelunasan' => 'Tahun pelunasan paling awal '.$berjalan.'.']);
+
+        $this->assertSame($semula, (int) $utang->fresh()->tahun_pelunasan);
+
+        // Sama dengan tahun berjalan: boleh, yaitu utang yang lunas tahun ini.
+        $this->put("/utang/{$utang->id}", ['saldo' => '0', 'tahun_pelunasan' => $berjalan])
+            ->assertRedirect('/utang')->assertSessionHasNoErrors();
+
+        $this->assertSame($berjalan, (int) $utang->fresh()->tahun_pelunasan);
+
+        // Digeser maju juga boleh; lampiran tahun yang sudah tersusun tidak berubah.
+        $beku = DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak');
+
+        $this->put("/utang/{$utang->id}", ['saldo' => '0', 'tahun_pelunasan' => $berjalan + 7])
+            ->assertRedirect('/utang')->assertSessionHasNoErrors();
+
+        $this->assertSame($berjalan + 7, (int) $utang->fresh()->tahun_pelunasan);
+        $this->assertEquals($beku->all(), DrafTahunan::orderBy('tahun_pajak')->pluck('total_utang', 'tahun_pajak')->all());
     }
 
     public function test_baris_terkunci_tetap_tidak_dapat_dihapus(): void

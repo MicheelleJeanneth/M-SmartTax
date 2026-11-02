@@ -15,7 +15,7 @@
         @method('PUT')
         {{-- Baris yang sudah masuk draf tahunan memakai formulir khusus nilai. --}}
         @include($item['terkunci'] ? 'harta._form-nilai' : 'harta._form', [
-            'tombol' => $item['terkunci'] ? 'Perbarui Nilai' : 'Simpan',
+            'tombol' => $item['terkunci'] ? 'Perbarui' : 'Simpan',
         ])
     </form>
 
@@ -47,6 +47,6 @@
             // Pada baris terkunci kolom ini ikut terbuka, jadi ikut diringkas.
             'Tahun Pelepasan' => 'tahun_pelepasan',
         ]),
-        'tombol' => $item['terkunci'] ? 'Perbarui Nilai' : 'Simpan',
+        'tombol' => $item['terkunci'] ? 'Perbarui' : 'Simpan',
     ])
 @endsection

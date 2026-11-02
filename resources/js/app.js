@@ -209,6 +209,16 @@ document.addEventListener('input', (peristiwa) => {
     kolom.setSelectionRange(posisiBaru, posisiBaru);
 });
 
+// Nilai yang dikembalikan server setelah kiriman ditolak datang sebagai angka
+// polos, karena pemeriksaannya membaca digitnya saja. Pemisah ribuannya
+// dibubuhkan sekali saat halaman dimuat supaya kotaknya tidak terbaca berbeda
+// dari sebelum tombol Simpan ditekan.
+document.querySelectorAll('input[data-uang]').forEach((kolom) => {
+    if (kolom.value !== '') {
+        kolom.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+});
+
 // Jaring pengaman bila kolom dikirim tanpa pernah kehilangan fokus, misalnya lewat tombol Enter.
 document.addEventListener('submit', (peristiwa) => {
     peristiwa.target.querySelectorAll?.('input[type="date"]').forEach(koreksiTanggal);

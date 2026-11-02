@@ -101,8 +101,22 @@ class LaporanBekuTest extends TestCase
             $this->post('/draf-bulanan', ['bulan' => $bulan, 'tahun' => $tahun])->assertRedirect();
         }
 
-        $this->get('/draf-tahunan/susun?tahun='.$tahun)
-            ->assertOk()
+        $halaman = $this->get('/draf-tahunan/susun?tahun='.$tahun)->assertOk();
+
+        // Tombol Simpan menanyakan dulu, dengan ringkasan angka yang akan
+        // dibekukan — totalnya tidak dapat diubah lagi setelah draf tersimpan.
+        $halaman
+            ->assertSee('data-konfirmasi="simpan-draf-tahunan"', false)
+            ->assertSee('id="simpan-draf-tahunan"', false)
+            ->assertSee('data-kirim="formulir-draf-tahunan"', false)
+            ->assertSee('Simpan draf tahunan '.$tahun.'?')
+            ->assertSee('Total Harta')
+            ->assertSee('Total Utang')
+            ->assertSee("buka-dialog', 'batal-susun'", false)
+            ->assertSee('Batalkan penyusunan draf?')
+            ->assertSee('Lanjut Memeriksa');
+
+        $halaman
             ->assertSee('Pastikan saldo utang dan nilai harta sudah sesuai posisi 31 Desember '.$tahun.' sebelum menyimpan.')
             ->assertSee('Draf menyalin angka yang ada saat ini')
             // Kalimat lama yang menyesatkan tidak boleh kembali.

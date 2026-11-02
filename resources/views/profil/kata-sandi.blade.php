@@ -7,7 +7,8 @@
 @endsection
 
 @section('isi')
-    <form method="POST" action="{{ route('profil.kata-sandi.update') }}">
+    <form method="POST" action="{{ route('profil.kata-sandi.update') }}"
+          id="form-kata-sandi" data-konfirmasi="simpan-kata-sandi">
         @csrf
         @method('PUT')
 
@@ -29,8 +30,29 @@
 
         {{-- Tombol rata kiri, sama seperti formulir lain. --}}
         <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <x-button type="submit" class="w-full sm:w-auto sm:min-w-48">Simpan Kata Sandi</x-button>
-            <x-button varian="secondary" :href="route('profil.show')" class="w-full sm:w-auto sm:min-w-48">Batal</x-button>
+            <x-button type="submit" class="w-full sm:w-auto sm:min-w-48">Simpan</x-button>
+            <x-button varian="secondary" :href="route('profil.show')" class="w-full sm:w-auto sm:min-w-48"
+                x-data @click.prevent="$dispatch('buka-dialog', 'batal-profil')">Batal</x-button>
         </div>
     </form>
+
+    {{-- Dialognya di luar formulir, sejajar dengan halaman lain: @include
+         mewarisi cakupan pemanggilnya, jadi labelnya dikirim eksplisit. --}}
+    @include('partials.dialog-batal', [
+        'id' => 'batal-profil',
+        'href' => route('profil.show'),
+        'judul' => 'Batalkan pengisian?',
+        'pesan' => '',
+        'tombol' => 'Ya, Batalkan',
+        'lanjut' => 'Lanjut Mengisi',
+    ])
+
+    {{-- Tanpa ringkasan: kata sandi tidak boleh ditampilkan ulang di layar,
+         sekalipun hanya di dalam dialog penegasan. --}}
+    @include('partials.dialog-simpan', [
+        'id' => 'simpan-kata-sandi',
+        'form' => 'form-kata-sandi',
+        'judul' => 'Ubah kata sandi?',
+        'pesan' => 'Mulai masuk berikutnya, gunakan kata sandi yang baru. Kata sandi lama tidak berlaku lagi dan tidak dapat dikembalikan.',
+    ])
 @endsection

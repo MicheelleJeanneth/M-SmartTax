@@ -27,10 +27,42 @@
     </x-info>
 
     {{-- Tombol rata kiri, sama seperti formulir lain. --}}
-    <form method="POST" action="{{ route('draf-tahunan.store') }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+    <form method="POST" action="{{ route('draf-tahunan.store') }}" id="formulir-draf-tahunan"
+          data-konfirmasi="simpan-draf-tahunan" class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         @csrf
         <input type="hidden" name="tahun" value="{{ $tahun }}">
-        <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">Simpan Draf</x-button>
-        <x-button varian="secondary" :href="route('draf-tahunan.index')" class="w-full sm:w-auto sm:min-w-39">Batal</x-button>
+        <x-button type="submit" class="w-full sm:w-auto sm:min-w-39">Simpan</x-button>
+        {{-- Tetap berupa tautan, bukan tombol biasa: bila Alpine gagal dimuat,
+             Batal masih membawa pengguna kembali ke daftar. --}}
+        <x-button varian="secondary" :href="route('draf-tahunan.index')" class="w-full sm:w-auto sm:min-w-39"
+            x-data @click.prevent="$dispatch('buka-dialog', 'batal-susun')">Batal</x-button>
     </form>
+
+    {{-- Di halaman ini tidak ada isian yang hilang; yang ditinggalkan adalah
+         pemeriksaan rekap dan lampirannya, jadi kalimatnya pun menyebut itu. --}}
+    @include('partials.dialog-batal', [
+        'id' => 'batal-susun',
+        'href' => route('draf-tahunan.index'),
+        'judul' => 'Batalkan penyusunan draf?',
+        'pesan' => '',
+        'tombol' => 'Ya, Batalkan',
+        'lanjut' => 'Lanjut Memeriksa',
+    ])
+
+    {{-- Total harta dan utang ikut diringkas karena keduanya dibekukan saat
+         draf disimpan, dan salinan itu yang dipakai laporan tahun ini
+         seterusnya. Angkanya dihitung server, jadi dikirim sebagai teks jadi. --}}
+    @include('partials.dialog-simpan', [
+        'id' => 'simpan-draf-tahunan',
+        'form' => 'formulir-draf-tahunan',
+        'judul' => 'Simpan draf tahunan ' . $tahun . '?',
+        'pesan' => 'Menyimpan draf membekukan posisi harta dan utang di bawah ini, dan salinan itu yang dipakai seluruh laporan tahun ' . $tahun . ' seterusnya. Draf bulanan tahun ini ikut terkunci.',
+        'nilai' => [
+            'Tahun Pajak' => (string) $tahun,
+            'Total Peredaran Bruto' => rupiah($bruto),
+            'PPh Final Terutang' => rupiah($pph),
+            'Total Harta' => rupiah($totalHarta),
+            'Total Utang' => rupiah($totalUtang),
+        ],
+    ])
 @endsection

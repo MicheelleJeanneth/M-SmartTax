@@ -1,5 +1,6 @@
 @extends('pdf._kerangka')
-@section('periode', 'Posisi 31 Desember ' . $tahun)
+@section('label-periode', 'Tahun')
+@section('periode', $tahun)
 
 @section('isi')
     <h2>A. Rincian Utang</h2>

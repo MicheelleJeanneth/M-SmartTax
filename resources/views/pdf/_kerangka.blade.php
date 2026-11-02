@@ -58,7 +58,9 @@
         {{-- Penanda dari sistem ini, bukan NPWP. M-SmartTax tidak mengumpulkan NIK. --}}
         <tr><td class="l">Nomor M-SmartTax</td><td>: {{ $profil['nomor_msmarttax'] }}</td></tr>
         <tr><td class="l">Alamat</td><td>: {{ $profil['alamat'] }}, {{ $profil['kelurahan'] }}, {{ $profil['kecamatan'] }}, {{ $profil['kota'] }}</td></tr>
-        <tr><td class="l">Periode</td><td>: @yield('periode')</td></tr>
+        {{-- Labelnya mengikuti laporannya: draf menyebut periode, sedangkan
+             Data Harta dan Data Utang cukup menyebut tahunnya. --}}
+        <tr><td class="l">@yield('label-periode', 'Periode')</td><td>: @yield('periode')</td></tr>
     </table>
 
     @yield('isi')
