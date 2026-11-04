@@ -271,7 +271,7 @@ class AutentikasiTest extends TestCase
 
     /**
      * NIK sengaja tidak lagi dikumpulkan: ia tidak masuk satu pun perhitungan
-     * dan sistem simulasi ini tidak berhak menuntut data kependudukan.
+     * dan sistem penelitian ini tidak berhak menuntut data kependudukan.
      */
     public function test_kolom_nik_sudah_tidak_ada(): void
     {

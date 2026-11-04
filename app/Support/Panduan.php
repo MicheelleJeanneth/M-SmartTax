@@ -385,7 +385,7 @@ class Panduan
                         'judul' => 'Data dan Akun',
                         'warna' => 'subjudul',
                         'tanya' => [
-                            ['tanya' => 'Mengapa M-SmartTax tidak meminta NIK saya?', 'jawab' => 'Karena NIK tidak dibutuhkan untuk satu pun perhitungan di sini, dan M-SmartTax adalah sistem simulasi yang tidak berhak menuntut data kependudukan Anda. Sebagai gantinya setiap akun menerima nomor M-SmartTax, misalnya MS20260001, yang tercetak pada dokumen laporan.'],
+                            ['tanya' => 'Mengapa M-SmartTax tidak meminta NIK saya?', 'jawab' => 'Karena NIK tidak dibutuhkan untuk satu pun perhitungan di sini, dan M-SmartTax dibangun untuk keperluan penelitian dan tidak berhak menuntut data kependudukan Anda. Sebagai gantinya setiap akun menerima nomor M-SmartTax, misalnya MS20260001, yang tercetak pada dokumen laporan.'],
                             ['tanya' => 'Apakah nomor M-SmartTax sama dengan NPWP?', 'jawab' => 'Bukan. Nomor itu hanya penanda akun di dalam sistem ini dan tidak dikenal Direktorat Jenderal Pajak. Saat melapor melalui saluran resmi, gunakan NPWP atau NIK Anda yang sebenarnya.'],
                             ['tanya' => 'Mengapa username tidak dapat diubah?', 'jawab' => 'Username digunakan untuk masuk ke sistem, sehingga dikunci agar akun Anda tetap dapat diakses. Email di sebelahnya boleh Anda isi, ganti, atau kosongkan kapan saja.'],
                             ['tanya' => 'Apakah saya wajib punya email untuk mendaftar?', 'jawab' => 'Tidak. Pendaftaran hanya memerlukan username dan kata sandi. Email bersifat pilihan dan tidak pernah digunakan untuk mengirim apa pun.'],

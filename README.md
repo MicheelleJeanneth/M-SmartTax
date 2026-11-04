@@ -4,7 +4,7 @@ Aplikasi web untuk mencatat penghasilan, harta, dan utang usaha, lalu menyusun d
 Penghasilan Final 0,5% bagi wajib pajak orang pribadi pelaku UMKM.
 
 > **DISCLAIMER**
-> Sistem ini merupakan sistem simulasi untuk keperluan Ujian Skripsi Mahasiswa Universitas
+> Sistem ini dibangun untuk keperluan penelitian mahasiswa Universitas
 > Ciputra. Sistem ini **tidak terafiliasi** dengan Direktorat Jenderal Pajak (DJP) atau
 > instansi pemerintah mana pun. Dokumen yang dihasilkan adalah **draf**, bukan bukti setor
 > maupun bukti lapor. Penyetoran dan pelaporan tetap dilakukan melalui saluran resmi DJP.

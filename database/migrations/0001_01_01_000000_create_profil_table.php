@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('password');
 
             // Identitas wajib pajak. NIK sengaja tidak dikumpulkan: tidak
-            // dipakai satu pun perhitungan, dan dokumen sistem simulasi ini
+            // dipakai satu pun perhitungan, dan dokumen sistem penelitian ini
             // memakai nomor_msmarttax di atas sebagai gantinya.
             $table->string('nama')->nullable();
             $table->string('tempat_lahir')->nullable();

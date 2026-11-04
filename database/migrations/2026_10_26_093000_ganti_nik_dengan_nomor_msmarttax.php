@@ -11,7 +11,7 @@ return new class extends Migration
      * Mengganti NIK wajib pajak dengan nomor M-SmartTax.
      *
      * NIK tidak pernah masuk satu pun perhitungan; satu-satunya kegunaannya
-     * adalah tercetak pada kop dokumen. Karena M-SmartTax sistem simulasi,
+     * adalah tercetak pada kop dokumen. Karena M-SmartTax sistem penelitian,
      * meminta data kependudukan untuk keperluan itu tidak sepadan: banyak
      * calon pengguna enggan menyerahkannya, dan dokumen keluarannya pun tidak
      * boleh menyerupai dokumen resmi. Penggantinya adalah penanda milik

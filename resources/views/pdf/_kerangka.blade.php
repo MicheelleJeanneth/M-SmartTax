@@ -71,8 +71,8 @@
         <br><br>
         {{-- Dokumen inilah yang paling mungkin beredar keluar dari sistem,
              karena itu penafiannya ikut tercetak, bukan hanya tampil di layar. --}}
-        <strong>Disclaimer:</strong> M-SmartTax merupakan sistem simulasi untuk keperluan Ujian Skripsi
-        Mahasiswa Universitas Ciputra, tidak terafiliasi dengan Direktorat Jenderal Pajak (DJP) atau instansi
+        <strong>Disclaimer:</strong> M-SmartTax dibangun untuk keperluan penelitian
+        mahasiswa Universitas Ciputra, tidak terafiliasi dengan Direktorat Jenderal Pajak (DJP) atau instansi
         pemerintah mana pun.
     </div>
 
