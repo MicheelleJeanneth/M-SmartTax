@@ -131,13 +131,189 @@ document.addEventListener('input', (peristiwa) => {
 });
 
 /*
+ | Kolom bertanda data-huruf-kecil menurunkan apa yang diketik menjadi huruf
+ | kecil seketika. Server sudah membakukannya lewat Profil::bakukanUsername,
+ | jadi ini bukan soal benar atau salahnya data yang tersimpan, melainkan
+ | supaya yang terlihat sama dengan yang disimpan: papan ketik ponsel
+ | membesarkan huruf pertama dengan sendirinya, dan "Budi" di dalam kotak
+ | isian mudah disangka ditolak.
+ */
+document.addEventListener('input', (peristiwa) => {
+    const kolom = peristiwa.target;
+
+    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.hurufKecil === undefined) {
+        return;
+    }
+
+    const kecil = kolom.value.toLowerCase();
+
+    if (kecil === kolom.value) {
+        return;
+    }
+
+    // Panjangnya tidak berubah, jadi kursor cukup dikembalikan ke tempat semula.
+    const kursor = kolom.selectionStart;
+    kolom.value = kecil;
+    kolom.setSelectionRange(kursor, kursor);
+});
+
+/*
+ | Tanggal lahir diketik sebagai teks biasa berbentuk dd/mm/yyyy, bukan pada
+ | kolom bertipe date. Kolom bawaan peramban menampilkan urutan tanggalnya
+ | mengikuti setelan bahasa perangkat, dan halaman tidak dapat menentukan
+ | urutan itu: di laptop berbahasa Indonesia terbaca dd/mm/yyyy, sedangkan di
+ | ponsel berbahasa Inggris terbaca mm/dd/yyyy. Urutan yang berpindah-pindah
+ | berbahaya khusus untuk tanggal lahir, karena 09/05 dan 05/09 dua-duanya
+ | masuk akal dan tidak ada yang kelihatan keliru.
+ |
+ | Kolom tampak hanya tempat mengetik. Nilai yang terkirim ada di kolom
+ | tersembunyi bernama sama dan tetap berbentuk Y-m-d, jadi pemeriksaan di
+ | server tidak berubah.
+ */
+const garisMiring = (teks) => {
+    const digit = teks.replace(/\D/g, '').slice(0, 8);
+
+    return [digit.slice(0, 2), digit.slice(2, 4), digit.slice(4, 8)]
+        .filter((bagian) => bagian !== '')
+        .join('/');
+};
+
+/** dd/mm/yyyy menjadi Y-m-d; untaian kosong bila tanggalnya tidak ada dalam kalender. */
+const isoDariDmy = (teks) => {
+    const cocok = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(teks);
+
+    if (!cocok) {
+        return '';
+    }
+
+    const [, hari, bulan, tahun] = cocok.map(Number);
+    const tanggal = new Date(tahun, bulan - 1, hari);
+
+    // Date menerima 31/02/1980 lalu menggesernya menjadi 2 Maret, jadi
+    // hasilnya dibandingkan kembali dengan angka yang diketik. Perbandingannya
+    // memakai bagian tanggal waktu setempat, bukan toISOString, karena WIB
+    // berada tujuh jam di depan UTC dan tanggalnya akan mundur sehari.
+    const nyata = tanggal.getFullYear() === tahun
+        && tanggal.getMonth() === bulan - 1
+        && tanggal.getDate() === hari;
+
+    return nyata ? `${cocok[3]}-${cocok[2]}-${cocok[1]}` : '';
+};
+
+const masalahTanggalDmy = (kolom, iso) => {
+    if (kolom.value === '') {
+        return '';
+    }
+
+    if (iso === '') {
+        return kolom.value.length < 10
+            ? 'Tanggalnya belum lengkap.'
+            : 'Tanggal tersebut tidak ada dalam kalender.';
+    }
+
+    if (kolom.dataset.max && iso > kolom.dataset.max) {
+        return 'Tanggal lahir tidak boleh hari ini atau setelahnya.';
+    }
+
+    if (kolom.dataset.min && iso < kolom.dataset.min) {
+        return 'Tahun lahir paling awal 1900.';
+    }
+
+    // Bulan yang drafnya sudah disusun. Kalimatnya datang dari server lewat
+    // data-kunci-pesan, karena hanya server yang tahu draf bulan mana yang
+    // sebenarnya menahan tanggal ini.
+    if (kolom.dataset.kunciSebelum && iso < kolom.dataset.kunciSebelum) {
+        return kolom.dataset.kunciPesan || 'Tanggal tersebut tidak dapat menerima transaksi baru.';
+    }
+
+    return '';
+};
+
+const perbaruiTanggalDmy = (kolom) => {
+    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.tanggalDmy === undefined) {
+        return;
+    }
+
+    const iso = isoDariDmy(kolom.value);
+    const pesan = masalahTanggalDmy(kolom, iso);
+    const tersembunyi = document.getElementById(kolom.dataset.tanggalDmy);
+
+    // Tetap diisi walaupun ada peringatan: bila pemeriksaan di browser
+    // terlewat, server menerima tanggal yang sebenarnya dan dapat membalas
+    // dengan pesannya sendiri, bukan dengan "wajib diisi".
+    if (tersembunyi) {
+        tersembunyi.value = iso;
+    }
+
+    // setCustomValidity membuat kolomnya ikut terhitung :invalid, sehingga
+    // tombol simpan mati sendiri lewat perbaruiTombolKirim.
+    kolom.setCustomValidity(pesan);
+
+    // Selama masih diketik keterangan merahnya ditahan: "belum lengkap" akan
+    // menyala sejak digit pertama dan hanya mengganggu.
+    const baris = document.getElementById(`${kolom.dataset.tanggalDmy}-salah`);
+    const tampil = pesan !== '' && kolom.value.length === 10;
+
+    if (baris) {
+        baris.textContent = tampil ? pesan : '';
+        baris.classList.toggle('hidden', !tampil);
+    }
+
+    perbaruiTombolKirim();
+};
+
+document.addEventListener('input', (peristiwa) => {
+    const kolom = peristiwa.target;
+
+    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.tanggalDmy === undefined) {
+        return;
+    }
+
+    const rapi = garisMiring(kolom.value);
+
+    if (rapi !== kolom.value) {
+        // Kursor dihitung dalam satuan digit supaya garis miring yang
+        // dibubuhkan sendiri tidak melemparkannya ke ujung.
+        const kursor = kolom.selectionStart ?? kolom.value.length;
+        const digitSebelumKursor = kolom.value.slice(0, kursor).replace(/\D/g, '').length;
+
+        kolom.value = rapi;
+
+        let terhitung = 0;
+        let posisiBaru = digitSebelumKursor === 0 ? 0 : rapi.length;
+
+        for (let i = 0; i < rapi.length && digitSebelumKursor > 0; i++) {
+            if (/\d/.test(rapi[i])) {
+                terhitung++;
+            }
+
+            if (terhitung === digitSebelumKursor) {
+                posisiBaru = i + 1;
+                break;
+            }
+        }
+
+        kolom.setSelectionRange(posisiBaru, posisiBaru);
+    }
+
+    perbaruiTanggalDmy(kolom);
+});
+
+document.querySelectorAll('input[data-tanggal-dmy]').forEach(perbaruiTanggalDmy);
+
+/*
  | Peringatan dini untuk tanggal yang jatuh pada bulan yang drafnya sudah
  | disusun. Pemeriksaan yang sesungguhnya tetap di server, karena yang di
  | browser bisa dilewati; bagian ini hanya supaya ketahuan sebelum tombol
  | Simpan ditekan dan isian yang sudah diketik tidak terbuang percuma.
  */
 const peringatkanBulanTerkunci = (kolom) => {
-    if (!(kolom instanceof HTMLInputElement) || kolom.dataset.kunciSebelum === undefined) {
+    // Kolom dd/mm/yyyy memeriksa kuncinya sendiri lewat masalahTanggalDmy,
+    // karena yang tertulis di sana bukan Y-m-d dan tidak dapat dibandingkan
+    // langsung dengan batasnya.
+    if (!(kolom instanceof HTMLInputElement)
+        || kolom.dataset.kunciSebelum === undefined
+        || kolom.dataset.tanggalDmy !== undefined) {
         return;
     }
 
@@ -249,7 +425,7 @@ const nilaiTerbaca = (kolom) => {
         return `Rp${kolom.value}`;
     }
 
-    if (kolom.type === 'date') {
+    if (kolom.type === 'date' || kolom.dataset?.tanggalIso !== undefined) {
         return new Date(`${kolom.value}T00:00:00`).toLocaleDateString('id-ID', {
             day: 'numeric',
             month: 'long',

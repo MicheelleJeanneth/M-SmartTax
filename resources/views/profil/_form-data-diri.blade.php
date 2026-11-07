@@ -11,11 +11,12 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
         <x-input label="Tempat Lahir" name="tempat_lahir" wajib placeholder="Contoh: Surabaya" :value="$p['tempat_lahir'] ?? ''" />
-        {{-- Kolomnya bertipe date, jadi nilainya harus berbentuk Y-m-d. Cast
-             'date' pada model menghasilkan "1980-09-25 00:00:00" yang ditolak
-             peramban, sehingga kolomnya tampil kosong dan tombol Simpan
-             tertahan karena kolom wajib dianggap belum terisi. --}}
-        <x-input label="Tanggal Lahir" name="tanggal_lahir" type="date" wajib :value="tanggal_isian($p['tanggal_lahir'] ?? null)" />
+        {{-- Nilainya harus berbentuk Y-m-d. Cast 'date' pada model menghasilkan
+             "1980-09-25 00:00:00", yang membuat kolomnya tampil kosong dan
+             tombol Simpan tertahan karena kolom wajib dianggap belum terisi. --}}
+        <x-input-tanggal label="Tanggal Lahir" name="tanggal_lahir" wajib
+            :value="tanggal_isian($p['tanggal_lahir'] ?? null)"
+            bantuan="Urutannya hari/bulan/tahun, contoh 25/09/1980" />
     </div>
 
     <x-radio label="Jenis Kelamin" name="jenis_kelamin" wajib :pilihan="['Pria', 'Wanita']" :terpilih="$p['jenis_kelamin'] ?? null" />

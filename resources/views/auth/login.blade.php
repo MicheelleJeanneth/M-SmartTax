@@ -16,7 +16,7 @@
     <form method="POST" action="{{ route('login') }}" class="mt-8">
         @csrf
         <x-input label="Username" name="username" wajib autocomplete="username"
-            maxlength="20" placeholder="Username Anda" />
+            maxlength="20" placeholder="Username Anda" data-huruf-kecil autocapitalize="none" autocorrect="off" spellcheck="false" />
         <x-input-password label="Kata Sandi" name="password" autocomplete="current-password" rapat />
 
         <label class="mt-3 mb-6 flex w-fit items-center gap-2.5 text-[15px] text-ink">

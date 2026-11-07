@@ -142,7 +142,10 @@ class Profil extends Authenticatable
     {
         return collect([
             $this->alamat,
-            $this->rt && $this->rw ? "RT {$this->rt}/RW {$this->rw}" : null,
+            // filled(), bukan sekadar pemeriksaan benar-salah: PHP menganggap
+            // untaian "0" sebagai salah, sehingga RT 0 akan menghilangkan
+            // seluruh bagian RT/RW dari alamat tanpa pesan apa pun.
+            filled($this->rt) && filled($this->rw) ? 'RT '.rt_rw($this->rt).'/RW '.rt_rw($this->rw) : null,
             $this->kelurahan,
             $this->kecamatan,
             $this->kota,

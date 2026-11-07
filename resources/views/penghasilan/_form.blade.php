@@ -1,7 +1,8 @@
 @php $p = $penghasilan ?? []; @endphp
 <x-card>
-    <x-input label="Tanggal" name="tanggal" type="date" wajib :value="tanggal_isian($p['tanggal'] ?? null)" :kunci-sebelum="$awalTerbuka" :kunci-pesan="$pesanKunci"
-        bantuan="Tanggal penerimaan uang, bukan tanggal pemesanan." />
+    <x-input-tanggal label="Tanggal" name="tanggal" wajib :value="tanggal_isian($p['tanggal'] ?? null)"
+        :kunci-sebelum="$awalTerbuka" :kunci-pesan="$pesanKunci"
+        bantuan="Urutannya hari/bulan/tahun, contoh 25/09/1980. Tanggal penerimaan uang, bukan tanggal pemesanan." />
     <x-input label="Nominal" name="nominal" wajib uang placeholder="0"
         :value="isset($p['nominal']) ? angka($p['nominal']) : ''"
         bantuan="Isi dengan peredaran bruto, sebelum dikurangi diskon atau potongan penjualan." />

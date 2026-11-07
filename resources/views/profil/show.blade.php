@@ -35,7 +35,7 @@
 
         $alamat = [
             'Alamat' => $profil['alamat'],
-            'RT / RW' => $profil['rt'].' / '.$profil['rw'],
+            'RT / RW' => rt_rw($profil['rt']).' / '.rt_rw($profil['rw']),
             'Kelurahan' => $profil['kelurahan'],
             'Kecamatan' => $profil['kecamatan'],
             'Kota' => $profil['kota'],

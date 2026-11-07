@@ -363,9 +363,10 @@ class AutentikasiTest extends TestCase
     }
 
     /**
-     * Kolom bertipe date hanya menerima bentuk Y-m-d. Cast 'date' pada model
-     * menghasilkan "1980-09-25 00:00:00", yang ditolak peramban sehingga
-     * kolomnya tampil kosong dan tombol Simpan tertahan terus-menerus.
+     * Tanggal lahir diketik dalam bentuk dd/mm/yyyy, sedangkan yang terkirim
+     * ke server tetap berbentuk Y-m-d pada kolom tersembunyi. Cast 'date' pada
+     * model menghasilkan "1980-09-25 00:00:00", yang membuat kedua kolomnya
+     * tampil kosong dan tombol Simpan tertahan terus-menerus.
      */
     public function test_tanggal_lahir_terisi_pada_formulir_ubah_profil(): void
     {
@@ -373,7 +374,26 @@ class AutentikasiTest extends TestCase
 
         $this->get('/profil/ubah')
             ->assertOk()
-            ->assertSee('name="tanggal_lahir" type="date" value="'.$profil->tanggal_lahir->format('Y-m-d').'"', false);
+            ->assertSee('value="'.$profil->tanggal_lahir->format('d/m/Y').'"', false)
+            ->assertSee('name="tanggal_lahir" type="hidden" data-tanggal-iso value="'.$profil->tanggal_lahir->format('Y-m-d').'"', false);
+    }
+
+    /**
+     * RT dan RW tercetak tiga angka pada alamat dokumen, mengikuti cara
+     * penulisannya pada kartu tanda penduduk, walaupun yang diketik hanya satu
+     * atau dua angka. Nomor "0" dulu menghilangkan seluruh bagian RT/RW dari
+     * alamat tanpa pesan apa pun, karena PHP menganggap untaian "0" sebagai
+     * salah.
+     */
+    public function test_rt_dan_rw_tercetak_tiga_angka_pada_alamat(): void
+    {
+        $profil = Profil::query()->firstOrFail();
+
+        $profil->update(['rt' => '12', 'rw' => '1']);
+        $this->assertStringContainsString('RT 012/RW 001', $profil->fresh()->alamatLengkap());
+
+        $profil->update(['rt' => '0', 'rw' => '7']);
+        $this->assertStringContainsString('RT 000/RW 007', $profil->fresh()->alamatLengkap());
     }
 
     public function test_nomor_handphone_diseragamkan_dan_diperiksa(): void

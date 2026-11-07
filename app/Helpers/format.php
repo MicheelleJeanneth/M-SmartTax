@@ -178,3 +178,18 @@ if (! function_exists('tanggal_isian')) {
             : substr($tanggal, 0, 10);
     }
 }
+
+if (! function_exists('rt_rw')) {
+    /**
+     * Nomor RT atau RW dalam tiga angka, mengikuti cara penulisannya pada
+     * kartu tanda penduduk: 12 menjadi 012, dan 1 menjadi 001.
+     *
+     * Nolnya dibubuhkan saat ditampilkan saja. Yang diketik pengguna tetap
+     * boleh satu sampai tiga angka dan tersimpan apa adanya, karena nomor RT
+     * yang sama dapat ditulis berbeda-beda di dokumen aslinya.
+     */
+    function rt_rw(?string $nomor): string
+    {
+        return blank($nomor) ? '' : str_pad($nomor, 3, '0', STR_PAD_LEFT);
+    }
+}
