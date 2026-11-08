@@ -1,8 +1,13 @@
-@props(['judul' => null, 'keterangan' => null, 'padat' => false, 'judulWarna' => 'subjudul'])
+@props(['judul' => null, 'keterangan' => null, 'padat' => false, 'judulWarna' => 'subjudul', 'varian' => 'putih'])
 @php
     $warnaJudul = ['primary' => 'text-primary', 'ink' => 'text-ink', 'accent' => 'text-accent', 'subjudul' => 'text-subjudul'][$judulWarna];
+
+    // Varian "cekung" untuk kartu yang berada di dalam kartu lain: putih di
+    // atas putih hanya menyisakan garis tipisnya dan terbaca datar, jadi
+    // yang di dalam memakai warna halaman supaya terbaca sebagai cekungan.
+    $latar = $varian === 'cekung' ? 'border-line-soft bg-page' : 'border-line bg-white';
 @endphp
-<section {{ $attributes->merge(['class' => 'rounded-card border border-line bg-white [&>:last-child]:mb-0 ' . ($padat ? 'p-5' : 'p-6')]) }}>
+<section {{ $attributes->merge(['class' => "rounded-card border $latar [&>:last-child]:mb-0 " . ($padat ? 'p-5' : 'p-6')]) }}>
     @if($judul || isset($aksi))
         <div class="mb-4 flex items-start justify-between gap-4">
             <div>

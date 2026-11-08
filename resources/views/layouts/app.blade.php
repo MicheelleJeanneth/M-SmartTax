@@ -13,7 +13,10 @@
     <div class="flex min-h-screen" x-data="{ menu: false }" @keydown.escape.window="menu = false">
         @include('partials.sidebar')
 
-        <main class="min-w-0 flex-1">
+        {{-- @yield('latar') diisi halaman yang ingin latar khusus; Dashboard
+             mengisinya dengan "latar-gradien". Halaman lain membiarkannya kosong
+             dan tetap memakai warna halaman biasa. --}}
+        <main class="min-w-0 flex-1 @yield('latar')">
             {{-- Batang atas khusus layar sempit, berisi tombol menu dan merek. --}}
             <div class="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-white px-4 py-3 lg:hidden">
                 <button type="button" @click="menu = true" aria-label="Buka menu"
@@ -30,6 +33,11 @@
                 @yield('kembali')
             @endif
 
+            {{-- Halaman yang kepalanya berbentuk kartu menyusunnya sendiri lewat
+                 'header-sendiri'; sisanya memakai kepala baku di bawah ini. --}}
+            @hasSection('header-sendiri')
+                @yield('header-sendiri')
+            @else
             <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                 <div class="min-w-0">
                     <h1 class="text-2xl leading-tight font-medium text-ink sm:text-[28px]">
@@ -46,6 +54,7 @@
                     <div class="shrink-0">@yield('aksi-header')</div>
                 @endif
             </header>
+            @endif
 
             @include('partials.flash')
 
@@ -53,7 +62,7 @@
 
             {{-- Penafian ikut tampil sesudah masuk: pengguna tidak melewati
                  halaman Masuk lagi setelah sesinya berjalan. --}}
-            <p class="mt-4 border-t border-line-soft pt-4 text-[13px] leading-relaxed text-ink-3">
+            <p class="mt-4 border-t border-line pt-4 text-[13px] leading-relaxed text-ink-3">
                 @include('partials.disclaimer-teks')
             </p>
             </div>

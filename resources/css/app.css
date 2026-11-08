@@ -112,3 +112,54 @@
 .daftar-gulir::-webkit-scrollbar-track {
     background: transparent;
 }
+
+/*
+ |---------------------------------------------------------------------------
+ | Latar gradien pada Dashboard
+ |---------------------------------------------------------------------------
+ | Lima sapuan warna di belakang kedua kartu, menempel di tepi dan menurun
+ | berselang kiri-kanan pada jarak yang sama: 0%, 25%, 50%, 75%, 100%.
+ | Dipasang hanya pada Dashboard, lewat @yield('latar') pada layouts/app.
+ |
+ | Titik pusatnya ditaruh tepat di tepi, bukan di dalam: sapuan yang pusatnya
+ | masuk ke tengah hanya mewarnai satu bercak dan menyisakan tepi halaman
+ | polos, sedangkan yang pusatnya di tepi menyebar ke dalam dan bertemu
+ | sapuan seberangnya.
+ |
+ | Urutan warnanya diputar, bukan dikelompokkan: biru - lilac - krem - biru
+ | - lilac. Dengan sisi yang juga berselang, tiap warna muncul di kiri dan
+ | di kanan, sehingga tidak ada satu sisi halaman yang jadi milik satu warna
+ | saja. Krem #F1EFE8 dan hijau #EAF3DE tidak dipakai di sini karena hampir
+ | sama dengan warna halaman #F7F7F5 dan hasilnya tidak terlihat sama sekali.
+ |
+ | Tidak ada animasi: latar yang bergerak menarik mata menjauh dari angka.
+ */
+.latar-gradien {
+    /*
+     | Lilac khusus latar ini, satu-satunya warna di sini yang bukan warna
+     | sistem. Sengaja tidak dijadikan token @theme: ia hiasan, dan tidak
+     | boleh sampai punya kelas bg- atau text- yang bisa terpakai di tempat
+     | lain. Ketuaannya disetarakan dengan biru muda #CBF2FF supaya tidak ada
+     | satu sisi halaman yang terlihat lebih berat dari sisi lain.
+     */
+    --latar-lilac: #DCD2F3;
+
+    position: relative;
+    isolation: isolate;
+    background-color: var(--color-page);
+}
+
+.latar-gradien::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(66% 36% at 0% 0%, var(--color-primary-soft) 0%, var(--color-primary-soft) 16%, transparent 78%),
+        radial-gradient(64% 34% at 100% 25%, var(--latar-lilac) 0%, var(--latar-lilac) 16%, transparent 78%),
+        radial-gradient(66% 36% at 0% 50%, var(--color-warn-bg) 0%, var(--color-warn-bg) 16%, transparent 78%),
+        radial-gradient(64% 34% at 100% 75%, var(--color-primary-soft) 0%, var(--color-primary-soft) 16%, transparent 78%),
+        radial-gradient(68% 38% at 0% 100%, var(--latar-lilac) 0%, var(--latar-lilac) 16%, transparent 78%);
+    opacity: 0.95;
+    pointer-events: none;
+}
