@@ -2,12 +2,12 @@
 @section('judul', 'Data Utang')
 @section('keterangan', 'Catat utang yang masih berjalan sebagai lampiran draf tahunan')
 
-@section('isi')
-    {{-- Tombol tambah berdiri sendiri di antara keterangan halaman dan kartu ringkasan. --}}
-    <div class="mb-5 flex justify-end">
-        <x-button :href="route('utang.create')" class="min-w-[150px]">+ Tambah</x-button>
-    </div>
+{{-- Tombol Tambah menyertai judul di dalam kartu kepala. --}}
+@section('aksi-header')
+    <x-button :href="route('utang.create')" class="w-full sm:w-auto sm:min-w-[150px]">+ Tambah</x-button>
+@endsection
 
+@section('isi')
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-stat label="Total Utang" :nilai="rupiah($total)" />
         <x-stat varian="putih" label="Jumlah Utang" :nilai="$jumlah" />

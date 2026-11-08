@@ -29,12 +29,12 @@
     };
 @endphp
 
-@section('isi')
-    {{-- Tombol tambah berdiri sendiri di antara keterangan halaman dan deretan tab. --}}
-    <div class="mb-5 flex justify-end">
-        <x-button :href="route('harta.create', $kategori)" class="min-w-[150px]">+ Tambah</x-button>
-    </div>
+{{-- Tombol Tambah menyertai judul di dalam kartu kepala. --}}
+@section('aksi-header')
+    <x-button :href="route('harta.create', $kategori)" class="w-full sm:w-auto sm:min-w-[150px]">+ Tambah</x-button>
+@endsection
 
+@section('isi')
     @include('harta._tab')
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

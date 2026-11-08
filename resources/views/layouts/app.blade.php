@@ -13,10 +13,7 @@
     <div class="flex min-h-screen" x-data="{ menu: false }" @keydown.escape.window="menu = false">
         @include('partials.sidebar')
 
-        {{-- @yield('latar') diisi halaman yang ingin latar khusus; Dashboard
-             mengisinya dengan "latar-gradien". Halaman lain membiarkannya kosong
-             dan tetap memakai warna halaman biasa. --}}
-        <main class="min-w-0 flex-1 @yield('latar')">
+        <main class="min-w-0 flex-1 latar-gradien">
             {{-- Batang atas khusus layar sempit, berisi tombol menu dan merek. --}}
             <div class="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-white px-4 py-3 lg:hidden">
                 <button type="button" @click="menu = true" aria-label="Buka menu"
@@ -33,28 +30,31 @@
                 @yield('kembali')
             @endif
 
-            {{-- Halaman yang kepalanya berbentuk kartu menyusunnya sendiri lewat
-                 'header-sendiri'; sisanya memakai kepala baku di bawah ini. --}}
-            @hasSection('header-sendiri')
-                @yield('header-sendiri')
-            @else
-            <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                <div class="min-w-0">
-                    <h1 class="text-2xl leading-tight font-medium text-ink sm:text-[28px]">
-                        {{-- Dashboard memakai sapaan "Halo, nama"; halaman lain memakai judulnya. --}}
-                        @hasSection('sapaan')
-                            @yield('sapaan')
-                        @else
-                            @yield('judul')
+            {{-- Kepala halaman berbentuk kartu putih di atas latar gradien, satu
+                 bentuk untuk seluruh halaman. Tombol atau pemilih yang menyertai
+                 judul masuk lewat 'aksi-header' dan duduk di sisi kanannya. --}}
+            <header class="mb-4 rounded-card border border-line bg-white p-6">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                    <div class="min-w-0">
+                        <h1 class="text-2xl leading-tight font-medium text-ink sm:text-[28px]">
+                            {{-- Dashboard memakai sapaan "Halo, nama"; halaman lain memakai judulnya. --}}
+                            @hasSection('sapaan')
+                                @yield('sapaan')
+                            @else
+                                @yield('judul')
+                            @endif
+                        </h1>
+                        {{-- Dijaga: tanpa penjaga ini, halaman tanpa keterangan
+                             menyisakan satu baris kosong di dalam kartu. --}}
+                        @hasSection('keterangan')
+                            <p class="mt-1 text-base text-ink-2">@yield('keterangan')</p>
                         @endif
-                    </h1>
-                    <p class="mt-1 text-base text-ink-2">@yield('keterangan')</p>
+                    </div>
+                    @hasSection('aksi-header')
+                        <div class="shrink-0">@yield('aksi-header')</div>
+                    @endif
                 </div>
-                @hasSection('aksi-header')
-                    <div class="shrink-0">@yield('aksi-header')</div>
-                @endif
             </header>
-            @endif
 
             @include('partials.flash')
 

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('judul', 'Dashboard')
-@section('latar', 'latar-gradien')
+@section('sapaan', 'Halo, ' . $profil['nama'])
+@section('keterangan', 'Ringkasan perpajakan dan keuangan')
 
 @php
     // Gradasi biru untuk keenam kategori harta, urutannya tetap.
@@ -19,28 +20,15 @@
     $adaPenghasilan = array_sum($brutoPerBulan) > 0;
 @endphp
 
-{{-- Dashboard menyusun kepalanya sendiri sebagai kartu, bukan memakai kepala
-     baku layout: sapaan, keterangan, dan pemilih tahun duduk di dalam satu
-     kotak putih yang berdiri di atas latar bergerak. --}}
-@section('header-sendiri')
-    <section class="mb-4 rounded-card border border-line bg-white p-6">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-            <div class="min-w-0">
-                <h1 class="text-2xl leading-tight font-medium text-ink sm:text-[28px]">Halo, {{ $profil['nama'] }}</h1>
-                <p class="mt-1 text-base text-ink-2">Ringkasan perpajakan dan keuangan</p>
-            </div>
-            <div class="shrink-0">
-                <form method="GET" action="{{ route('dashboard') }}">
-                    <label for="tahun" class="sr-only">Tahun pajak</label>
-                    <select id="tahun" name="tahun" onchange="this.form.submit()" class="kolom-isian w-auto pr-9">
-                        @foreach($daftarTahun as $t)
-                            <option value="{{ $t }}" @selected($t === $tahun)>Tahun Pajak {{ $t }}</option>
-                        @endforeach
-                    </select>
-                </form>
-            </div>
-        </div>
-    </section>
+@section('aksi-header')
+    <form method="GET" action="{{ route('dashboard') }}">
+        <label for="tahun" class="sr-only">Tahun pajak</label>
+        <select id="tahun" name="tahun" onchange="this.form.submit()" class="kolom-isian w-auto pr-9">
+            @foreach($daftarTahun as $t)
+                <option value="{{ $t }}" @selected($t === $tahun)>Tahun Pajak {{ $t }}</option>
+            @endforeach
+        </select>
+    </form>
 @endsection
 
 @section('isi')

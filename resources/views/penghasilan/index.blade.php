@@ -2,12 +2,12 @@
 @section('judul', 'Data Penghasilan')
 @section('keterangan', 'Catat setiap penerimaan usaha sebagai dasar draf pajak')
 
-@section('isi')
-    {{-- Tombol tambah berdiri sendiri di antara keterangan halaman dan kartu ringkasan. --}}
-    <div class="mb-5 flex justify-end">
-        <x-button :href="route('penghasilan.create')" class="min-w-[150px]">+ Tambah</x-button>
-    </div>
+{{-- Tombol Tambah menyertai judul di dalam kartu kepala. --}}
+@section('aksi-header')
+    <x-button :href="route('penghasilan.create')" class="w-full sm:w-auto sm:min-w-[150px]">+ Tambah</x-button>
+@endsection
 
+@section('isi')
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-stat label="Total Penghasilan" :nilai="rupiah($total)" />
         <x-stat varian="putih" label="Jumlah Transaksi" :nilai="$jumlahTransaksi" />
