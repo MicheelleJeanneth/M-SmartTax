@@ -60,12 +60,20 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | will be used by the PHP date and date-time functions.
+    |
+    | Asia/Jakarta, bukan UTC bawaan Laravel: seluruh tenggat pajak yang
+    | dipakai aplikasi ini berbunyi dalam waktu setempat - setor paling lambat
+    | tanggal 15, lapor paling lambat 31 Maret. Dengan UTC, waktu antara
+    | tengah malam dan pukul 07.00 WIB masih terhitung tanggal kemarin,
+    | sehingga tanggal cetak dokumen dan jatuh tempo pengingat bisa mundur
+    | sehari. Ditulis langsung, bukan lewat env, karena aplikasi ini hanya
+    | melayani wajib pajak dalam negeri dan tidak ada lingkungan yang
+    | membutuhkan zona lain.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Jakarta',
 
     /*
     |--------------------------------------------------------------------------
