@@ -66,7 +66,7 @@
              selebar kartu, teksnya jatuh di bawah kolom kiri dan terbaca
              seolah menerangkan Tahun Perolehan. --}}
         <x-input label="Tahun Pelepasan" name="tahun_pelepasan" inputmode="numeric" maxlength="4"
-            pattern="\d{4}" data-digit placeholder="Contoh: 2029" :value="$h['tahun_pelepasan'] ?? ''"
+            pattern="\d{4}" data-digit :placeholder="'Contoh: '.(now()->year - 1)" :value="$h['tahun_pelepasan'] ?? ''"
             :bantuan="$info['bantuan_pelepasan']" />
     </div>
 

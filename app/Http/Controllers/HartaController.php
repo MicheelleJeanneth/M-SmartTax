@@ -164,13 +164,18 @@ class HartaController extends Controller
             'nilai' => ['required', 'integer', 'min:1'],
             'nilai_kini' => ['nullable', 'integer', 'min:0'],
             // Tahun perolehannya tidak ikut dikirim karena terkunci, jadi
-            // batas bawahnya dibaca dari baris yang sedang diubah.
-            'tahun_pelepasan' => ['nullable', 'digits:4', 'integer', 'min:'.(int) $harta->tahun_perolehan],
+            // batas bawahnya dibaca dari baris yang sedang diubah. Batas
+            // atasnya tahun berjalan, sama seperti jalur sahkan(): lampiran
+            // harta menggambarkan posisi yang nyata per 31 Desember, bukan
+            // rencana. Tahun pelepasan di masa depan membuat harta menghilang
+            // sendiri dari draf tahun itu, dan hilangnya tidak terlihat.
+            'tahun_pelepasan' => ['nullable', 'digits:4', 'integer', 'min:'.(int) $harta->tahun_perolehan, 'max:'.now()->year],
         ], [
             'nilai.required' => 'Nilai wajib diisi.',
             'nilai.min' => 'Nilai harus lebih besar dari nol.',
             'tahun_pelepasan.digits' => 'Tahun pelepasan ditulis empat angka.',
             'tahun_pelepasan.min' => 'Tahun pelepasan tidak boleh sebelum tahun perolehan.',
+            'tahun_pelepasan.max' => 'Tahun pelepasan tidak boleh melebihi tahun berjalan.',
         ]);
 
         $pelepasan = isset($sah['tahun_pelepasan']) ? (int) $sah['tahun_pelepasan'] : null;

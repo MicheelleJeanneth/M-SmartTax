@@ -43,6 +43,8 @@ class PenyusunDrafTahunan
             $tahun,
             $harta->map(fn (Harta $h): array => [
                 'kategori' => $h->kodeHarta->kategori,
+                'kode' => $h->kodeHarta->kode,
+                'deskripsi' => $h->deskripsi,
                 'nilai' => (int) $h->nilai,
             ]),
             $utang->map(fn (Utang $u): array => [
@@ -65,6 +67,8 @@ class PenyusunDrafTahunan
             (int) $draf->tahun_pajak,
             $draf->lampiranHarta->map(fn (DrafTahunanHarta $h): array => [
                 'kategori' => $h->kategori,
+                'kode' => $h->kode,
+                'deskripsi' => $h->deskripsi,
                 'nilai' => (int) $h->nilai,
             ]),
             $draf->lampiranUtang->map(fn (DrafTahunanUtang $u): array => [
@@ -221,11 +225,17 @@ class PenyusunDrafTahunan
         $bruto = (int) collect($rekap)->sum('bruto');
         $pph = (int) collect($rekap)->sum('pph_final');
 
+        // 'baris' memuat rincian tiap harta, bukan hanya jumlahnya. Halaman
+        // Susun meminta pengguna memastikan posisi per 31 Desember sudah benar,
+        // dan itu mustahil dilakukan dari angka jumlah per kategori: harta yang
+        // sebenarnya sudah dilepas maupun yang justru hilang dari daftar
+        // sama-sama tidak terlihat di sana.
         $perKategori = $harta->groupBy('kategori');
         $ringkasanHarta = collect(MockData::kategoriHarta())->map(fn (array $info, string $kunci): array => [
             'nama' => $info['nama'],
             'jumlah' => $perKategori->get($kunci)?->count() ?? 0,
             'nilai' => (int) ($perKategori->get($kunci)?->sum('nilai') ?? 0),
+            'baris' => $perKategori->get($kunci)?->values()->all() ?? [],
         ]);
 
         // Utang direkap per kode, sejajar dengan harta yang direkap per
@@ -235,6 +245,7 @@ class PenyusunDrafTahunan
             'nama' => $nama,
             'jumlah' => $perKode->get($kode)?->count() ?? 0,
             'saldo' => (int) ($perKode->get($kode)?->sum('saldo') ?? 0),
+            'baris' => $perKode->get($kode)?->values()->all() ?? [],
         ]);
 
         $totalHarta = (int) $harta->sum('nilai');

@@ -92,6 +92,32 @@ class LaporanBekuTest extends TestCase
      * harta dan utang "tidak dapat diubah" setelah draf disimpan, padahal
      * nilainya justru harus terus diperbarui untuk tahun berikutnya.
      */
+    /**
+     * Lampiran pada halaman Susun memuat rincian tiap baris, bukan hanya
+     * jumlah per kategori. Halaman itu meminta pengguna memastikan posisi per
+     * 31 Desember sudah benar, dan itu mustahil dilakukan dari angka jumlah:
+     * harta yang sebenarnya sudah dilepas maupun yang justru hilang dari
+     * daftar sama-sama tidak terlihat di sana.
+     */
+    public function test_lampiran_halaman_susun_memuat_rincian_tiap_baris(): void
+    {
+        $tahun = MockData::TAHUN;
+        Carbon::setTestNow(($tahun + 1).'-01-05');
+
+        for ($bulan = 7; $bulan <= 12; $bulan++) {
+            $this->post('/draf-bulanan', ['bulan' => $bulan, 'tahun' => $tahun])->assertRedirect();
+        }
+
+        $halaman = $this->get('/draf-tahunan/susun?tahun='.$tahun)->assertOk();
+
+        $dimiliki = Harta::with('kodeHarta')->get()->filter(fn (Harta $h): bool => $h->dimilikiPada($tahun));
+        $this->assertGreaterThan(0, $dimiliki->count());
+
+        foreach ($dimiliki as $h) {
+            $halaman->assertSee($h->kodeHarta->kode.' · '.e($h->deskripsi), false);
+        }
+    }
+
     public function test_halaman_susun_mengingatkan_memperbarui_angkanya_dulu(): void
     {
         $tahun = MockData::TAHUN;

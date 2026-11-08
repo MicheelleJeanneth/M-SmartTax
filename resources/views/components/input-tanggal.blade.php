@@ -1,4 +1,4 @@
-@props(['label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'value' => null, 'kunciSebelum' => null, 'kunciPesan' => null])
+@props(['label' => null, 'name', 'wajib' => false, 'bantuan' => null, 'value' => null, 'kunciSebelum' => null, 'kunciPesan' => null, 'batasMin' => '1900-01-01', 'batasMax' => null, 'pesanMin' => null, 'pesanMax' => null])
 @php
     // Kolom bertipe date bawaan peramban menampilkan urutan tanggalnya
     // mengikuti setelan bahasa perangkat, dan urutan itu tidak dapat
@@ -13,6 +13,17 @@
     $tampil = $iso === '' ? '' : implode('/', array_reverse(explode('-', $iso)));
 
     $penanda = $wajib ? ['required' => true] : [];
+
+    // Batas atas bawaannya hari ini. Halaman yang menolak hari ini juga,
+    // seperti tanggal lahir, mengirimkan batasnya sendiri.
+    $batasMax ??= now()->toDateString();
+
+    // Kalimat penolakannya datang dari pemanggil, bukan ditulis di app.js:
+    // tanggal lahir dan tanggal penghasilan ditolak karena alasan yang
+    // berbeda, jadi satu kalimat bersama akan salah di salah satunya. Bunyinya
+    // disamakan dengan pesan yang dibalas server untuk kolom yang sama.
+    $pesanMin ??= 'Tahun paling awal '.substr($batasMin, 0, 4).'.';
+    $pesanMax ??= 'Tanggal tidak boleh melewati hari ini.';
 
     // Tanggal sebelum batas ini ditolak karena drafnya sudah disusun. Kalimat
     // peringatannya disusun server, karena hanya server yang tahu draf bulan
@@ -29,7 +40,8 @@
     @endif
     <input id="{{ $name }}-tampil" type="text" inputmode="numeric" maxlength="10"
         placeholder="dd/mm/yyyy" autocomplete="off"
-        data-tanggal-dmy="{{ $name }}" data-min="1900-01-01" data-max="{{ now()->toDateString() }}"
+        data-tanggal-dmy="{{ $name }}" data-min="{{ $batasMin }}" data-max="{{ $batasMax }}"
+        data-pesan-min="{{ $pesanMin }}" data-pesan-max="{{ $pesanMax }}"
         value="{{ $tampil }}"
         {{ $attributes->merge([...$penanda, ...$kunci, 'class' => 'kolom-isian']) }}>
     {{-- Nilai yang sesungguhnya terkirim. Diperbarui app.js setiap kali kolom

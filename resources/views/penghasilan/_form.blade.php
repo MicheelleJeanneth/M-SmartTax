@@ -2,6 +2,7 @@
 <x-card>
     <x-input-tanggal label="Tanggal" name="tanggal" wajib :value="tanggal_isian($p['tanggal'] ?? null)"
         :kunci-sebelum="$awalTerbuka" :kunci-pesan="$pesanKunci"
+        pesan-max="Tanggal tidak boleh melewati hari ini." 
         bantuan="Urutannya hari/bulan/tahun, contoh 25/09/1980. Tanggal penerimaan uang, bukan tanggal pemesanan." />
     <x-input label="Nominal" name="nominal" wajib uang placeholder="0"
         :value="isset($p['nominal']) ? angka($p['nominal']) : ''"

@@ -7,34 +7,6 @@ window.Chart = Chart;
 Alpine.start();
 
 /*
- | Kolom tanggal: browser membolehkan tahun diketik lebih dari empat digit,
- | misalnya 222222. Batasnya dibaca dari data-min/data-max, bukan atribut
- | min/max asli, karena Chrome menimpa tahun di tengah pengetikan bila
- | atribut itu dipasang.
- |
- | Koreksi dijalankan saat fokus meninggalkan kolom, bukan pada peristiwa
- | change. Digit pertama tahun sudah membuat tanggalnya lengkap sehingga
- | change menyala di tengah pengetikan: mengetik 2005 akan terpotong menjadi
- | 0002 lalu ditimpa ke batas bawah sebelum tiga digit sisanya masuk.
- */
-const koreksiTanggal = (kolom) => {
-    if (!(kolom instanceof HTMLInputElement) || kolom.type !== 'date' || kolom.value === '') {
-        return;
-    }
-
-    const awal = kolom.dataset.min ?? kolom.min;
-    const akhir = kolom.dataset.max ?? kolom.max;
-
-    if (akhir && kolom.value > akhir) {
-        kolom.value = akhir;
-    } else if (awal && kolom.value < awal) {
-        kolom.value = awal;
-    }
-};
-
-document.addEventListener('focusout', (peristiwa) => koreksiTanggal(peristiwa.target));
-
-/*
  | Tombol kirim mati selama masih ada kolom wajib yang kosong, lalu menyala
  | sendiri begitu seluruhnya terisi.
  |
@@ -211,12 +183,15 @@ const masalahTanggalDmy = (kolom, iso) => {
             : 'Tanggal tersebut tidak ada dalam kalender.';
     }
 
+    // Kalimatnya datang dari data-pesan-*, disusun oleh pemanggil komponen.
+    // Pernah ditulis di sini, dan karena bunyinya khusus tanggal lahir,
+    // kolom tanggal penghasilan ikut menolak dengan kalimat yang salah.
     if (kolom.dataset.max && iso > kolom.dataset.max) {
-        return 'Tanggal lahir tidak boleh hari ini atau setelahnya.';
+        return kolom.dataset.pesanMax || 'Tanggal tidak boleh melewati hari ini.';
     }
 
     if (kolom.dataset.min && iso < kolom.dataset.min) {
-        return 'Tahun lahir paling awal 1900.';
+        return kolom.dataset.pesanMin || 'Tanggal terlalu jauh ke belakang.';
     }
 
     // Bulan yang drafnya sudah disusun. Kalimatnya datang dari server lewat
@@ -395,11 +370,6 @@ document.querySelectorAll('input[data-uang]').forEach((kolom) => {
     }
 });
 
-// Jaring pengaman bila kolom dikirim tanpa pernah kehilangan fokus, misalnya lewat tombol Enter.
-document.addEventListener('submit', (peristiwa) => {
-    peristiwa.target.querySelectorAll?.('input[type="date"]').forEach(koreksiTanggal);
-}, true);
-
 /*
  | Formulir bertanda data-konfirmasi tidak langsung terkirim: tombol simpannya
  | membuka dialog ringkasan dulu, sejajar dengan dialog hapus. Isian yang
@@ -425,7 +395,7 @@ const nilaiTerbaca = (kolom) => {
         return `Rp${kolom.value}`;
     }
 
-    if (kolom.type === 'date' || kolom.dataset?.tanggalIso !== undefined) {
+    if (kolom.dataset?.tanggalIso !== undefined) {
         return new Date(`${kolom.value}T00:00:00`).toLocaleDateString('id-ID', {
             day: 'numeric',
             month: 'long',

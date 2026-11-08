@@ -20,13 +20,24 @@
 </x-card>
 
 <x-card judul="Lampiran Harta per 31 Desember {{ $tahun }}" class="mt-4" padat>
-    <x-table :kepala="['Kategori', ['teks' => 'Jumlah', 'kanan' => true], ['teks' => 'Nilai', 'kanan' => true]]">
+    <x-table :kepala="['Kategori dan rinciannya', ['teks' => 'Jumlah', 'kanan' => true], ['teks' => 'Nilai', 'kanan' => true]]">
         @foreach($harta as $h)
             <tr>
-                <td>{{ $h['nama'] }}</td>
+                <td class="font-medium">{{ $h['nama'] }}</td>
                 <td class="text-right tabular-nums">{{ $h['jumlah'] }}</td>
                 <td class="text-right tabular-nums">{{ rupiah($h['nilai']) }}</td>
             </tr>
+            {{-- Rincian tiap barisnya, supaya posisi per 31 Desember benar-benar
+                 dapat diperiksa sebelum draf disimpan. Takuknya dipasang pada
+                 span, bukan pada td: kelas padding di td ditimpa oleh aturan
+                 [&_td]:px-4 milik komponen tabel yang kekhususannya lebih tinggi. --}}
+            @foreach($h['baris'] as $baris)
+                <tr>
+                    <td><span class="block pl-5 text-ink-2">{{ $baris['kode'] }} · {{ $baris['deskripsi'] }}</span></td>
+                    <td></td>
+                    <td class="text-right tabular-nums text-ink-2">{{ rupiah($baris['nilai']) }}</td>
+                </tr>
+            @endforeach
         @endforeach
         <x-slot:kaki>
             <tr>
@@ -39,13 +50,20 @@
 </x-card>
 
 <x-card judul="Lampiran Utang per 31 Desember {{ $tahun }}" class="mt-4" padat>
-    <x-table :kepala="['Kode Utang', ['teks' => 'Jumlah', 'kanan' => true], ['teks' => 'Saldo', 'kanan' => true]]">
+    <x-table :kepala="['Kode utang dan rinciannya', ['teks' => 'Jumlah', 'kanan' => true], ['teks' => 'Saldo', 'kanan' => true]]">
         @foreach($utang as $u)
             <tr>
-                <td>{{ $u['nama'] }}</td>
+                <td class="font-medium">{{ $u['nama'] }}</td>
                 <td class="text-right tabular-nums">{{ $u['jumlah'] }}</td>
                 <td class="text-right tabular-nums">{{ rupiah($u['saldo']) }}</td>
             </tr>
+            @foreach($u['baris'] as $baris)
+                <tr>
+                    <td><span class="block pl-5 text-ink-2">{{ $baris['kreditur'] }}@if($baris['deskripsi']) · {{ $baris['deskripsi'] }}@endif</span></td>
+                    <td></td>
+                    <td class="text-right tabular-nums text-ink-2">{{ rupiah($baris['saldo']) }}</td>
+                </tr>
+            @endforeach
         @endforeach
         <x-slot:kaki>
             <tr>

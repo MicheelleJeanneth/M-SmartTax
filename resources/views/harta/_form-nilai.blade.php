@@ -51,7 +51,7 @@
         <x-kolom-baca :label="$info['label_tahun']">{{ $item['tahun'] }}</x-kolom-baca>
         {{-- Satu-satunya kolom periode yang terbuka di sini. --}}
         <x-input label="Tahun Pelepasan" name="tahun_pelepasan" inputmode="numeric" maxlength="4"
-            pattern="\d{4}" data-digit placeholder="Contoh: 2029"
+            pattern="\d{4}" data-digit :placeholder="'Contoh: '.(now()->year - 1)"
             :value="$item['tahun_pelepasan'] ?? ''"
             bantuan="Isi tahun harta ini dilepas. Harta tidak lagi masuk lampiran draf tahun tersebut dan sesudahnya." />
     </div>

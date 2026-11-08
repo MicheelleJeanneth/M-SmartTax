@@ -14,8 +14,13 @@
         {{-- Nilainya harus berbentuk Y-m-d. Cast 'date' pada model menghasilkan
              "1980-09-25 00:00:00", yang membuat kolomnya tampil kosong dan
              tombol Simpan tertahan karena kolom wajib dianggap belum terisi. --}}
+        {{-- Batas atasnya kemarin, bukan hari ini: aturan di server 'before:today',
+             jadi tanggal hari ini pun ditolak. --}}
         <x-input-tanggal label="Tanggal Lahir" name="tanggal_lahir" wajib
             :value="tanggal_isian($p['tanggal_lahir'] ?? null)"
+            :batas-max="now()->subDay()->toDateString()"
+            pesan-max="Tanggal lahir tidak boleh hari ini atau setelahnya."
+            pesan-min="Tahun lahir paling awal 1900."
             bantuan="Urutannya hari/bulan/tahun, contoh 25/09/1980" />
     </div>
 

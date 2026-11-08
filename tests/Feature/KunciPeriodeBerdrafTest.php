@@ -286,6 +286,35 @@ class KunciPeriodeBerdrafTest extends TestCase
         $this->assertNull($harta->fresh()->tahun_pelepasan);
     }
 
+    /**
+     * Batas "ke depan" itu tahun berjalan, bukan tanpa batas. Lampiran harta
+     * menggambarkan posisi yang nyata per 31 Desember, bukan rencana. Tahun
+     * pelepasan di masa depan membuat hartanya menghilang sendiri dari draf
+     * tahun itu nanti, dan yang hilang tidak meninggalkan baris yang bisa
+     * diperiksa — tidak seperti harta yang lupa dicatat lepas, yang tetap
+     * terlihat di daftar.
+     *
+     * Jalur baris terkunci dulu tidak punya batas ini, sedangkan jalur baris
+     * bebas punya; kolom yang sama berperilaku beda tergantung terkunci atau
+     * tidak.
+     */
+    public function test_tahun_pelepasan_harta_terkunci_tidak_boleh_melewati_tahun_berjalan(): void
+    {
+        $harta = Harta::with('kodeHarta')->get()
+            ->first(fn (Harta $h): bool => $h->terkunci && $h->tahun_pelepasan === null);
+        $kategori = $harta->kodeHarta->kategori;
+
+        $this->from("/harta/{$kategori}/{$harta->id}/ubah")
+            ->put("/harta/{$kategori}/{$harta->id}", [
+                'nilai' => angka($harta->nilai),
+                'tahun_pelepasan' => (string) (now()->year + 1),
+            ])
+            ->assertRedirect("/harta/{$kategori}/{$harta->id}/ubah")
+            ->assertSessionHasErrors(['tahun_pelepasan' => 'Tahun pelepasan tidak boleh melebihi tahun berjalan.']);
+
+        $this->assertNull($harta->fresh()->tahun_pelepasan);
+    }
+
     public function test_tahun_pelepasan_yang_menarik_harta_keluar_draf_ditolak(): void
     {
         $harta = Harta::with('kodeHarta')->get()
