@@ -126,23 +126,29 @@
  | polos, sedangkan yang pusatnya di tepi menyebar ke dalam dan bertemu
  | sapuan seberangnya.
  |
- | Urutan warnanya diputar, bukan dikelompokkan: biru - lilac - krem - biru
- | - lilac. Dengan sisi yang juga berselang, tiap warna muncul di kiri dan
- | di kanan, sehingga tidak ada satu sisi halaman yang jadi milik satu warna
- | saja. Krem #F1EFE8 dan hijau #EAF3DE tidak dipakai di sini karena hampir
- | sama dengan warna halaman #F7F7F5 dan hasilnya tidak terlihat sama sekali.
+ | Dua warna saja: biru muda dan hijau logo. Urutannya biru - hijau - hijau
+ | - biru - hijau, dan karena sisinya berselang sendiri, kedua warna muncul
+ | di kiri maupun di kanan. Kalau urutannya ikut berselang rapi, biru akan
+ | selalu jatuh di kiri dan hijau selalu di kanan.
+ |
+ | Krem #F1EFE8 dan hijau #EAF3DE pernah dicoba lalu dibuang: keduanya
+ | hampir sama dengan warna halaman #F7F7F5 dan tidak pernah terlihat.
  |
  | Tidak ada animasi: latar yang bergerak menarik mata menjauh dari angka.
  */
 .latar-gradien {
     /*
-     | Lilac khusus latar ini, satu-satunya warna di sini yang bukan warna
-     | sistem. Sengaja tidak dijadikan token @theme: ia hiasan, dan tidak
-     | boleh sampai punya kelas bg- atau text- yang bisa terpakai di tempat
-     | lain. Ketuaannya disetarakan dengan biru muda #CBF2FF supaya tidak ada
-     | satu sisi halaman yang terlihat lebih berat dari sisi lain.
+     | Hijau khusus latar ini: tingkat muda dari hijau logo M-SmartTax
+     | #00786C, warna terbanyak pada public/images/logo.png. Paletnya sendiri
+     | tidak punya hijau yang dapat dipakai sebagai latar — --color-ok-bg
+     | #EAF3DE memang latar status berhasil, dirancang supaya tulisan gelap
+     | terbaca di atasnya, sehingga hampir sama dengan warna halaman dan
+     | tidak pernah terlihat.
+     |
+     | Sengaja tidak dijadikan token @theme: ia hiasan, dan tidak boleh
+     | sampai punya kelas bg- atau text- yang terpakai di tempat lain.
      */
-    --latar-lilac: #DCD2F3;
+    --latar-hijau: #B4DFD4;
 
     position: relative;
     isolation: isolate;
@@ -155,11 +161,11 @@
     inset: 0;
     z-index: -1;
     background:
-        radial-gradient(66% 36% at 0% 0%, var(--color-primary-soft) 0%, var(--color-primary-soft) 16%, transparent 78%),
-        radial-gradient(64% 34% at 100% 25%, var(--latar-lilac) 0%, var(--latar-lilac) 16%, transparent 78%),
-        radial-gradient(66% 36% at 0% 50%, var(--color-warn-bg) 0%, var(--color-warn-bg) 16%, transparent 78%),
-        radial-gradient(64% 34% at 100% 75%, var(--color-primary-soft) 0%, var(--color-primary-soft) 16%, transparent 78%),
-        radial-gradient(68% 38% at 0% 100%, var(--latar-lilac) 0%, var(--latar-lilac) 16%, transparent 78%);
-    opacity: 0.95;
+        radial-gradient(66% 36% at 0% 0%, var(--color-primary-soft) 0%, var(--color-primary-soft) 6%, transparent 78%),
+        radial-gradient(64% 34% at 100% 25%, var(--latar-hijau) 0%, var(--latar-hijau) 6%, transparent 78%),
+        radial-gradient(66% 36% at 0% 50%, var(--latar-hijau) 0%, var(--latar-hijau) 6%, transparent 78%),
+        radial-gradient(64% 34% at 100% 75%, var(--color-primary-soft) 0%, var(--color-primary-soft) 6%, transparent 78%),
+        radial-gradient(68% 38% at 0% 100%, var(--latar-hijau) 0%, var(--latar-hijau) 6%, transparent 78%);
+    opacity: 0.4;
     pointer-events: none;
 }
