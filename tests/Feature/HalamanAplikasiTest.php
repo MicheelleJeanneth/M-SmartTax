@@ -466,6 +466,26 @@ class HalamanAplikasiTest extends TestCase
             ->assertSee('data-konfirmasi="simpan-harta"', false);
     }
 
+    public function test_formulir_harta_dibuka_tanpa_isian_bawaan(): void
+    {
+        // Kolom khas tiap kategori menggambarkan keadaan harta milik pengguna.
+        // Nilai yang sudah terisi sejak formulir dibuka dapat ikut tersimpan
+        // tanpa pernah dibaca, misalnya kepemilikan kendaraan yang sebenarnya
+        // atas nama orang lain. Contoh pengisian cukup lewat placeholder.
+        foreach (array_keys(MockData::kategoriHarta()) as $kategori) {
+            $halaman = $this->get("/harta/{$kategori}/tambah")->assertOk()->getContent();
+
+            preg_match_all('/<input[^>]*name="khas_\d+"[^>]*>/', $halaman, $cocok);
+            $this->assertNotEmpty($cocok[0], "Kolom khas {$kategori} tidak ditemukan.");
+
+            foreach ($cocok[0] as $kolom) {
+                preg_match('/name="(khas_\d+)"/', $kolom, $nama);
+                preg_match('/value="([^"]*)"/', $kolom, $isi);
+                $this->assertSame('', $isi[1] ?? '', "Kolom {$nama[1]} pada {$kategori} masih punya isian bawaan.");
+            }
+        }
+    }
+
     public function test_perbarui_nilai_harta_terkunci_hanya_meringkas_nilainya(): void
     {
         $halaman = $this->get('/harta/kas/2/ubah')->assertOk()->getContent();

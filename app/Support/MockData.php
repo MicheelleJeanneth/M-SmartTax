@@ -285,7 +285,6 @@ class MockData
                 'label_lokasi' => null,
                 'kolom' => ['Nomor Polisi / Registrasi', 'Kepemilikan'],
                 'contoh' => ['Contoh: L 1234 AB', 'Contoh: Atas nama sendiri'],
-                'bawaan_kolom' => [null, 'Atas nama sendiri'],
                 'bantuan_kolom' => [null, null],
                 'bantuan_khas' => 'Nomor polisi boleh dikosongkan untuk harta tanpa registrasi, seperti mesin atau gerobak',
                 'wajib_kolom' => [false, true],
